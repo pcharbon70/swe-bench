@@ -1,10 +1,10 @@
 defmodule SweBench.TestRunner do
   @moduledoc """
   Core test execution engine for SWE-bench-Elixir evaluation system.
-  
+
   This module provides the main interface for executing tests with detailed
   result capture, integrating with the container system from Phase 1.1.
-  
+
   Features:
   - Custom ExUnit formatter for detailed result capture
   - Test execution orchestration with timeout handling
@@ -13,32 +13,32 @@ defmodule SweBench.TestRunner do
   - Integration with Docker container system
   """
 
-  alias SweBench.TestRunner.{Formatter, Orchestrator, Analyzer, Isolation}
+  alias SweBench.TestRunner.{Analyzer, Formatter, Isolation, Orchestrator}
   require Logger
 
   @doc """
   Executes tests in a project with comprehensive result capture.
-  
+
   ## Parameters
-  
+
   - `project_path` - Path to the Elixir project to test
   - `opts` - Options for test execution
-  
+
   ## Options
-  
+
   - `:timeout` - Execution timeout in milliseconds (default: 300_000)
   - `:isolation` - Whether to use process isolation (default: true)
   - `:formatter` - Custom formatter options (default: comprehensive)
   - `:coverage` - Whether to collect coverage data (default: true)
   - `:container_id` - Container ID for execution (optional)
-  
+
   ## Returns
-  
+
   - `{:ok, results}` - Successful execution with detailed results
   - `{:error, reason}` - Execution failure with error details
-  
+
   ## Examples
-  
+
       iex> SweBench.TestRunner.execute_tests("/path/to/project")
       {:ok, %{
         total_tests: 25,
@@ -51,16 +51,16 @@ defmodule SweBench.TestRunner do
   """
   def execute_tests(project_path, opts \\ []) do
     Logger.info("Starting test execution for project: #{project_path}")
-    
+
     timeout = Keyword.get(opts, :timeout, 300_000)
     use_isolation = Keyword.get(opts, :isolation, true)
     container_id = Keyword.get(opts, :container_id)
-    
+
     with {:ok, execution_id} <- start_execution(project_path, opts),
-         {:ok, results} <- run_tests_with_capture(execution_id, project_path, timeout, container_id),
+         {:ok, results} <-
+           run_tests_with_capture(execution_id, project_path, timeout, container_id),
          {:ok, analyzed_results} <- analyze_results(results, opts),
          :ok <- cleanup_execution(execution_id, use_isolation) do
-      
       Logger.info("Test execution completed successfully: #{execution_id}")
       {:ok, analyzed_results}
     else
@@ -72,20 +72,20 @@ defmodule SweBench.TestRunner do
 
   @doc """
   Compares test results between base and patched versions to detect transitions.
-  
+
   ## Parameters
-  
+
   - `base_results` - Test results from base (unpatched) code
   - `patched_results` - Test results from patched code
-  
+
   ## Returns
-  
+
   - `{:ok, transition_report}` - Detailed transition analysis
   - `{:error, reason}` - Analysis failure
   """
   def compare_test_results(base_results, patched_results) do
     Logger.info("Analyzing test result transitions")
-    
+
     case Analyzer.detect_transitions(base_results, patched_results) do
       {:ok, transitions} ->
         report = %{
@@ -96,11 +96,8 @@ defmodule SweBench.TestRunner do
           removed_tests: transitions.removed_tests,
           evaluation_score: calculate_evaluation_score(transitions)
         }
-        
+
         {:ok, report}
-        
-      {:error, reason} ->
-        {:error, reason}
     end
   end
 
@@ -109,7 +106,7 @@ defmodule SweBench.TestRunner do
   """
   def status do
     %{
-      formatter_running: Formatter.running?(),
+      formatter_running: formatter_running?(),
       active_executions: Orchestrator.active_executions(),
       isolation_enabled: Isolation.enabled?(),
       system_ready: system_ready?()
@@ -123,7 +120,6 @@ defmodule SweBench.TestRunner do
     with {:ok, _formatter} <- Formatter.start_link(opts),
          {:ok, _orchestrator} <- Orchestrator.start_link(opts),
          {:ok, _isolation} <- Isolation.start_link(opts) do
-      
       Logger.info("Test runner system started successfully")
       {:ok, :system_started}
     else
@@ -138,11 +134,11 @@ defmodule SweBench.TestRunner do
   """
   def stop_system do
     Logger.info("Stopping test runner system")
-    
+
     Isolation.stop()
     Orchestrator.stop()
     Formatter.stop()
-    
+
     :ok
   end
 
@@ -150,7 +146,7 @@ defmodule SweBench.TestRunner do
 
   defp start_execution(project_path, opts) do
     execution_id = generate_execution_id()
-    
+
     case Orchestrator.start_execution(execution_id, project_path, opts) do
       :ok -> {:ok, execution_id}
       {:error, reason} -> {:error, reason}
@@ -164,7 +160,7 @@ defmodule SweBench.TestRunner do
       capture_detailed: true,
       output_format: :structured
     ]
-    
+
     if container_id do
       # Execute in existing container
       Orchestrator.execute_in_container(execution_id, container_id, timeout)
@@ -180,7 +176,7 @@ defmodule SweBench.TestRunner do
       include_timing: true,
       include_transitions: true
     ]
-    
+
     Analyzer.analyze_execution_results(raw_results, analysis_opts)
   end
 
@@ -196,10 +192,10 @@ defmodule SweBench.TestRunner do
     # Calculate score based on FAIL_TO_PASS transitions
     fail_to_pass_count = length(transitions.fail_to_pass)
     pass_to_fail_count = length(transitions.pass_to_fail)
-    
+
     # Basic scoring: positive for fixes, negative for regressions
     base_score = fail_to_pass_count * 100 - pass_to_fail_count * 50
-    
+
     # Normalize to 0-100 scale
     max(0, min(100, base_score))
   end
@@ -210,8 +206,15 @@ defmodule SweBench.TestRunner do
   end
 
   defp system_ready? do
-    Formatter.running?() and 
-    Orchestrator.running?() and 
-    Isolation.running?()
+    formatter_running?() and
+      Orchestrator.running?() and
+      Isolation.running?()
+  end
+
+  defp formatter_running? do
+    case GenServer.whereis(Formatter) do
+      nil -> false
+      pid -> Process.alive?(pid)
+    end
   end
 end
