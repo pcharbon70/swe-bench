@@ -2,93 +2,91 @@
 
 This phase transforms SWE-bench-Elixir from a development framework into a production-ready service accessible to researchers and developers worldwide. The deployment includes a comprehensive web interface for result visualization, RESTful and GraphQL APIs for programmatic access, and robust infrastructure for handling concurrent evaluations at scale. Authentication, rate limiting, and monitoring ensure reliable service delivery while maintaining security and performance. By the end of this phase, the system will be ready for public use with documentation, SDKs, and integration examples enabling seamless adoption by the AI and Elixir communities.
 
-## 5.1 Web Interface Development ✅ **COMPLETED**
-
+## 5.1 Web Interface Development
 This section creates the Phoenix LiveView-based web interface that provides intuitive access to benchmarking capabilities, result visualization, and dataset exploration. The interface offers real-time evaluation monitoring, interactive result comparison, and detailed analytics dashboards. Special attention is given to user experience, accessibility, and responsive design for various device types.
 
 ### Tasks:
-- [x] 5.1.1 Create Phoenix application structure
-  - [x] 5.1.1.1 Initialize Phoenix project with LiveView
-  - [x] 5.1.1.2 Configure Tailwind CSS for styling
-  - [x] 5.1.1.3 Set up Alpine.js for interactions
-  - [x] 5.1.1.4 Implement responsive layout system
-  - [x] 5.1.1.5 Configure asset pipeline and bundling
+- [ ] 5.1.1 Create Phoenix application structure
+  - [ ] 5.1.1.1 Initialize Phoenix project with LiveView
+  - [ ] 5.1.1.2 Configure Tailwind CSS for styling
+  - [ ] 5.1.1.3 Set up Alpine.js for interactions
+  - [ ] 5.1.1.4 Implement responsive layout system
+  - [ ] 5.1.1.5 Configure asset pipeline and bundling
 
-- [x] 5.1.2 Implement evaluation interface
-  - [x] 5.1.2.1 Create task submission form
-  - [x] 5.1.2.2 Build real-time evaluation progress tracker
-  - [x] 5.1.2.3 Display live log streaming
-  - [x] 5.1.2.4 Show test execution results
-  - [x] 5.1.2.5 Implement result download functionality
+- [ ] 5.1.2 Implement evaluation interface
+  - [ ] 5.1.2.1 Create task submission form
+  - [ ] 5.1.2.2 Build real-time evaluation progress tracker
+  - [ ] 5.1.2.3 Display live log streaming
+  - [ ] 5.1.2.4 Show test execution results
+  - [ ] 5.1.2.5 Implement result download functionality
 
-- [x] 5.1.3 Build result visualization dashboard
-  - [x] 5.1.3.1 Create score distribution charts
-  - [x] 5.1.3.2 Implement repository performance matrices
-  - [x] 5.1.3.3 Display pattern matching analysis
-  - [x] 5.1.3.4 Show OTP compliance metrics
-  - [x] 5.1.3.5 Generate comparative analytics
+- [ ] 5.1.3 Build result visualization dashboard
+  - [ ] 5.1.3.1 Create score distribution charts
+  - [ ] 5.1.3.2 Implement repository performance matrices
+  - [ ] 5.1.3.3 Display pattern matching analysis
+  - [ ] 5.1.3.4 Show OTP compliance metrics
+  - [ ] 5.1.3.5 Generate comparative analytics
 
-- [x] 5.1.4 Create dataset explorer
-  - [x] 5.1.4.1 Build searchable task instance browser
-  - [x] 5.1.4.2 Implement filtering by repository/complexity
-  - [x] 5.1.4.3 Display task details and patches
-  - [x] 5.1.4.4 Show validation history
-  - [x] 5.1.4.5 Enable dataset subset creation
+- [ ] 5.1.4 Create dataset explorer
+  - [ ] 5.1.4.1 Build searchable task instance browser
+  - [ ] 5.1.4.2 Implement filtering by repository/complexity
+  - [ ] 5.1.4.3 Display task details and patches
+  - [ ] 5.1.4.4 Show validation history
+  - [ ] 5.1.4.5 Enable dataset subset creation
 
 ### Unit Tests:
-- [x] 5.1.5 Test LiveView component interactions
-- [x] 5.1.6 Test real-time update mechanisms
-- [x] 5.1.7 Test chart rendering and data binding
-- [x] 5.1.8 Test search and filtering functionality
-- [x] 5.1.9 Test responsive design breakpoints
-- [x] 5.1.10 Test accessibility compliance
-- [x] 5.1.11 Test browser compatibility
+- [ ] 5.1.5 Test LiveView component interactions
+- [ ] 5.1.6 Test real-time update mechanisms
+- [ ] 5.1.7 Test chart rendering and data binding
+- [ ] 5.1.8 Test search and filtering functionality
+- [ ] 5.1.9 Test responsive design breakpoints
+- [ ] 5.1.10 Test accessibility compliance
+- [ ] 5.1.11 Test browser compatibility
 
-**Implementation Status:** Complete Phoenix LiveView web interface with evaluation submission, real-time progress tracking, result visualization dashboard, and dataset explorer. Features responsive design with Tailwind CSS, comprehensive analytics dashboards, searchable task instance browser, and accessibility compliance.
+**Implementation Status:** Not started - Phoenix LiveView web interface with evaluation submission, real-time progress tracking, result visualization dashboard, and dataset explorer. Features responsive design with Tailwind CSS, comprehensive analytics dashboards, searchable task instance browser, and accessibility compliance.
 
-## 5.2 REST API Implementation ✅ **COMPLETED**
-
+## 5.2 REST API Implementation
 This section develops the comprehensive REST API that enables programmatic access to evaluation services, dataset retrieval, and result management. The API follows RESTful principles with proper resource modeling, HATEOAS compliance, and versioning support. OpenAPI documentation ensures clear API contracts and enables client SDK generation.
 
 ### Tasks:
-- [x] 5.2.1 Design API architecture
-  - [x] 5.2.1.1 Define resource models and relationships
-  - [x] 5.2.1.2 Establish URL structure and naming
-  - [x] 5.2.1.3 Plan API versioning strategy
-  - [x] 5.2.1.4 Design pagination approach
-  - [x] 5.2.1.5 Specify error response formats
+- [ ] 5.2.1 Design API architecture
+  - [ ] 5.2.1.1 Define resource models and relationships
+  - [ ] 5.2.1.2 Establish URL structure and naming
+  - [ ] 5.2.1.3 Plan API versioning strategy
+  - [ ] 5.2.1.4 Design pagination approach
+  - [ ] 5.2.1.5 Specify error response formats
 
-- [x] 5.2.2 Implement evaluation endpoints
-  - [x] 5.2.2.1 POST /evaluations - Submit evaluation
-  - [x] 5.2.2.2 GET /evaluations/:id - Check status
-  - [x] 5.2.2.3 GET /evaluations/:id/results - Retrieve results
-  - [x] 5.2.2.4 DELETE /evaluations/:id - Cancel evaluation
-  - [x] 5.2.2.5 GET /evaluations - List user evaluations
+- [ ] 5.2.2 Implement evaluation endpoints
+  - [ ] 5.2.2.1 POST /evaluations - Submit evaluation
+  - [ ] 5.2.2.2 GET /evaluations/:id - Check status
+  - [ ] 5.2.2.3 GET /evaluations/:id/results - Retrieve results
+  - [ ] 5.2.2.4 DELETE /evaluations/:id - Cancel evaluation
+  - [ ] 5.2.2.5 GET /evaluations - List user evaluations
 
-- [x] 5.2.3 Build dataset access endpoints
-  - [x] 5.2.3.1 GET /tasks - List task instances
-  - [x] 5.2.3.2 GET /tasks/:id - Get task details
-  - [x] 5.2.3.3 GET /repositories - List repositories
-  - [x] 5.2.3.4 GET /datasets/:version - Download dataset
-  - [x] 5.2.3.5 POST /datasets/filter - Create subset
+- [ ] 5.2.3 Build dataset access endpoints
+  - [ ] 5.2.3.1 GET /tasks - List task instances
+  - [ ] 5.2.3.2 GET /tasks/:id - Get task details
+  - [ ] 5.2.3.3 GET /repositories - List repositories
+  - [ ] 5.2.3.4 GET /datasets/:version - Download dataset
+  - [ ] 5.2.3.5 POST /datasets/filter - Create subset
 
-- [x] 5.2.4 Create OpenAPI documentation
-  - [x] 5.2.4.1 Generate OpenAPI 3.0 specification
-  - [x] 5.2.4.2 Document all endpoints and parameters
-  - [x] 5.2.4.3 Include example requests/responses
-  - [x] 5.2.4.4 Add authentication documentation
-  - [x] 5.2.4.5 Generate interactive API explorer
+- [ ] 5.2.4 Create OpenAPI documentation
+  - [ ] 5.2.4.1 Generate OpenAPI 3.0 specification
+  - [ ] 5.2.4.2 Document all endpoints and parameters
+  - [ ] 5.2.4.3 Include example requests/responses
+  - [ ] 5.2.4.4 Add authentication documentation
+  - [ ] 5.2.4.5 Generate interactive API explorer
 
 ### Unit Tests:
-- [x] 5.2.5 Test endpoint routing and parameters
-- [x] 5.2.6 Test request validation and sanitization
-- [x] 5.2.7 Test response serialization
-- [x] 5.2.8 Test pagination and filtering
-- [x] 5.2.9 Test error handling and status codes
-- [x] 5.2.10 Test API versioning
-- [x] 5.2.11 Test OpenAPI spec validity
+- [ ] 5.2.5 Test endpoint routing and parameters
+- [ ] 5.2.6 Test request validation and sanitization
+- [ ] 5.2.7 Test response serialization
+- [ ] 5.2.8 Test pagination and filtering
+- [ ] 5.2.9 Test error handling and status codes
+- [ ] 5.2.10 Test API versioning
+- [ ] 5.2.11 Test OpenAPI spec validity
 
-**Implementation Status:** Complete REST API implementation with comprehensive evaluation, dataset, repository, and statistics endpoints. Features RESTful resource modeling, advanced pagination and filtering, standardized error handling, and proper HTTP status codes. Enables full programmatic access to evaluation services and dataset management.
+**Implementation Status:** Not started - REST API implementation with comprehensive evaluation, dataset, repository, and statistics endpoints. Features RESTful resource modeling, advanced pagination and filtering, standardized error handling, and proper HTTP status codes. Enables full programmatic access to evaluation services and dataset management.
 
 ## 5.3 GraphQL API Development
 
