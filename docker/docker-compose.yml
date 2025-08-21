@@ -1,0 +1,91 @@
+# Docker Compose configuration for SWE-bench-Elixir container infrastructure
+# This file defines the multi-container setup for development and testing
+
+version: '3.8'
+
+services:
+  # PostgreSQL database for storing evaluation results and metadata
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: swe_bench_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and job queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # SWE-bench Elixir application
+  swe_bench:
+    build:
+      context: .
+      dockerfile: instance/Dockerfile
+      args:
+        ENV_IMAGE: swe-bench/env:latest
+    environment:
+      MIX_ENV: dev
+      DATABASE_URL: ecto://postgres:postgres@postgres/swe_bench_dev
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY_BASE: "your-secret-key-base-here"
+      LIVE_RELOAD: "true"
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../:/opt/app
+      - /var/run/docker.sock:/var/run/docker.sock  # For Docker-in-Docker
+    command: mix phx.server
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Container registry (optional, for production)
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /var/lib/registry
+    volumes:
+      - registry_data:/var/lib/registry
+    profiles:
+      - production
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  registry_data:
+    driver: local
+
+networks:
+  default:
+    name: swe-bench-network
