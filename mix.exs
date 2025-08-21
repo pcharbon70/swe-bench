@@ -48,6 +48,7 @@ defmodule SweBench.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:tidewave, "~> 0.2", only: [:dev]},
       {:bcrypt_elixir, "~> 3.0"},
       {:picosat_elixir, "~> 0.2"},
       {:sourceror, "~> 1.8"},
@@ -88,7 +89,7 @@ defmodule SweBench.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:claude, "~> 0.5.0"},
+      {:claude, "~> 0.5", only: [:dev], runtime: false},
       {:usage_rules, "~> 0.1.23"}
     ]
   end
