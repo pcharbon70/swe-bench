@@ -1,7 +1,7 @@
 defmodule SweBench.Container.Pool do
   @moduledoc """
   Container pool management for improved performance and resource utilization.
-  
+
   Provides:
   - Pre-warmed container pools
   - Container checkout/checkin system
@@ -107,7 +107,7 @@ defmodule SweBench.Container.Pool do
   @impl GenServer
   def init({pool_id, config}) do
     Logger.info("Starting container pool: #{pool_id}")
-    
+
     state = %__MODULE__{
       id: pool_id,
       config: config,
@@ -122,7 +122,7 @@ defmodule SweBench.Container.Pool do
         health_checks: 0
       }
     }
-    
+
     # Start with initial pool size
     initial_size = Map.get(config, :pool_size, 3)
     {:ok, warm_pool(state, initial_size)}
@@ -135,40 +135,26 @@ defmodule SweBench.Container.Pool do
         # Mark container as checked out
         new_checked_out = MapSet.put(state.checked_out, container_id)
         new_stats = %{state.stats | checkouts: state.stats.checkouts + 1}
-        
-        new_state = %{state |
-          available: new_available,
-          checked_out: new_checked_out,
-          stats: new_stats
+
+        new_state = %{
+          state
+          | available: new_available,
+            checked_out: new_checked_out,
+            stats: new_stats
         }
-        
+
         Logger.debug("Pool #{state.id}: Checked out container #{container_id}")
         {:reply, {:ok, container_id}, new_state}
-        
+
       {:empty, _} ->
         # Try to create a new container if under limit
         max_containers = Map.get(state.config, :max_containers, 10)
         current_count = map_size(state.containers)
-        
+
         if current_count < max_containers do
-          case create_new_container(state) do
-            {:ok, container_id, new_state} ->
-              new_checked_out = MapSet.put(new_state.checked_out, container_id)
-              new_stats = %{new_state.stats | checkouts: new_state.stats.checkouts + 1}
-              
-              final_state = %{new_state |
-                checked_out: new_checked_out,
-                stats: new_stats
-              }
-              
-              {:reply, {:ok, container_id}, final_state}
-              
-            {:error, reason} ->
-              Logger.warn("Pool #{state.id}: Failed to create container: #{inspect(reason)}")
-              {:reply, {:error, :no_containers}, state}
-          end
+          handle_container_creation(state)
         else
-          Logger.warn("Pool #{state.id}: No containers available and at maximum capacity")
+          Logger.warning("Pool #{state.id}: No containers available and at maximum capacity")
           {:reply, {:error, :no_containers}, state}
         end
     end
@@ -184,18 +170,22 @@ defmodule SweBench.Container.Pool do
           new_available = :queue.in(container_id, state.available)
           new_checked_out = MapSet.delete(state.checked_out, container_id)
           new_stats = %{state.stats | checkins: state.stats.checkins + 1}
-          
-          new_state = %{state |
-            available: new_available,
-            checked_out: new_checked_out,
-            stats: new_stats
+
+          new_state = %{
+            state
+            | available: new_available,
+              checked_out: new_checked_out,
+              stats: new_stats
           }
-          
+
           Logger.debug("Pool #{state.id}: Checked in container #{container_id}")
           {:reply, :ok, new_state}
-          
+
         {:error, reason} ->
-          Logger.warn("Pool #{state.id}: Container #{container_id} failed health check: #{inspect(reason)}")
+          Logger.warning(
+            "Pool #{state.id}: Container #{container_id} failed health check: #{inspect(reason)}"
+          )
+
           # Remove unhealthy container
           new_state = remove_container_from_pool(state, container_id)
           {:reply, :ok, new_state}
@@ -215,14 +205,14 @@ defmodule SweBench.Container.Pool do
       statistics: state.stats,
       config: state.config
     }
-    
+
     {:reply, status_info, state}
   end
 
   @impl GenServer
   def handle_call({:scale, new_size}, _from, state) do
     current_size = map_size(state.containers)
-    
+
     cond do
       new_size > current_size ->
         # Scale up
@@ -230,14 +220,14 @@ defmodule SweBench.Container.Pool do
         new_state = warm_pool(state, containers_to_add)
         Logger.info("Pool #{state.id}: Scaled up to #{new_size} containers")
         {:reply, :ok, new_state}
-        
+
       new_size < current_size ->
         # Scale down
         containers_to_remove = current_size - new_size
         new_state = scale_down_pool(state, containers_to_remove)
         Logger.info("Pool #{state.id}: Scaled down to #{new_size} containers")
         {:reply, :ok, new_state}
-        
+
       true ->
         # No change needed
         {:reply, :ok, state}
@@ -247,10 +237,10 @@ defmodule SweBench.Container.Pool do
   @impl GenServer
   def handle_cast(:health_check, state) do
     Logger.debug("Pool #{state.id}: Performing health check")
-    
+
     new_state = perform_pool_health_check(state)
     new_stats = %{new_state.stats | health_checks: new_state.stats.health_checks + 1}
-    
+
     {:noreply, %{new_state | stats: new_stats}}
   end
 
@@ -269,16 +259,19 @@ defmodule SweBench.Container.Pool do
 
   defp warm_pool(state, count) when count > 0 do
     Logger.info("Pool #{state.id}: Warming pool with #{count} containers")
-    
+
     Enum.reduce(1..count, state, fn _, acc_state ->
       case create_new_container(acc_state) do
         {:ok, container_id, new_state} ->
           # Add to available queue
           new_available = :queue.in(container_id, new_state.available)
           %{new_state | available: new_available}
-          
+
         {:error, reason} ->
-          Logger.warn("Pool #{state.id}: Failed to create container during warming: #{inspect(reason)}")
+          Logger.warning(
+            "Pool #{state.id}: Failed to create container during warming: #{inspect(reason)}"
+          )
+
           acc_state
       end
     end)
@@ -296,18 +289,15 @@ defmodule SweBench.Container.Pool do
           health_checks: 0,
           last_used: nil
         }
-        
+
         new_containers = Map.put(state.containers, container_id, container_info)
         new_stats = %{state.stats | created: state.stats.created + 1}
-        
-        new_state = %{state |
-          containers: new_containers,
-          stats: new_stats
-        }
-        
+
+        new_state = %{state | containers: new_containers, stats: new_stats}
+
         Logger.debug("Pool #{state.id}: Created container #{container_id}")
         {:ok, container_id, new_state}
-        
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -315,28 +305,29 @@ defmodule SweBench.Container.Pool do
 
   defp remove_container_from_pool(state, container_id) do
     Logger.debug("Pool #{state.id}: Removing container #{container_id}")
-    
+
     # Remove from Docker
     Builder.remove_container(container_id)
-    
+
     # Update state
     new_containers = Map.delete(state.containers, container_id)
     new_available = :queue.filter(fn id -> id != container_id end, state.available)
     new_checked_out = MapSet.delete(state.checked_out, container_id)
     new_stats = %{state.stats | destroyed: state.stats.destroyed + 1}
-    
-    %{state |
-      containers: new_containers,
-      available: new_available,
-      checked_out: new_checked_out,
-      stats: new_stats
+
+    %{
+      state
+      | containers: new_containers,
+        available: new_available,
+        checked_out: new_checked_out,
+        stats: new_stats
     }
   end
 
   defp verify_container_health(container_id) do
     # Run a simple health check on the container
     inspect_args = ["inspect", "--format={{.State.Running}}", container_id]
-    
+
     case System.cmd("docker", inspect_args, stderr_to_stdout: true) do
       {"true\n", 0} -> :ok
       {_output, _code} -> {:error, :not_running}
@@ -345,15 +336,15 @@ defmodule SweBench.Container.Pool do
 
   defp perform_pool_health_check(state) do
     Logger.debug("Pool #{state.id}: Checking health of #{map_size(state.containers)} containers")
-    
+
     # Check all containers and remove unhealthy ones
     Enum.reduce(state.containers, state, fn {container_id, _info}, acc_state ->
       case verify_container_health(container_id) do
         :ok ->
           acc_state
-          
+
         {:error, reason} ->
-          Logger.warn("Pool #{state.id}: Container #{container_id} unhealthy: #{inspect(reason)}")
+          Logger.warning("Pool #{state.id}: Container #{container_id} unhealthy: #{inspect(reason)}")
           remove_container_from_pool(acc_state, container_id)
       end
     end)
@@ -363,12 +354,13 @@ defmodule SweBench.Container.Pool do
     # Remove containers from available queue first
     available_list = :queue.to_list(state.available)
     {to_remove, to_keep} = Enum.split(available_list, containers_to_remove)
-    
+
     # Remove the selected containers
-    final_state = Enum.reduce(to_remove, state, fn container_id, acc_state ->
-      remove_container_from_pool(acc_state, container_id)
-    end)
-    
+    final_state =
+      Enum.reduce(to_remove, state, fn container_id, acc_state ->
+        remove_container_from_pool(acc_state, container_id)
+      end)
+
     # Update available queue
     new_available = :queue.from_list(to_keep)
     %{final_state | available: new_available}
@@ -378,5 +370,25 @@ defmodule SweBench.Container.Pool do
     Enum.each(state.containers, fn {container_id, _info} ->
       Builder.remove_container(container_id)
     end)
+  end
+
+  defp handle_container_creation(state) do
+    case create_new_container(state) do
+      {:ok, container_id, new_state} ->
+        checkout_new_container(container_id, new_state)
+
+      {:error, reason} ->
+        Logger.warning("Pool #{state.id}: Failed to create container: #{inspect(reason)}")
+        {:reply, {:error, :no_containers}, state}
+    end
+  end
+
+  defp checkout_new_container(container_id, state) do
+    new_checked_out = MapSet.put(state.checked_out, container_id)
+    new_stats = %{state.stats | checkouts: state.stats.checkouts + 1}
+
+    final_state = %{state | checked_out: new_checked_out, stats: new_stats}
+
+    {:reply, {:ok, container_id}, final_state}
   end
 end
