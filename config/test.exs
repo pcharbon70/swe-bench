@@ -1,4 +1,7 @@
 import Config
+config :swe_bench, token_signing_secret: "6isW/Mn2l3hbgeC5+kwYF6ZkpHhZcBgp"
+config :bcrypt_elixir, log_rounds: 1
+config :ash, policies: [show_policy_breakdowns?: true], disable_async?: true
 
 # Configure your database
 #

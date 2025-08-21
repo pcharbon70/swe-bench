@@ -15,7 +15,8 @@ defmodule SweBench.Application do
       # Start a worker by calling: SweBench.Worker.start_link(arg)
       # {SweBench.Worker, arg},
       # Start to serve requests, typically the last entry
-      SweBenchWeb.Endpoint
+      SweBenchWeb.Endpoint,
+      {AshAuthentication.Supervisor, [otp_app: :swe_bench]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

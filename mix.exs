@@ -11,7 +11,15 @@ defmodule SweBench.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      consolidate_protocols: Mix.env() != :dev,
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "test.coverage": :test
+      ]
     ]
   end
 
@@ -40,7 +48,17 @@ defmodule SweBench.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:igniter, "~> 0.6", only: [:dev, :test]},
+      {:bcrypt_elixir, "~> 3.0"},
+      {:picosat_elixir, "~> 0.2"},
+      {:sourceror, "~> 1.8"},
+      {:live_debugger, "~> 0.3", only: [:dev]},
+      {:ash_admin, "~> 0.13"},
+      {:ash_authentication_phoenix, "~> 2.0"},
+      {:ash_authentication, "~> 4.0"},
+      {:ash_postgres, "~> 2.0"},
+      {:ash_phoenix, "~> 2.0"},
+      {:ash, "~> 3.0"},
+      {:igniter, "~> 0.6 and >= 0.6.6"},
       {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.5"},
       {:ecto_sql, "~> 3.13"},
@@ -66,7 +84,12 @@ defmodule SweBench.MixProject do
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
+      {:excoveralls, "~> 0.10", only: :test},
+      {:claude, "~> 0.5.0"},
+      {:usage_rules, "~> 0.1.23"}
     ]
   end
 
@@ -78,15 +101,15 @@ defmodule SweBench.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
+      setup: ["deps.get", "ash.setup", "assets.setup", "assets.build", "run priv/repo/seeds.exs"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: ["ash.setup --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind swe_bench", "esbuild swe_bench"],
+      "assets.build": ["tailwind rubber_duck", "esbuild rubber_duck"],
       "assets.deploy": [
-        "tailwind swe_bench --minify",
-        "esbuild swe_bench --minify",
+        "tailwind rubber_duck --minify",
+        "esbuild rubber_duck --minify",
         "phx.digest"
       ],
       precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]

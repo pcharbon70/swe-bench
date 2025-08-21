@@ -1,4 +1,5 @@
 import Config
+config :ash, policies: [show_policy_breakdowns?: true]
 
 # Configure your database
 config :swe_bench, SweBench.Repo,
@@ -64,7 +65,7 @@ config :swe_bench, SweBenchWeb.Endpoint,
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :swe_bench, dev_routes: true
+config :swe_bench, dev_routes: true, token_signing_secret: "A4gennlFvwjXqE7us5oA9BWaSYa7/qjw"
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :default_formatter, format: "[$level] $message\n"
