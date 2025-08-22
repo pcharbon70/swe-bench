@@ -109,7 +109,7 @@ defmodule SweBench.Pipeline.Supervisor do
          subscribe_to: [TaskProducer]
        ]},
 
-      # Container Evaluator workers (ConsumerProducer)  
+      # Container Evaluator workers (ConsumerProducer)
       {ContainerEvaluator,
        [
          name: :container_evaluator_1,
