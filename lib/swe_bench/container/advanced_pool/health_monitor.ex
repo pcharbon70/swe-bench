@@ -159,7 +159,7 @@ defmodule SweBench.Container.AdvancedPool.HealthMonitor do
   end
 
   defp check_cpu_usage(_pool_id) do
-    # Placeholder for CPU usage check  
+    # Placeholder for CPU usage check
     # 10-90%
     :rand.uniform(80) + 10
   end
