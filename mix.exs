@@ -83,6 +83,7 @@ defmodule SweBench.MixProject do
       {:tesla, "~> 1.9"},
       {:finch, "~> 0.18"},
       {:cachex, "~> 3.6"},
+      {:gen_stage, "~> 1.2"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},

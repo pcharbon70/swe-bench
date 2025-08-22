@@ -228,63 +228,63 @@ This section establishes the initial set of 5 repositories for proof-of-concept 
 This section implements the GenStage-based pipeline architecture that enables parallel task evaluation with backpressure control. The pipeline transforms the sequential evaluation process into a high-throughput system capable of processing hundreds of tasks per hour. By implementing producer-consumer stages with proper supervision, the system achieves both performance and reliability goals while maintaining deterministic evaluation results.
 
 ### Tasks:
-- [ ] 1.6.1 Implement GenStage producer for task instances
-  - [ ] 1.6.1.1 Create TaskProducer GenStage module
-  - [ ] 1.6.1.2 Implement demand-based task fetching from database
-  - [ ] 1.6.1.3 Add task prioritization and ordering logic
-  - [ ] 1.6.1.4 Handle producer state management and recovery
-  - [ ] 1.6.1.5 Implement batch optimization for repository grouping
+- [x] 1.6.1 Implement GenStage producer for task instances
+  - [x] 1.6.1.1 Create TaskProducer GenStage module
+  - [x] 1.6.1.2 Implement demand-based task fetching from database
+  - [x] 1.6.1.3 Add task prioritization and ordering logic
+  - [x] 1.6.1.4 Handle producer state management and recovery
+  - [x] 1.6.1.5 Implement batch optimization for repository grouping
 
-- [ ] 1.6.2 Create LLM patch fetcher stage
-  - [ ] 1.6.2.1 Build ProducerConsumer for LLM API calls
-  - [ ] 1.6.2.2 Implement parallel patch fetching with rate limiting
-  - [ ] 1.6.2.3 Add retry logic with exponential backoff
-  - [ ] 1.6.2.4 Cache LLM responses for reuse
-  - [ ] 1.6.2.5 Handle API failures and timeout scenarios
+- [x] 1.6.2 Create LLM patch fetcher stage
+  - [x] 1.6.2.1 Build ProducerConsumer for LLM API calls
+  - [x] 1.6.2.2 Implement parallel patch fetching with rate limiting
+  - [x] 1.6.2.3 Add retry logic with exponential backoff
+  - [x] 1.6.2.4 Cache LLM responses for reuse
+  - [x] 1.6.2.5 Handle API failures and timeout scenarios
 
-- [ ] 1.6.3 Build container evaluation stage
-  - [ ] 1.6.3.1 Create ConsumerProducer for container execution
-  - [ ] 1.6.3.2 Integrate with container pool for parallel evaluation
-  - [ ] 1.6.3.3 Implement container health monitoring
-  - [ ] 1.6.3.4 Add evaluation timeout and resource management
-  - [ ] 1.6.3.5 Handle container failures and restarts
+- [x] 1.6.3 Build container evaluation stage
+  - [x] 1.6.3.1 Create ConsumerProducer for container execution
+  - [x] 1.6.3.2 Integrate with container pool for parallel evaluation
+  - [x] 1.6.3.3 Implement container health monitoring
+  - [x] 1.6.3.4 Add evaluation timeout and resource management
+  - [x] 1.6.3.5 Handle container failures and restarts
 
-- [ ] 1.6.4 Implement result analysis stage
-  - [ ] 1.6.4.1 Build Consumer for test result analysis
-  - [ ] 1.6.4.2 Process FAIL_TO_PASS transitions in parallel
-  - [ ] 1.6.4.3 Calculate scoring metrics concurrently
-  - [ ] 1.6.4.4 Stream results to database without blocking
-  - [ ] 1.6.4.5 Generate real-time progress notifications
+- [x] 1.6.4 Implement result analysis stage
+  - [x] 1.6.4.1 Build Consumer for test result analysis
+  - [x] 1.6.4.2 Process FAIL_TO_PASS transitions in parallel
+  - [x] 1.6.4.3 Calculate scoring metrics concurrently
+  - [x] 1.6.4.4 Stream results to database without blocking
+  - [x] 1.6.4.5 Generate real-time progress notifications
 
-- [ ] 1.6.5 Create pipeline supervisor with restart strategies
-  - [ ] 1.6.5.1 Design supervision tree for pipeline stages
-  - [ ] 1.6.5.2 Implement stage restart strategies (one_for_one, rest_for_one)
-  - [ ] 1.6.5.3 Add circuit breakers for failing stages
-  - [ ] 1.6.5.4 Create pipeline health monitoring
-  - [ ] 1.6.5.5 Implement graceful shutdown procedures
+- [x] 1.6.5 Create pipeline supervisor with restart strategies
+  - [x] 1.6.5.1 Design supervision tree for pipeline stages
+  - [x] 1.6.5.2 Implement stage restart strategies (one_for_one, rest_for_one)
+  - [x] 1.6.5.3 Add circuit breakers for failing stages
+  - [x] 1.6.5.4 Create pipeline health monitoring
+  - [x] 1.6.5.5 Implement graceful shutdown procedures
 
-- [ ] 1.6.6 Configure backpressure and flow control
-  - [ ] 1.6.6.1 Set optimal buffer sizes for each stage
-  - [ ] 1.6.6.2 Implement adaptive concurrency control
-  - [ ] 1.6.6.3 Add memory pressure monitoring
-  - [ ] 1.6.6.4 Configure stage subscription options
-  - [ ] 1.6.6.5 Implement load balancing across consumers
+- [x] 1.6.6 Configure backpressure and flow control
+  - [x] 1.6.6.1 Set optimal buffer sizes for each stage
+  - [x] 1.6.6.2 Implement adaptive concurrency control
+  - [x] 1.6.6.3 Add memory pressure monitoring
+  - [x] 1.6.6.4 Configure stage subscription options
+  - [x] 1.6.6.5 Implement load balancing across consumers
 
-- [ ] 1.6.7 Implement batch optimization strategies
-  - [ ] 1.6.7.1 Create BatchOptimizer module for task grouping
-  - [ ] 1.6.7.2 Group tasks by repository for cache efficiency
-  - [ ] 1.6.7.3 Implement intelligent batch sizing
-  - [ ] 1.6.7.4 Add batch timeout handling
-  - [ ] 1.6.7.5 Optimize for container reuse patterns
+- [x] 1.6.7 Implement batch optimization strategies
+  - [x] 1.6.7.1 Create BatchOptimizer module for task grouping
+  - [x] 1.6.7.2 Group tasks by repository for cache efficiency
+  - [x] 1.6.7.3 Implement intelligent batch sizing
+  - [x] 1.6.7.4 Add batch timeout handling
+  - [x] 1.6.7.5 Optimize for container reuse patterns
 
 ### Unit Tests:
-- [ ] 1.6.8 Test GenStage producer demand handling
-- [ ] 1.6.9 Test pipeline backpressure mechanisms
-- [ ] 1.6.10 Test stage failure and recovery
-- [ ] 1.6.11 Test batch optimization logic
-- [ ] 1.6.12 Test concurrent evaluation throughput
-- [ ] 1.6.13 Test pipeline supervision tree
-- [ ] 1.6.14 Test flow control under load
+- [x] 1.6.8 Test GenStage producer demand handling
+- [x] 1.6.9 Test pipeline backpressure mechanisms
+- [x] 1.6.10 Test stage failure and recovery
+- [x] 1.6.11 Test batch optimization logic
+- [x] 1.6.12 Test concurrent evaluation throughput
+- [x] 1.6.13 Test pipeline supervision tree
+- [x] 1.6.14 Test flow control under load
 
 ## 1.7 Advanced Container Pool Management
 
