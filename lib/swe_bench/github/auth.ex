@@ -8,6 +8,8 @@ defmodule SweBench.GitHub.Auth do
 
   require Logger
 
+  alias SweBench.GitHub.Client
+
   @github_oauth_url "https://github.com/login/oauth"
 
   @doc """
@@ -70,9 +72,9 @@ defmodule SweBench.GitHub.Auth do
   Validates an access token by making a test API call.
   """
   def validate_token(access_token) do
-    client = SweBench.GitHub.Client.new(access_token)
+    client = Client.new(access_token)
 
-    case SweBench.GitHub.Client.api_get(client, "/user") do
+    case Client.api_get(client, "/user") do
       {:ok, user_data} ->
         {:ok,
          %{
