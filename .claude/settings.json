@@ -11,7 +11,7 @@
       {
         "hooks": [
           {
-            "command": "cd  ~/code/swe_bench && elixir .claude/hooks/wrapper.exs post_tool_use",
+            "command": "cd $CLAUDE_PROJECT_DIR && elixir .claude/hooks/wrapper.exs post_tool_use",
             "type": "command"
           }
         ],
@@ -22,7 +22,7 @@
       {
         "hooks": [
           {
-            "command": "cd  ~/code/swe_bench && elixir .claude/hooks/wrapper.exs pre_tool_use",
+            "command": "cd $CLAUDE_PROJECT_DIR && elixir .claude/hooks/wrapper.exs pre_tool_use",
             "type": "command"
           }
         ],
@@ -33,7 +33,7 @@
       {
         "hooks": [
           {
-            "command": "cd ~/code/swe_bench && elixir .claude/hooks/wrapper.exs stop",
+            "command": "cd $CLAUDE_PROJECT_DIR && elixir .claude/hooks/wrapper.exs stop",
             "type": "command"
           }
         ],
@@ -44,7 +44,7 @@
       {
         "hooks": [
           {
-            "command": "cd  ~/code/swe_bench && elixir .claude/hooks/wrapper.exs subagent_stop",
+            "command": "cd $CLAUDE_PROJECT_DIR && elixir .claude/hooks/wrapper.exs subagent_stop",
             "type": "command"
           }
         ],
