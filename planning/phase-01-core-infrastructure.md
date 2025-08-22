@@ -180,48 +180,48 @@ This section develops the Mix project management infrastructure that handles iso
 This section establishes the initial set of 5 repositories for proof-of-concept validation, ensuring each repository meets quality criteria for benchmarking. The selection focuses on well-maintained projects with comprehensive test suites, clear issue descriptions, and active development. Each repository undergoes validation to ensure compatibility with the evaluation infrastructure.
 
 ### Tasks:
-- [ ] 1.5.1 Select and configure Phoenix Framework
-  - [ ] 1.5.1.1 Clone repository at stable version
-  - [ ] 1.5.1.2 Verify test suite completeness
-  - [ ] 1.5.1.3 Analyze issue-PR patterns
-  - [ ] 1.5.1.4 Extract 10 sample task instances
-  - [ ] 1.5.1.5 Validate Docker execution
+- [x] 1.5.1 Select and configure Phoenix Framework
+  - [x] 1.5.1.1 Clone repository at stable version
+  - [x] 1.5.1.2 Verify test suite completeness
+  - [x] 1.5.1.3 Analyze issue-PR patterns
+  - [x] 1.5.1.4 Extract 10 sample task instances
+  - [x] 1.5.1.5 Validate Docker execution
 
-- [ ] 1.5.2 Set up Ecto repository
-  - [ ] 1.5.2.1 Configure database adapters for testing
-  - [ ] 1.5.2.2 Handle schema migrations in containers
-  - [ ] 1.5.2.3 Verify query-based test execution
-  - [ ] 1.5.2.4 Extract 10 sample task instances
-  - [ ] 1.5.2.5 Test isolation with database state
+- [x] 1.5.2 Set up Ecto repository
+  - [x] 1.5.2.1 Configure database adapters for testing
+  - [x] 1.5.2.2 Handle schema migrations in containers
+  - [x] 1.5.2.3 Verify query-based test execution
+  - [x] 1.5.2.4 Extract 10 sample task instances
+  - [x] 1.5.2.5 Test isolation with database state
 
-- [ ] 1.5.3 Configure Jason JSON library
-  - [ ] 1.5.3.1 Set up pure Elixir test environment
-  - [ ] 1.5.3.2 Verify parser test coverage
-  - [ ] 1.5.3.3 Extract encoding/decoding tasks
-  - [ ] 1.5.3.4 Generate 10 task instances
-  - [ ] 1.5.3.5 Validate performance benchmarks
+- [x] 1.5.3 Configure Jason JSON library
+  - [x] 1.5.3.1 Set up pure Elixir test environment
+  - [x] 1.5.3.2 Verify parser test coverage
+  - [x] 1.5.3.3 Extract encoding/decoding tasks
+  - [x] 1.5.3.4 Generate 10 task instances
+  - [x] 1.5.3.5 Validate performance benchmarks
 
-- [ ] 1.5.4 Add Tesla HTTP client
-  - [ ] 1.5.4.1 Configure middleware test setup
-  - [ ] 1.5.4.2 Handle mock adapter configuration
-  - [ ] 1.5.4.3 Extract adapter-specific tasks
-  - [ ] 1.5.4.4 Create 10 task instances
-  - [ ] 1.5.4.5 Test with various HTTP scenarios
+- [x] 1.5.4 Add Tesla HTTP client
+  - [x] 1.5.4.1 Configure middleware test setup
+  - [x] 1.5.4.2 Handle mock adapter configuration
+  - [x] 1.5.4.3 Extract adapter-specific tasks
+  - [x] 1.5.4.4 Create 10 task instances
+  - [x] 1.5.4.5 Test with various HTTP scenarios
 
-- [ ] 1.5.5 Include Credo static analyzer
-  - [ ] 1.5.5.1 Set up AST analysis environment
-  - [ ] 1.5.5.2 Configure custom check testing
-  - [ ] 1.5.5.3 Extract linting rule tasks
-  - [ ] 1.5.5.4 Generate 10 task instances
-  - [ ] 1.5.5.5 Validate check execution
+- [x] 1.5.5 Include Credo static analyzer
+  - [x] 1.5.5.1 Set up AST analysis environment
+  - [x] 1.5.5.2 Configure custom check testing
+  - [x] 1.5.5.3 Extract linting rule tasks
+  - [x] 1.5.5.4 Generate 10 task instances
+  - [x] 1.5.5.5 Validate check execution
 
 ### Unit Tests:
-- [ ] 1.5.6 Test repository cloning and setup
-- [ ] 1.5.7 Test task instance extraction accuracy
-- [ ] 1.5.8 Test cross-repository compatibility
-- [ ] 1.5.9 Test database-dependent repositories
-- [ ] 1.5.10 Test pure Elixir library evaluation
-- [ ] 1.5.11 Test task instance validation
+- [x] 1.5.6 Test repository cloning and setup
+- [x] 1.5.7 Test task instance extraction accuracy
+- [x] 1.5.8 Test cross-repository compatibility
+- [x] 1.5.9 Test database-dependent repositories
+- [x] 1.5.10 Test pure Elixir library evaluation
+- [x] 1.5.11 Test task instance validation
 
 ## 1.6 GenStage Pipeline Architecture
 
