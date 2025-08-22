@@ -152,7 +152,9 @@ defmodule SweBench.Container.Pool do
         current_count = map_size(state.containers)
 
         if current_count < max_containers do
-          handle_container_creation(state)
+
+          handle_new_container_creation(state)
+
         else
           Logger.warning("Pool #{state.id}: No containers available and at maximum capacity")
           {:reply, {:error, :no_containers}, state}
@@ -372,10 +374,15 @@ defmodule SweBench.Container.Pool do
     end)
   end
 
-  defp handle_container_creation(state) do
+
+  defp handle_new_container_creation(state) do
     case create_new_container(state) do
       {:ok, container_id, new_state} ->
-        checkout_new_container(container_id, new_state)
+        new_checked_out = MapSet.put(new_state.checked_out, container_id)
+        new_stats = %{new_state.stats | checkouts: new_state.stats.checkouts + 1}
+        final_state = %{new_state | checked_out: new_checked_out, stats: new_stats}
+        {:reply, {:ok, container_id}, final_state}
+
 
       {:error, reason} ->
         Logger.warning("Pool #{state.id}: Failed to create container: #{inspect(reason)}")
@@ -383,12 +390,4 @@ defmodule SweBench.Container.Pool do
     end
   end
 
-  defp checkout_new_container(container_id, state) do
-    new_checked_out = MapSet.put(state.checked_out, container_id)
-    new_stats = %{state.stats | checkouts: state.stats.checkouts + 1}
-
-    final_state = %{state | checked_out: new_checked_out, stats: new_stats}
-
-    {:reply, {:ok, container_id}, final_state}
-  end
 end

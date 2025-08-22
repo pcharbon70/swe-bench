@@ -151,7 +151,9 @@ defmodule SweBench.Container.Executor do
       "/tmp/container_#{container_id}_results.json"
     ]
 
-    detailed_results = load_detailed_results(container_id, results_copy_args)
+
+    detailed_results = load_detailed_results_from_container(container_id, results_copy_args)
+
 
     # Copy resource usage logs
     resource_copy_args = [
@@ -325,12 +327,14 @@ defmodule SweBench.Container.Executor do
 
     Enum.find_value(patterns, fn pattern ->
       case {pattern, Regex.run(pattern, output)} do
+
         {~r/Finished in .+ seconds, (\d+) tests, (\d+) failures/i, [_, total, failures]} ->
           %{
             total: String.to_integer(total),
             passed: String.to_integer(total) - String.to_integer(failures),
             failed: String.to_integer(failures)
           }
+
 
         {~r/(\d+)\s+tests?,\s+(\d+)\s+passed/i, [_, total, passed]} ->
           %{
@@ -344,6 +348,14 @@ defmodule SweBench.Container.Executor do
             passed: String.to_integer(passed),
             failed: String.to_integer(failed),
             total: String.to_integer(passed) + String.to_integer(failed)
+          }
+
+
+        {~r/Finished in .+ seconds, (\d+) tests, (\d+) failures/i, [_, total, failures]} ->
+          %{
+            total: String.to_integer(total),
+            passed: String.to_integer(total) - String.to_integer(failures),
+            failed: String.to_integer(failures)
           }
 
         _ ->
@@ -413,32 +425,6 @@ defmodule SweBench.Container.Executor do
     end
   end
 
-  defp load_detailed_results(container_id, results_copy_args) do
-    case run_docker_command(results_copy_args) do
-      {_output, 0} ->
-        load_and_parse_results_file(container_id)
-
-      {_error_output, _exit_code} ->
-        %{}
-    end
-  end
-
-  defp load_and_parse_results_file(container_id) do
-    case File.read("/tmp/container_#{container_id}_results.json") do
-      {:ok, content} ->
-        parse_json_results(content)
-
-      {:error, _} ->
-        %{}
-    end
-  end
-
-  defp parse_json_results(content) do
-    case Jason.decode(content) do
-      {:ok, parsed} -> parsed
-      {:error, _} -> %{}
-    end
-  end
 
   defp parse_resource_stats_lines(data_lines) do
     data_lines
@@ -454,9 +440,39 @@ defmodule SweBench.Container.Executor do
           memory_mb: String.to_integer(memory_mb),
           cpu_percent: String.to_float(cpu_percent)
         }
-
       _ ->
         nil
     end
   end
+
+  defp load_detailed_results_from_container(container_id, results_copy_args) do
+    case run_docker_command(results_copy_args) do
+      {_output, 0} ->
+        load_and_parse_results_file(container_id)
+
+      {_error_output, _exit_code} ->
+        %{}
+    end
+  end
+
+  defp load_and_parse_results_file(container_id) do
+    case File.read("/tmp/container_#{container_id}_results.json") do
+      {:ok, content} ->
+
+        parse_json_content(content)
+
+      {:error, _} ->
+        %{}
+    end
+  end
+
+
+  defp parse_json_content(content) do
+
+    case Jason.decode(content) do
+      {:ok, parsed} -> parsed
+      {:error, _} -> %{}
+    end
+  end
+
 end

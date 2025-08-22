@@ -7,89 +7,89 @@ This foundational phase establishes the critical infrastructure for SWE-bench-El
 This section implements the three-layer Docker architecture designed specifically for BEAM VM and Mix ecosystem requirements. The containerization strategy addresses unique Elixir challenges including compiled .beam file management, incremental compilation cascades, and EPMD instance isolation. Each layer serves a distinct purpose: base runtime with system dependencies, environment-specific dependency compilation, and instance-specific code execution with patches applied.
 
 ### Tasks:
-- [ ] 1.1.1 Create base Docker image for Elixir/OTP
-  - [ ] 1.1.1.1 Configure Alpine Linux base with minimal footprint
-  - [ ] 1.1.1.2 Install Elixir 1.16 and Erlang/OTP 27
-  - [ ] 1.1.1.3 Add system dependencies (git, build-base, postgresql-client)
-  - [ ] 1.1.1.4 Configure EPMD for isolated instances
-  - [ ] 1.1.1.5 Set up locale and timezone for deterministic behavior
+- [x] 1.1.1 Create base Docker image for Elixir/OTP
+  - [x] 1.1.1.1 Configure Alpine Linux base with minimal footprint
+  - [x] 1.1.1.2 Install Elixir 1.16 and Erlang/OTP 27
+  - [x] 1.1.1.3 Add system dependencies (git, build-base, postgresql-client)
+  - [x] 1.1.1.4 Configure EPMD for isolated instances
+  - [x] 1.1.1.5 Set up locale and timezone for deterministic behavior
 
-- [ ] 1.1.2 Implement environment layer for dependencies
-  - [ ] 1.1.2.1 Create workspace directory structure
-  - [ ] 1.1.2.2 Configure Mix for offline dependency resolution
-  - [ ] 1.1.2.3 Install Hex and Rebar without network access
-  - [ ] 1.1.2.4 Implement dependency caching mechanism
-  - [ ] 1.1.2.5 Handle umbrella project dependency graphs
+- [x] 1.1.2 Implement environment layer for dependencies
+  - [x] 1.1.2.1 Create workspace directory structure
+  - [x] 1.1.2.2 Configure Mix for offline dependency resolution
+  - [x] 1.1.2.3 Install Hex and Rebar without network access
+  - [x] 1.1.2.4 Implement dependency caching mechanism
+  - [x] 1.1.2.5 Handle umbrella project dependency graphs
 
-- [ ] 1.1.3 Build instance layer for task execution
-  - [ ] 1.1.3.1 Apply code patches to specific commits
-  - [ ] 1.1.3.2 Manage incremental compilation state
-  - [ ] 1.1.3.3 Configure resource limits (4GB RAM, 4 CPU cores)
-  - [ ] 1.1.3.4 Implement 300-second execution timeout
-  - [ ] 1.1.3.5 Handle compilation artifact cleanup
+- [x] 1.1.3 Build instance layer for task execution
+  - [x] 1.1.3.1 Apply code patches to specific commits
+  - [x] 1.1.3.2 Manage incremental compilation state
+  - [x] 1.1.3.3 Configure resource limits (4GB RAM, 4 CPU cores)
+  - [x] 1.1.3.4 Implement 300-second execution timeout
+  - [x] 1.1.3.5 Handle compilation artifact cleanup
 
-- [ ] 1.1.4 Create advanced container orchestration module
-  - [ ] 1.1.4.1 Implement container lifecycle management
-  - [ ] 1.1.4.2 Add volume mounting for code injection
-  - [ ] 1.1.4.3 Configure network isolation per evaluation
-  - [ ] 1.1.4.4 Implement basic container pooling for performance
-  - [ ] 1.1.4.5 Add cleanup and garbage collection
-  - [ ] 1.1.4.6 Implement container pool pre-warming strategy
-  - [ ] 1.1.4.7 Create container reuse mechanisms with state clearing
-  - [ ] 1.1.4.8 Build pool size auto-scaling based on demand
-  - [ ] 1.1.4.9 Add health checks for pooled containers
-  - [ ] 1.1.4.10 Implement container checkout/checkin system with timeouts
+- [x] 1.1.4 Create advanced container orchestration module
+  - [x] 1.1.4.1 Implement container lifecycle management
+  - [x] 1.1.4.2 Add volume mounting for code injection
+  - [x] 1.1.4.3 Configure network isolation per evaluation
+  - [x] 1.1.4.4 Implement basic container pooling for performance
+  - [x] 1.1.4.5 Add cleanup and garbage collection
+  - [x] 1.1.4.6 Implement container pool pre-warming strategy
+  - [x] 1.1.4.7 Create container reuse mechanisms with state clearing
+  - [x] 1.1.4.8 Build pool size auto-scaling based on demand
+  - [x] 1.1.4.9 Add health checks for pooled containers
+  - [x] 1.1.4.10 Implement container checkout/checkin system with timeouts
 
 ### Unit Tests:
-- [ ] 1.1.5 Test Docker image build process
-- [ ] 1.1.6 Test dependency installation without network
-- [ ] 1.1.7 Test patch application on various repository structures
-- [ ] 1.1.8 Test resource limit enforcement
-- [ ] 1.1.9 Test container isolation between evaluations
-- [ ] 1.1.10 Test umbrella project handling
-- [ ] 1.1.11 Test compilation artifact management
+- [x] 1.1.5 Test Docker image build process
+- [x] 1.1.6 Test dependency installation without network
+- [x] 1.1.7 Test patch application on various repository structures
+- [x] 1.1.8 Test resource limit enforcement
+- [x] 1.1.9 Test container isolation between evaluations
+- [x] 1.1.10 Test umbrella project handling
+- [x] 1.1.11 Test compilation artifact management
 
 ## 1.2 ExUnit Test Runner with Result Capture
 
 This section develops the core test execution engine that integrates deeply with ExUnit to capture structured test results. The system handles both synchronous and asynchronous test execution, manages ExUnit's concurrent test runner for deterministic results, and extracts detailed failure information for evaluation. Custom formatters provide granular visibility into test outcomes, including timing, failure reasons, and assertion types.
 
 ### Tasks:
-- [ ] 1.2.1 Create ExUnit custom formatter
-  - [ ] 1.2.1.1 Implement GenServer-based formatter
-  - [ ] 1.2.1.2 Capture test module, name, and state
-  - [ ] 1.2.1.3 Extract failure messages and stacktraces
-  - [ ] 1.2.1.4 Identify assertion types from failures
-  - [ ] 1.2.1.5 Record test execution timing
+- [x] 1.2.1 Create ExUnit custom formatter
+  - [x] 1.2.1.1 Implement GenServer-based formatter
+  - [x] 1.2.1.2 Capture test module, name, and state
+  - [x] 1.2.1.3 Extract failure messages and stacktraces
+  - [x] 1.2.1.4 Identify assertion types from failures
+  - [x] 1.2.1.5 Record test execution timing
 
-- [ ] 1.2.2 Implement test execution orchestrator
-  - [ ] 1.2.2.1 Configure Mix test environment variables
-  - [ ] 1.2.2.2 Force synchronous execution for determinism
-  - [ ] 1.2.2.3 Preserve async test semantics through process isolation
-  - [ ] 1.2.2.4 Handle test timeouts and infinite loops
-  - [ ] 1.2.2.5 Capture compilation errors during test runs
+- [x] 1.2.2 Implement test execution orchestrator
+  - [x] 1.2.2.1 Configure Mix test environment variables
+  - [x] 1.2.2.2 Force synchronous execution for determinism
+  - [x] 1.2.2.3 Preserve async test semantics through process isolation
+  - [x] 1.2.2.4 Handle test timeouts and infinite loops
+  - [x] 1.2.2.5 Capture compilation errors during test runs
 
-- [ ] 1.2.3 Build test result analyzer
-  - [ ] 1.2.3.1 Parse FAIL_TO_PASS test transitions
-  - [ ] 1.2.3.2 Verify PASS_TO_PASS test stability
-  - [ ] 1.2.3.3 Detect test flakiness and non-determinism
-  - [ ] 1.2.3.4 Calculate test coverage metrics
-  - [ ] 1.2.3.5 Generate structured JSON reports
+- [x] 1.2.3 Build test result analyzer
+  - [x] 1.2.3.1 Parse FAIL_TO_PASS test transitions
+  - [x] 1.2.3.2 Verify PASS_TO_PASS test stability
+  - [x] 1.2.3.3 Detect test flakiness and non-determinism
+  - [x] 1.2.3.4 Calculate test coverage metrics
+  - [x] 1.2.3.5 Generate structured JSON reports
 
-- [ ] 1.2.4 Create test isolation mechanism
-  - [ ] 1.2.4.1 Reset application state between tests
-  - [ ] 1.2.4.2 Clear ETS tables and process registry
-  - [ ] 1.2.4.3 Handle database transaction rollbacks
-  - [ ] 1.2.4.4 Manage GenServer state cleanup
-  - [ ] 1.2.4.5 Ensure supervisor tree restart
+- [x] 1.2.4 Create test isolation mechanism
+  - [x] 1.2.4.1 Reset application state between tests
+  - [x] 1.2.4.2 Clear ETS tables and process registry
+  - [x] 1.2.4.3 Handle database transaction rollbacks
+  - [x] 1.2.4.4 Manage GenServer state cleanup
+  - [x] 1.2.4.5 Ensure supervisor tree restart
 
 ### Unit Tests:
-- [ ] 1.2.5 Test custom formatter output accuracy
-- [ ] 1.2.6 Test failure extraction and categorization
-- [ ] 1.2.7 Test async vs sync execution handling
-- [ ] 1.2.8 Test timeout and infinite loop detection
-- [ ] 1.2.9 Test result JSON serialization
-- [ ] 1.2.10 Test state isolation between test runs
-- [ ] 1.2.11 Test coverage calculation accuracy
+- [x] 1.2.5 Test custom formatter output accuracy
+- [x] 1.2.6 Test failure extraction and categorization
+- [x] 1.2.7 Test async vs sync execution handling
+- [x] 1.2.8 Test timeout and infinite loop detection
+- [x] 1.2.9 Test result JSON serialization
+- [x] 1.2.10 Test state isolation between test runs
+- [x] 1.2.11 Test coverage calculation accuracy
 
 ## 1.3 GitHub API Integration for Data Collection
 
