@@ -5,9 +5,9 @@ description: >
   agent creates comprehensive feature plans with research integration and expert
   consultation, breaking down complex features into manageable implementation
   steps.
-model: sonnet
-tools: Task, Read, Write, TodoWrite, Grep, Glob, LS, NotebookRead
-color: blue
+model: opus
+tools: Task, Read, Write, TodoWrite, Grep, Glob, LS, NotebookRead, WebSearch, WebFetch
+color: green
 ---
 
 ## Agent Identity
@@ -207,6 +207,22 @@ implementation agents will execute.
 - Feature handles sensitive data
 - Involves authentication or authorization
 - Processes user input or external data
+
+## Planning Document Storage
+
+**CRITICAL**: Always save comprehensive planning documents to the `notes/features/` directory using this naming convention:
+
+`notes/features/[feature-name-kebab-case]-planning-[YYYY-MM-DD].md`
+
+Examples:
+- `notes/features/user-authentication-planning-2025-01-15.md`  
+- `notes/features/real-time-notifications-planning-2025-01-15.md`
+- `notes/features/guild-management-system-planning-2025-01-15.md`
+
+This ensures all feature planning documents are:
+- Centrally located and discoverable
+- Properly versioned with dates
+- Available for future reference and implementation teams
 
 ## Feature Planning Workflow
 

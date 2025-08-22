@@ -152,9 +152,7 @@ defmodule SweBench.Container.Pool do
         current_count = map_size(state.containers)
 
         if current_count < max_containers do
-
           handle_new_container_creation(state)
-
         else
           Logger.warning("Pool #{state.id}: No containers available and at maximum capacity")
           {:reply, {:error, :no_containers}, state}
@@ -346,7 +344,10 @@ defmodule SweBench.Container.Pool do
           acc_state
 
         {:error, reason} ->
-          Logger.warning("Pool #{state.id}: Container #{container_id} unhealthy: #{inspect(reason)}")
+          Logger.warning(
+            "Pool #{state.id}: Container #{container_id} unhealthy: #{inspect(reason)}"
+          )
+
           remove_container_from_pool(acc_state, container_id)
       end
     end)
@@ -374,7 +375,6 @@ defmodule SweBench.Container.Pool do
     end)
   end
 
-
   defp handle_new_container_creation(state) do
     case create_new_container(state) do
       {:ok, container_id, new_state} ->
@@ -383,11 +383,9 @@ defmodule SweBench.Container.Pool do
         final_state = %{new_state | checked_out: new_checked_out, stats: new_stats}
         {:reply, {:ok, container_id}, final_state}
 
-
       {:error, reason} ->
         Logger.warning("Pool #{state.id}: Failed to create container: #{inspect(reason)}")
         {:reply, {:error, :no_containers}, state}
     end
   end
-
 end

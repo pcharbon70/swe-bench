@@ -498,13 +498,19 @@ defmodule SweBench.TestRunner.Isolation do
   defp user_process?(pid) do
     info = Process.info(pid)
     initial_call = Keyword.get(info, :initial_call)
+
     case initial_call do
-      {:proc_lib, :init_p, _} -> true
+      {:proc_lib, :init_p, _} ->
+        true
+
       {module, _fun, _arity} when is_atom(module) ->
         module_string = Atom.to_string(module)
+
         String.starts_with?(module_string, "Elixir.SweBench") or
           String.starts_with?(module_string, "Elixir.Test")
-      _ -> false
+
+      _ ->
+        false
     end
   rescue
     _ -> false
