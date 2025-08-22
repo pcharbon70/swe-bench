@@ -14,6 +14,7 @@ defmodule SweBench.TestRunner.Orchestrator do
   use GenServer
   require Logger
 
+  alias SweBench.Container.Executor
   alias SweBench.TestRunner.Formatter
 
   defstruct [
@@ -344,7 +345,7 @@ defmodule SweBench.TestRunner.Orchestrator do
       """
     ]
 
-    case SweBench.Container.Executor.execute_command(container_id, "sh", [
+    case Executor.execute_command(container_id, "sh", [
            "-c",
            Enum.join(test_command, " ")
          ]) do

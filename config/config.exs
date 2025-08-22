@@ -51,7 +51,7 @@ config :spark,
 config :swe_bench,
   ecto_repos: [SweBench.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [SweBench.Accounts]
+  ash_domains: [SweBench.Accounts, SweBench.Repositories, SweBench.Issues]
 
 # Configures the endpoint
 config :swe_bench, SweBenchWeb.Endpoint,
@@ -93,6 +93,26 @@ config :tailwind,
     ),
     cd: Path.expand("..", __DIR__)
   ]
+
+# Configure Tesla to disable deprecated builder warning
+config :tesla, disable_deprecated_builder_warning: true
+
+# GitHub API configuration
+config :swe_bench, SweBench.GitHub,
+  client_id: System.get_env("GITHUB_CLIENT_ID"),
+  client_secret: System.get_env("GITHUB_CLIENT_SECRET"),
+  redirect_uri:
+    System.get_env("GITHUB_REDIRECT_URI") || "http://localhost:4000/auth/github/callback",
+  api_base_url: "https://api.github.com",
+  rate_limit_buffer: 100,
+  cache_ttl: 3600,
+  request_timeout: 30_000
+
+# Rate limiting configuration
+config :swe_bench, SweBench.GitHub.RateLimiter,
+  max_requests_per_hour: 4500,
+  exponential_backoff_base: 2,
+  max_backoff_seconds: 300
 
 # Configures Elixir's Logger
 config :logger, :default_formatter,
