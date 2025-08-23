@@ -208,7 +208,7 @@ defmodule SweBench.PatternAnalysis.OTP.ProcessMetrics do
   end
 
   # Task 2.2.4.2: Track message queue depths
-  # Task 2.2.4.3: Count supervisor restarts  
+  # Task 2.2.4.3: Count supervisor restarts
   # Task 2.2.4.4: Measure process memory usage
   defp analyze_process_metrics(initial_snapshot, monitored_metrics, final_snapshot, detailed) do
     duration_seconds = monitored_metrics.actual_duration_ms / 1000.0
@@ -263,7 +263,7 @@ defmodule SweBench.PatternAnalysis.OTP.ProcessMetrics do
     # This is a rough estimate - accurate restart counting would require supervisor monitoring
     spawn_exits_difference = abs(monitored_metrics.spawn_events - monitored_metrics.process_exits)
 
-    # Assume restarts if there's significant spawn/exit activity  
+    # Assume restarts if there's significant spawn/exit activity
     if spawn_exits_difference > 5 do
       # Rough estimate
       div(spawn_exits_difference, 2)

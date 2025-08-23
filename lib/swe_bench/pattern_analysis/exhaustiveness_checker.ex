@@ -228,7 +228,7 @@ defmodule SweBench.PatternAnalysis.ExhaustivenessChecker do
   end
 
   defp evaluate_catch_all_necessity(clauses, catch_all_clauses) do
-    if length(catch_all_clauses) == 0 do
+    if Enum.empty?(catch_all_clauses) do
       :may_need_catch_all
     else
       # Check if catch-all is in the right position (usually last)
@@ -246,7 +246,7 @@ defmodule SweBench.PatternAnalysis.ExhaustivenessChecker do
     recommendations = []
 
     recommendations =
-      if length(catch_all_clauses) == 0 and length(clauses) > 2 do
+      if Enum.empty?(catch_all_clauses) and length(clauses) > 2 do
         ["Consider adding a catch-all clause for unhandled cases" | recommendations]
       else
         recommendations
@@ -275,7 +275,7 @@ defmodule SweBench.PatternAnalysis.ExhaustivenessChecker do
   end
 
   defp evaluate_guard_effectiveness(guarded_clauses) do
-    if length(guarded_clauses) == 0 do
+    if Enum.empty?(guarded_clauses) do
       %{effectiveness: :no_guards, score: 0}
     else
       avg_complexity =
@@ -357,7 +357,7 @@ defmodule SweBench.PatternAnalysis.ExhaustivenessChecker do
 
     cond do
       # May need catch-all
-      length(catch_all_clauses) == 0 and length(clauses) > 3 -> 60
+      Enum.empty?(catch_all_clauses) and length(clauses) > 3 -> 60
       # Good
       length(catch_all_clauses) == 1 -> 100
       # Too many catch-alls

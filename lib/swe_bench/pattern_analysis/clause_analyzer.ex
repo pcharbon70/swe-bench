@@ -53,7 +53,7 @@ defmodule SweBench.PatternAnalysis.ClauseAnalyzer do
   def identify_overly_general_patterns(clauses) do
     Enum.with_index(clauses)
     |> Enum.filter(fn {clause, index} ->
-      is_overly_general?(clause) and not is_last_clause?(index, clauses)
+      overly_general?(clause) and not last_clause?(index, clauses)
     end)
     |> Enum.map(fn {clause, index} -> {clause, index} end)
   end
@@ -89,7 +89,7 @@ defmodule SweBench.PatternAnalysis.ClauseAnalyzer do
 
     %{
       issues: precedence_issues,
-      valid_precedence: length(precedence_issues) == 0,
+      valid_precedence: Enum.empty?(precedence_issues),
       suggestions: generate_precedence_suggestions(precedence_issues)
     }
   end
@@ -146,7 +146,7 @@ defmodule SweBench.PatternAnalysis.ClauseAnalyzer do
     end
   end
 
-  defp is_overly_general?(clause) do
+  defp overly_general?(clause) do
     # Check if clause uses mostly wildcards or variables
     general_patterns =
       Enum.count(clause.patterns, fn pattern ->
@@ -160,7 +160,7 @@ defmodule SweBench.PatternAnalysis.ClauseAnalyzer do
     general_ratio > 0.7
   end
 
-  defp is_last_clause?(index, clauses) do
+  defp last_clause?(index, clauses) do
     index == length(clauses) - 1
   end
 
@@ -193,10 +193,10 @@ defmodule SweBench.PatternAnalysis.ClauseAnalyzer do
 
     # Check for suboptimal ordering
     final_issues =
-      if not optimally_ordered?(clauses) do
-        [{:suboptimal_ordering, true} | issues]
-      else
+      if optimally_ordered?(clauses) do
         issues
+      else
+        [{:suboptimal_ordering, true} | issues]
       end
 
     final_issues
@@ -224,23 +224,28 @@ defmodule SweBench.PatternAnalysis.ClauseAnalyzer do
 
     # Look for guarded clauses that come after general unguarded clauses
     Enum.with_index(clauses)
-    |> Enum.reduce(issues, fn {clause, index}, acc ->
-      if clause.guard do
-        # Check if there are general patterns before this guarded clause
-        preceding_general =
-          clauses
-          |> Enum.take(index)
-          |> Enum.any?(&(not &1.guard and is_overly_general?(&1)))
+    |> Enum.reduce(issues, &check_single_guard_clause(&1, &2, clauses))
+  end
 
-        if preceding_general do
-          [{:guarded_after_general, index} | acc]
-        else
-          acc
-        end
-      else
-        acc
-      end
-    end)
+  defp check_single_guard_clause({clause, index}, acc, clauses) do
+    if clause.guard do
+      check_preceding_general_patterns(clauses, index, acc)
+    else
+      acc
+    end
+  end
+
+  defp check_preceding_general_patterns(clauses, index, acc) do
+    preceding_general =
+      clauses
+      |> Enum.take(index)
+      |> Enum.any?(&(not &1.guard and overly_general?(&1)))
+
+    if preceding_general do
+      [{:guarded_after_general, index} | acc]
+    else
+      acc
+    end
   end
 
   defp check_complex_guards_early(clauses) do

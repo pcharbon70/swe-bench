@@ -286,7 +286,7 @@ defmodule SweBench.PatternAnalysis.OTP.SupervisorAnalyzer do
     # Validate intensity (reasonable range)
     intensity_valid = restart_config.intensity >= 0 and restart_config.intensity <= 10
 
-    # Validate period (reasonable range)  
+    # Validate period (reasonable range)
     period_valid = restart_config.period >= 1 and restart_config.period <= 3600
 
     # Assess if configuration is appropriate
@@ -384,7 +384,7 @@ defmodule SweBench.PatternAnalysis.OTP.SupervisorAnalyzer do
     tree_score = if tree_analysis.valid, do: 100, else: 0
     scores = [tree_score * 0.3 | scores]
 
-    # Strategy score (20%) 
+    # Strategy score (20%)
     strategy_score = if strategy_analysis.appropriate, do: 100, else: 50
     scores = [strategy_score * 0.2 | scores]
 

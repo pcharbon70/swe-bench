@@ -196,18 +196,59 @@ defmodule SweBench.PatternAnalysis.ASTParser do
   end
 
   defp determine_pattern_type(pattern) do
+    cond do
+      literal_pattern?(pattern) -> classify_literal_pattern(pattern)
+      structural_pattern?(pattern) -> classify_structural_pattern(pattern)
+      variable_pattern?(pattern) -> classify_variable_pattern(pattern)
+      true -> :complex
+    end
+  end
+
+  defp literal_pattern?(pattern) do
+    is_atom(pattern) or is_number(pattern) or is_binary(pattern)
+  end
+
+  defp classify_literal_pattern(pattern) do
+    cond do
+      is_atom(pattern) -> :literal_atom
+      is_number(pattern) -> :literal_number
+      is_binary(pattern) -> :literal_string
+    end
+  end
+
+  defp structural_pattern?(pattern) do
     case pattern do
-      atom when is_atom(atom) -> :literal_atom
-      number when is_number(number) -> :literal_number
-      binary when is_binary(binary) -> :literal_string
+      {:{}, _, _} -> true
+      [_ | _] -> true
+      %{} -> true
+      {_, _} -> true
+      {:_, _, _} -> true
+      _ -> false
+    end
+  end
+
+  defp classify_structural_pattern(pattern) do
+    case pattern do
       {:{}, _, _} -> :tuple
       [_ | _] -> :list
       %{} -> :map
       {_, _} -> :two_tuple
       {:_, _, _} -> :wildcard
+    end
+  end
+
+  defp variable_pattern?(pattern) do
+    case pattern do
+      {name, _, nil} when is_atom(name) -> true
+      {name, _, _} when is_atom(name) -> true
+      _ -> false
+    end
+  end
+
+  defp classify_variable_pattern(pattern) do
+    case pattern do
       {name, _, nil} when is_atom(name) -> :variable
       {name, _, _} when is_atom(name) -> :variable_with_context
-      _ -> :complex
     end
   end
 
@@ -240,26 +281,31 @@ defmodule SweBench.PatternAnalysis.ASTParser do
   end
 
   defp calculate_pattern_specificity(pattern) do
-    case pattern do
-      # Wildcard is least specific
-      {:_, _, _} -> 0
-      # Variable is low specificity
-      {name, _, nil} when is_atom(name) -> 1
-      # Literal atoms are specific
-      atom when is_atom(atom) -> 5
-      # Literal numbers are specific
-      number when is_number(number) -> 5
-      # Literal strings are specific
-      binary when is_binary(binary) -> 5
-      # Tuples are moderately specific
-      {:{}, _, _} -> 3
-      # Lists are less specific
-      [_ | _] -> 2
-      # Maps are quite specific
-      %{} -> 4
-      _ -> 2
+    cond do
+      wildcard_pattern?(pattern) -> 0
+      variable_pattern_simple?(pattern) -> 1
+      literal_pattern?(pattern) -> 5
+      map_pattern?(pattern) -> 4
+      tuple_pattern?(pattern) -> 3
+      list_pattern?(pattern) -> 2
+      true -> 2
     end
   end
+
+  defp wildcard_pattern?({:_, _, _}), do: true
+  defp wildcard_pattern?(_), do: false
+
+  defp variable_pattern_simple?({name, _, nil}) when is_atom(name), do: true
+  defp variable_pattern_simple?(_), do: false
+
+  defp map_pattern?(%{}), do: true
+  defp map_pattern?(_), do: false
+
+  defp tuple_pattern?({:{}, _, _}), do: true
+  defp tuple_pattern?(_), do: false
+
+  defp list_pattern?([_ | _]), do: true
+  defp list_pattern?(_), do: false
 
   defp calculate_destructuring_depth(pattern) do
     case pattern do
