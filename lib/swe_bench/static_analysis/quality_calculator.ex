@@ -840,7 +840,8 @@ defmodule SweBench.StaticAnalysis.QualityCalculator do
 
     total = length(function_complexities)
 
-    weighted_sum = calculate_weighted_sum(simple_count, moderate_count, complex_count, very_complex_count)
+    weighted_sum =
+      calculate_weighted_sum(simple_count, moderate_count, complex_count, very_complex_count)
 
     # Calculate final score with explicit division check
     final_score = calculate_normalized_complexity_score(weighted_sum, total)
@@ -848,7 +849,7 @@ defmodule SweBench.StaticAnalysis.QualityCalculator do
   end
 
   defp calculate_normalized_complexity_score(weighted_sum, total) when total > 0 do
-    (weighted_sum / total) * 25
+    weighted_sum / total * 25
   end
 
   defp calculate_normalized_complexity_score(_weighted_sum, _total), do: 0
