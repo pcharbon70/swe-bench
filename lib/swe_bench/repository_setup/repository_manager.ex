@@ -12,40 +12,208 @@ defmodule SweBench.RepositorySetup.RepositoryManager do
   alias SweBench.RepositorySetup.{TaskExtractor, Validator}
 
   @supported_repositories %{
+    # Original 5 repositories
     "phoenix" => %{
       url: "https://github.com/phoenixframework/phoenix",
       stable_version: "v1.7.14",
       type: :umbrella,
       requires_database: true,
-      complexity: :high
+      complexity: :high,
+      category: :web_framework
     },
     "ecto" => %{
       url: "https://github.com/elixir-ecto/ecto",
       stable_version: "v3.11.2",
       type: :standard,
       requires_database: true,
-      complexity: :medium
+      complexity: :medium,
+      category: :database
     },
     "jason" => %{
       url: "https://github.com/michalmuskala/jason",
       stable_version: "v1.4.4",
       type: :standard,
       requires_database: false,
-      complexity: :low
+      complexity: :low,
+      category: :json_library
     },
     "tesla" => %{
       url: "https://github.com/elixir-tesla/tesla",
       stable_version: "v1.9.0",
       type: :standard,
       requires_database: false,
-      complexity: :medium
+      complexity: :medium,
+      category: :http_client
     },
     "credo" => %{
       url: "https://github.com/rrrene/credo",
       stable_version: "v1.7.7",
       type: :standard,
       requires_database: false,
-      complexity: :medium
+      complexity: :medium,
+      category: :code_quality
+    },
+
+    # New repositories for Phase 2.6 expansion
+
+    # Task 2.6.1: Phoenix LiveView repository
+    "phoenix_live_view" => %{
+      url: "https://github.com/phoenixframework/phoenix_live_view",
+      stable_version: "v0.20.2",
+      type: :standard,
+      requires_database: true,
+      complexity: :very_high,
+      category: :real_time_web,
+      special_requirements: %{
+        javascript_assets: true,
+        websocket_testing: true,
+        browser_automation: true,
+        asset_compilation: ["esbuild", "tailwind"]
+      }
+    },
+
+    # Task 2.6.2: Oban job processor
+    "oban" => %{
+      url: "https://github.com/sorentwo/oban",
+      stable_version: "v2.16.3",
+      type: :standard,
+      requires_database: true,
+      complexity: :high,
+      category: :job_processing,
+      special_requirements: %{
+        postgresql_required: true,
+        job_queue_testing: true,
+        time_based_scenarios: true,
+        background_job_simulation: true
+      }
+    },
+
+    # Task 2.6.3: Broadway data pipeline
+    "broadway" => %{
+      url: "https://github.com/dashbitco/broadway",
+      stable_version: "v1.0.7",
+      type: :standard,
+      requires_database: false,
+      complexity: :high,
+      category: :data_pipeline,
+      special_requirements: %{
+        message_queue_mocks: true,
+        producer_consumer_testing: true,
+        backpressure_scenarios: true,
+        flow_control_validation: true
+      }
+    },
+
+    # Task 2.6.4: Remaining 7 repositories
+
+    # Benchee performance library
+    "benchee" => %{
+      url: "https://github.com/bencheeorg/benchee",
+      stable_version: "v1.3.0",
+      type: :standard,
+      requires_database: false,
+      complexity: :medium,
+      category: :performance_testing,
+      special_requirements: %{
+        benchmark_execution: true,
+        performance_metrics: true,
+        statistical_analysis: true
+      }
+    },
+
+    # ExDoc documentation generator
+    "ex_doc" => %{
+      url: "https://github.com/elixir-lang/ex_doc",
+      stable_version: "v0.31.0",
+      type: :standard,
+      requires_database: false,
+      complexity: :medium,
+      category: :documentation,
+      special_requirements: %{
+        html_generation: true,
+        markdown_processing: true,
+        documentation_validation: true
+      }
+    },
+
+    # Bamboo email library
+    "bamboo" => %{
+      url: "https://github.com/beam-community/bamboo",
+      stable_version: "v2.3.0",
+      type: :standard,
+      requires_database: false,
+      complexity: :medium,
+      category: :email_delivery,
+      special_requirements: %{
+        email_testing: true,
+        smtp_mocking: true,
+        adapter_testing: true
+      }
+    },
+
+    # Guardian authentication
+    "guardian" => %{
+      url: "https://github.com/ueberauth/guardian",
+      stable_version: "v2.3.2",
+      type: :standard,
+      requires_database: true,
+      complexity: :medium,
+      category: :authentication,
+      special_requirements: %{
+        jwt_testing: true,
+        token_validation: true,
+        session_management: true
+      }
+    },
+
+    # Absinthe GraphQL
+    "absinthe" => %{
+      url: "https://github.com/absinthe-graphql/absinthe",
+      stable_version: "v1.7.5",
+      type: :umbrella,
+      requires_database: false,
+      complexity: :high,
+      category: :graphql,
+      special_requirements: %{
+        schema_validation: true,
+        query_testing: true,
+        resolver_testing: true,
+        subscription_testing: true
+      }
+    },
+
+    # Nx numerical computing
+    "nx" => %{
+      url: "https://github.com/elixir-nx/nx",
+      stable_version: "v0.6.4",
+      type: :umbrella,
+      requires_database: false,
+      complexity: :very_high,
+      category: :numerical_computing,
+      special_requirements: %{
+        numerical_testing: true,
+        tensor_operations: true,
+        # For container environment
+        gpu_compatibility: false,
+        large_computation_handling: true
+      }
+    },
+
+    # Membrane multimedia framework
+    "membrane" => %{
+      url: "https://github.com/membraneframework/membrane_core",
+      stable_version: "v1.0.1",
+      type: :umbrella,
+      requires_database: false,
+      complexity: :very_high,
+      category: :multimedia,
+      special_requirements: %{
+        multimedia_testing: true,
+        pipeline_testing: true,
+        streaming_simulation: true,
+        # Simplified for container environment
+        codec_testing: false
+      }
     }
   }
 
