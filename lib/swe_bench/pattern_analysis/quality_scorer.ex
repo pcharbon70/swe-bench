@@ -115,25 +115,39 @@ defmodule SweBench.PatternAnalysis.QualityScorer do
   # Private helper functions
 
   defp calculate_destructuring_score(pattern) do
-    base_score =
-      case pattern.type do
-        :tuple -> 70
-        :map -> 80
-        :list -> 60
-        :two_tuple -> 65
-        :literal_atom -> 50
-        :literal_number -> 50
-        :literal_string -> 50
-        :variable -> 30
-        :wildcard -> 20
-        _ -> 40
-      end
+    base_score = get_base_destructuring_score(pattern.type)
 
     # Bonus for deep destructuring
     depth_bonus = min(20, pattern.destructuring_depth * 5)
 
     min(100, base_score + depth_bonus)
   end
+
+  defp get_base_destructuring_score(pattern_type) do
+    cond do
+      high_destructuring_pattern?(pattern_type) -> get_high_score(pattern_type)
+      medium_destructuring_pattern?(pattern_type) -> get_medium_score(pattern_type)
+      low_destructuring_pattern?(pattern_type) -> get_low_score(pattern_type)
+      true -> 40
+    end
+  end
+
+  defp high_destructuring_pattern?(type), do: type in [:map, :tuple, :two_tuple]
+
+  defp medium_destructuring_pattern?(type),
+    do: type in [:list, :literal_atom, :literal_number, :literal_string]
+
+  defp low_destructuring_pattern?(type), do: type in [:variable, :wildcard]
+
+  defp get_high_score(:map), do: 80
+  defp get_high_score(:tuple), do: 70
+  defp get_high_score(:two_tuple), do: 65
+
+  defp get_medium_score(:list), do: 60
+  defp get_medium_score(_), do: 50
+
+  defp get_low_score(:variable), do: 30
+  defp get_low_score(:wildcard), do: 20
 
   defp calculate_pattern_matching_score(clause_count) do
     case clause_count do

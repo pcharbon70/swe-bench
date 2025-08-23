@@ -8,7 +8,7 @@ defmodule SweBench.PatternAnalysis do
 
   require Logger
 
-  alias SweBench.PatternAnalysis.{ASTParser, ExhaustivenessChecker, ClauseAnalyzer, QualityScorer}
+  alias SweBench.PatternAnalysis.{ASTParser, ClauseAnalyzer, ExhaustivenessChecker, QualityScorer}
 
   @doc """
   Performs comprehensive pattern analysis on Elixir source code.
