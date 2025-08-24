@@ -15,15 +15,15 @@ defmodule SweBench.StaticAnalysis.DialyzerIntegration do
   @plt_build_timeout 600_000
   @default_plt_name "swe_bench_evaluation.plt"
 
-  @warning_severities %{
-    "no_return" => :error,
-    "no_match" => :error,
-    "no_fail_call" => :error,
-    "no_opaque" => :warning,
-    "race_condition" => :warning,
-    "no_unused" => :info,
-    "unknown" => :info
-  }
+  # @warning_severities %{
+  #   "no_return" => :error,
+  #   "no_match" => :error,
+  #   "no_fail_call" => :error,
+  #   "no_opaque" => :warning,
+  #   "race_condition" => :warning,
+  #   "no_unused" => :info,
+  #   "unknown" => :info
+  # }
 
   @doc """
   Performs comprehensive Dialyzer type analysis on source code.

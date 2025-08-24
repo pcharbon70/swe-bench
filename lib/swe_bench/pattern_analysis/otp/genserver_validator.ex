@@ -206,7 +206,7 @@ defmodule SweBench.PatternAnalysis.OTP.GenServerValidator do
   defp adjust_score_for_init(score, false), do: max(0, score - 20)
 
   defp adjust_score_for_immutability(score, true), do: score
-  defp adjust_score_for_immutability(score, false), do: max(0, score - 15)
+  # defp adjust_score_for_immutability(score, false), do: max(0, score - 15)
 
   # Task 2.2.1.4: Analyze message handling completeness
   defp validate_callback_arity(callback_name, _module_info) do

@@ -15,7 +15,7 @@ defmodule SweBench.RepositorySetup.Configs.ObanConfig do
     "oban_beats"
   ]
 
-  @job_states [:available, :scheduled, :executing, :retryable, :completed, :discarded, :cancelled]
+  # @job_states [:available, :scheduled, :executing, :retryable, :completed, :discarded, :cancelled]
 
   @doc """
   Configures Oban job processor repository for evaluation.
@@ -718,8 +718,8 @@ defmodule SweBench.RepositorySetup.Configs.ObanConfig do
 
         {:ok, tasks}
 
-      {:error, reason} ->
-        {:error, reason}
+      # {:error, reason} ->
+      #   {:error, reason}
     end
   end
 
