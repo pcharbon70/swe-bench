@@ -792,7 +792,7 @@ defmodule SweBench.RepositorySetup.ExpandedRepositoryManager do
     # Get original repositories from RepositoryManager
     case RepositoryManager.list_supported_repositories() do
       {:ok, original_repos} when is_list(original_repos) ->
-        expanded_repos = original_repos ++ @new_repositories
+        expanded_repos = List.flatten([original_repos, @new_repositories])
         {:ok, expanded_repos}
 
       {:ok, _} ->

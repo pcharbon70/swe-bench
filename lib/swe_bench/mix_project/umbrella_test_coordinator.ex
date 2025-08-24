@@ -447,66 +447,66 @@ defmodule SweBench.MixProject.UmbrellaTestCoordinator do
     }
   end
 
-  defp execute_isolated_app_tests(test_plan, test_options) do
-    test_plan.execution_order
-    |> Enum.map(fn app_name ->
-      execute_app_test_suite(app_name, test_plan, test_options)
-    end)
-  end
+  # defp execute_isolated_app_tests(test_plan, test_options) do
+  #   test_plan.execution_order
+  #   |> Enum.map(fn app_name ->
+  #     execute_app_test_suite(app_name, test_plan, test_options)
+  #   end)
+  # end
 
-  defp execute_shared_environment_tests(test_plan, test_options) do
-    Logger.debug("Executing tests in shared environment")
+  # defp execute_shared_environment_tests(test_plan, test_options) do
+  #   Logger.debug("Executing tests in shared environment")
 
-    # In shared mode, we still execute per app but with shared setup
-    test_plan.execution_order
-    |> Enum.map(fn app_name ->
-      result = execute_app_test_suite(app_name, test_plan, test_options)
-      Map.put(result, :execution_mode, :shared_environment)
-    end)
-  end
+  #   # In shared mode, we still execute per app but with shared setup
+  #   test_plan.execution_order
+  #   |> Enum.map(fn app_name ->
+  #     result = execute_app_test_suite(app_name, test_plan, test_options)
+  #     Map.put(result, :execution_mode, :shared_environment)
+  #   end)
+  # end
 
-  defp execute_app_test_suite(app_name, test_plan, test_options) do
-    Logger.debug("Executing test suite for application: #{app_name}")
+  # defp execute_app_test_suite(app_name, test_plan, test_options) do
+  #   Logger.debug("Executing test suite for application: #{app_name}")
 
-    start_time = System.monotonic_time(:millisecond)
-    timeout = test_plan.per_app_timeout
+  #   start_time = System.monotonic_time(:millisecond)
+  #   timeout = test_plan.per_app_timeout
 
-    # Use existing TestRunner for individual app execution
-    # This is a simulation - in production would call actual TestRunner
-    test_result = simulate_app_test_execution(app_name, timeout, test_options)
+  #   # Use existing TestRunner for individual app execution
+  #   # This is a simulation - in production would call actual TestRunner
+  #   test_result = simulate_app_test_execution(app_name, timeout, test_options)
 
-    end_time = System.monotonic_time(:millisecond)
-    duration = end_time - start_time
+  #   end_time = System.monotonic_time(:millisecond)
+  #   duration = end_time - start_time
 
-    Map.merge(test_result, %{
-      app_name: app_name,
-      actual_duration_ms: duration,
-      timeout_used: timeout,
-      isolation_mode: test_plan.isolation_strategy
-    })
-  end
+  #   Map.merge(test_result, %{
+  #     app_name: app_name,
+  #     actual_duration_ms: duration,
+  #     timeout_used: timeout,
+  #     isolation_mode: test_plan.isolation_strategy
+  #   })
+  # end
 
-  defp simulate_app_test_execution(app_name, _timeout, _test_options) do
-    # Simulate test execution results
-    # 5-35 tests per app
-    total_tests = :rand.uniform(30) + 5
-    # 80% apps have no failures
-    failure_rate = if :rand.uniform() > 0.8, do: 0.1, else: 0.0
-    failed_tests = round(total_tests * failure_rate)
-    passed_tests = total_tests - failed_tests
+  # defp simulate_app_test_execution(app_name, _timeout, _test_options) do
+  #   # Simulate test execution results
+  #   # 5-35 tests per app
+  #   total_tests = :rand.uniform(30) + 5
+  #   # 80% apps have no failures
+  #   failure_rate = if :rand.uniform() > 0.8, do: 0.1, else: 0.0
+  #   failed_tests = round(total_tests * failure_rate)
+  #   passed_tests = total_tests - failed_tests
 
-    %{
-      total_tests: total_tests,
-      passed_tests: passed_tests,
-      failed_tests: failed_tests,
-      skipped_tests: 0,
-      success: failed_tests == 0,
-      # 2-10 test files
-      test_files_count: :rand.uniform(8) + 2,
-      warnings: if(failed_tests > 0, do: ["Test failures in #{app_name}"], else: []),
-      errors: if(failed_tests > 2, do: ["Multiple failures in #{app_name}"], else: [])
-    }
-  end
+  #   %{
+  #     total_tests: total_tests,
+  #     passed_tests: passed_tests,
+  #     failed_tests: failed_tests,
+  #     skipped_tests: 0,
+  #     success: failed_tests == 0,
+  #     # 2-10 test files
+  #     test_files_count: :rand.uniform(8) + 2,
+  #     warnings: if(failed_tests > 0, do: ["Test failures in #{app_name}"], else: []),
+  #     errors: if(failed_tests > 2, do: ["Multiple failures in #{app_name}"], else: [])
+  #   }
+  # end
 
   # Task 2.3.3.2: Aggregate test results per application
   defp aggregate_test_results(test_results, umbrella_structure) do

@@ -12,8 +12,8 @@ defmodule SweBench.PatternAnalysis.OTP.SupervisorAnalyzer do
   alias SweBench.PatternAnalysis.OTP.ValidationSchemas
 
   @valid_restart_strategies [:one_for_one, :one_for_all, :rest_for_one, :simple_one_for_one]
-  @valid_restart_types [:permanent, :temporary, :transient]
-  @valid_shutdown_values [:brutal_kill, :infinity]
+  # @valid_restart_types [:permanent, :temporary, :transient]
+  # @valid_shutdown_values [:brutal_kill, :infinity]
   @default_restart_intensity 3
   @default_restart_period 5
 
