@@ -9,8 +9,8 @@ defmodule SweBench.RepositoryMining.Worker do
   use GenServer
   require Logger
 
-  alias SweBench.Repositories.{MiningJob, Repository, QualityMetrics}
-  alias SweBench.RepositoryMining.{HexAnalyzer, GitHubAnalyzer, QualityScorer}
+  alias SweBench.Repositories.{MiningJob, QualityMetrics, Repository}
+  alias SweBench.RepositoryMining.{GitHubAnalyzer, HexAnalyzer, QualityScorer}
 
   defstruct [
     :job,
@@ -69,28 +69,26 @@ defmodule SweBench.RepositoryMining.Worker do
   # Private implementation functions
 
   defp execute_mining_pipeline(state) do
-    try do
-      repositories =
-        state.job.source
-        |> discover_repositories(state.job.query_params, state.job.max_repositories)
-        |> analyze_repositories(state)
-        |> persist_repositories(state)
+    repositories =
+      state.job.source
+      |> discover_repositories(state.job.query_params, state.job.max_repositories)
+      |> analyze_repositories(state)
+      |> persist_repositories(state)
 
-      processing_time = DateTime.diff(DateTime.utc_now(), state.start_time, :millisecond)
+    processing_time = DateTime.diff(DateTime.utc_now(), state.start_time, :millisecond)
 
-      result = %{
-        repositories_discovered: length(repositories),
-        repositories_analyzed: count_analyzed_repositories(repositories),
-        processing_time_ms: processing_time,
-        discovery_source: state.job.source
-      }
+    result = %{
+      repositories_discovered: length(repositories),
+      repositories_analyzed: count_analyzed_repositories(repositories),
+      processing_time_ms: processing_time,
+      discovery_source: state.job.source
+    }
 
-      {:ok, result}
-    rescue
-      error ->
-        Logger.error("Mining pipeline error in job #{state.job.id}: #{inspect(error)}")
-        {:error, {:pipeline_error, error}}
-    end
+    {:ok, result}
+  rescue
+    error ->
+      Logger.error("Mining pipeline error in job #{state.job.id}: #{inspect(error)}")
+      {:error, {:pipeline_error, error}}
   end
 
   defp discover_repositories(source, query_params, max_repositories) do

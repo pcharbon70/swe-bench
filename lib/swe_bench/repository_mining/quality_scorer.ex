@@ -22,24 +22,22 @@ defmodule SweBench.RepositoryMining.QualityScorer do
   def calculate_quality_scores(repository_data) do
     Logger.debug("Calculating quality scores for: #{repository_data.full_name}")
 
-    try do
-      quality_scores = %{
-        code_quality_score: score_code_quality(repository_data),
-        community_health_score: score_community_health(repository_data),
-        technical_complexity_score: score_technical_complexity(repository_data),
-        maintenance_activity_score: score_maintenance_activity(repository_data)
-      }
+    quality_scores = %{
+      code_quality_score: score_code_quality(repository_data),
+      community_health_score: score_community_health(repository_data),
+      technical_complexity_score: score_technical_complexity(repository_data),
+      maintenance_activity_score: score_maintenance_activity(repository_data)
+    }
 
-      overall_score = calculate_weighted_overall_score(quality_scores)
+    overall_score = calculate_weighted_overall_score(quality_scores)
 
-      final_scores = Map.put(quality_scores, :overall_score, overall_score)
+    final_scores = Map.put(quality_scores, :overall_score, overall_score)
 
-      {:ok, final_scores}
-    rescue
-      error ->
-        Logger.error("Quality scoring failed for #{repository_data.full_name}: #{inspect(error)}")
-        {:error, {:scoring_failed, error}}
-    end
+    {:ok, final_scores}
+  rescue
+    error ->
+      Logger.error("Quality scoring failed for #{repository_data.full_name}: #{inspect(error)}")
+      {:error, {:scoring_failed, error}}
   end
 
   # Individual scoring dimensions using functional composition
@@ -196,7 +194,7 @@ defmodule SweBench.RepositoryMining.QualityScorer do
     size_kb = Map.get(repo_data, :size, 0)
 
     cond do
-      size_kb >= 10000 -> 25.0  # Very complex
+      size_kb >= 10_000 -> 25.0  # Very complex
       size_kb >= 5000 -> 20.0   # Complex
       size_kb >= 1000 -> 15.0   # Moderate
       size_kb >= 100 -> 10.0    # Simple

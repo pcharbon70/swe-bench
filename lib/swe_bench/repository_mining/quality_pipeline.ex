@@ -106,23 +106,21 @@ defmodule SweBench.RepositoryMining.QualityPipeline do
   defp process_single_assessment(repository_id) do
     start_time = System.monotonic_time(:millisecond)
 
-    try do
-      case fetch_and_analyze_repository(repository_id) do
-        {:ok, _quality_metrics} ->
-          processing_time = System.monotonic_time(:millisecond) - start_time
+    case fetch_and_analyze_repository(repository_id) do
+      {:ok, _quality_metrics} ->
+        processing_time = System.monotonic_time(:millisecond) - start_time
 
-          Logger.debug("Quality assessment completed for repository #{repository_id}")
-          {:ok, %{repository_id: repository_id, processing_time: processing_time}}
+        Logger.debug("Quality assessment completed for repository #{repository_id}")
+        {:ok, %{repository_id: repository_id, processing_time: processing_time}}
 
-        {:error, reason} ->
-          Logger.warning("Quality assessment failed for repository #{repository_id}: #{inspect(reason)}")
-          {:error, %{repository_id: repository_id, reason: reason}}
-      end
-    rescue
-      error ->
-        Logger.error("Quality assessment error for repository #{repository_id}: #{inspect(error)}")
-        {:error, %{repository_id: repository_id, reason: {:exception, error}}}
+      {:error, reason} ->
+        Logger.warning("Quality assessment failed for repository #{repository_id}: #{inspect(reason)}")
+        {:error, %{repository_id: repository_id, reason: reason}}
     end
+  rescue
+    error ->
+      Logger.error("Quality assessment error for repository #{repository_id}: #{inspect(error)}")
+      {:error, %{repository_id: repository_id, reason: {:exception, error}}}
   end
 
   defp fetch_and_analyze_repository(_repository_id) do

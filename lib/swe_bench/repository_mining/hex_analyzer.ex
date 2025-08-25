@@ -24,17 +24,15 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
   def discover_repositories(query_params \\ %{}, max_repositories \\ 100) do
     Logger.info("Discovering repositories from Hex.pm (max: #{max_repositories})")
 
-    try do
-      query_params
-      |> fetch_packages_by_criteria(max_repositories)
-      |> filter_packages_with_github()
-      |> enhance_with_hex_metadata()
-      |> convert_to_repository_format()
-    catch
-      error ->
-        Logger.error("Hex.pm discovery failed: #{inspect(error)}")
-        {:error, {:hex_discovery_failed, error}}
-    end
+    query_params
+    |> fetch_packages_by_criteria(max_repositories)
+    |> filter_packages_with_github()
+    |> enhance_with_hex_metadata()
+    |> convert_to_repository_format()
+  catch
+    error ->
+      Logger.error("Hex.pm discovery failed: #{inspect(error)}")
+      {:error, {:hex_discovery_failed, error}}
   end
 
   @doc """
@@ -84,22 +82,7 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
 
     packages =
       1..pages_needed
-      |> Enum.reduce_while([], fn page, acc ->
-        case make_hex_request("/packages", %{sort: sort_by, page: page}) do
-          {:ok, page_packages} ->
-            combined = acc ++ page_packages
-
-            if length(combined) >= max_repositories do
-              {:halt, Enum.take(combined, max_repositories)}
-            else
-              {:cont, combined}
-            end
-
-          {:error, reason} ->
-            Logger.warning("Failed to fetch packages page #{page}: #{inspect(reason)}")
-            {:halt, acc}
-        end
-      end)
+      |> Enum.reduce_while([], &fetch_packages_page(&1, &2, sort_by, max_repositories))
 
     {:ok, packages}
   end
@@ -177,35 +160,33 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
   defp convert_to_repository_format({:error, reason}), do: {:error, reason}
 
   defp convert_package_to_repository(package) do
-    try do
-      # Parse GitHub URL to extract owner and name
-      case parse_github_url(package["github_url"]) do
-        {:ok, {owner, repo_name}} ->
-          repository_data = %{
-            name: repo_name,
-            full_name: "#{owner}/#{repo_name}",
-            owner: %{login: owner},
-            hex_package_name: package["hex_package_name"],
-            description: Map.get(package, "description"),
-            topics: Map.get(package, "topics", []),
-            language: "Elixir",
-            # Additional metadata from Hex.pm
-            hex_metadata: %{
-              downloads: Map.get(package, "downloads"),
-              latest_version: get_latest_version(package),
-              updated_at: Map.get(package, "updated_at")
-            }
+    # Parse GitHub URL to extract owner and name
+    case parse_github_url(package["github_url"]) do
+      {:ok, {owner, repo_name}} ->
+        repository_data = %{
+          name: repo_name,
+          full_name: "#{owner}/#{repo_name}",
+          owner: %{login: owner},
+          hex_package_name: package["hex_package_name"],
+          description: Map.get(package, "description"),
+          topics: Map.get(package, "topics", []),
+          language: "Elixir",
+          # Additional metadata from Hex.pm
+          hex_metadata: %{
+            downloads: Map.get(package, "downloads"),
+            latest_version: get_latest_version(package),
+            updated_at: Map.get(package, "updated_at")
           }
+        }
 
-          {:ok, repository_data}
+        {:ok, repository_data}
 
-        {:error, reason} ->
-          {:error, {:invalid_github_url, reason}}
-      end
-    rescue
-      error ->
-        {:error, {:conversion_error, error}}
+      {:error, reason} ->
+        {:error, {:invalid_github_url, reason}}
     end
+  rescue
+    error ->
+      {:error, {:conversion_error, error}}
   end
 
   defp parse_github_url(url) when is_binary(url) do
@@ -227,25 +208,45 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
     end
   end
 
+  defp fetch_packages_page(page, acc, sort_by, max_repositories) do
+    case make_hex_request("/packages", %{sort: sort_by, page: page}) do
+      {:ok, page_packages} ->
+        combined = acc ++ page_packages
+
+        if length(combined) >= max_repositories do
+          {:halt, Enum.take(combined, max_repositories)}
+        else
+          {:cont, combined}
+        end
+
+      {:error, reason} ->
+        Logger.warning("Failed to fetch packages page #{page}: #{inspect(reason)}")
+        {:halt, acc}
+    end
+  end
+
   defp make_hex_request(endpoint, params \\ %{}) do
     Logger.debug("Making Hex.pm request to #{endpoint}")
 
-    with :ok <- SweBench.RepositoryMining.HexRateLimiter.request_permission() do
-      url = @hex_api_base <> endpoint
+    alias SweBench.RepositoryMining.HexRateLimiter
 
-      case Req.get(url, params: params) do
-        {:ok, %{status: 200, body: body}} ->
-          {:ok, body}
+    case HexRateLimiter.request_permission() do
+      :ok ->
+        url = @hex_api_base <> endpoint
 
-        {:ok, %{status: status, body: body}} ->
-          Logger.warning("Hex.pm API returned status #{status}: #{inspect(body)}")
-          {:error, {:http_error, status, body}}
+        case Req.get(url, params: params) do
+          {:ok, %{status: 200, body: body}} ->
+            {:ok, body}
 
-        {:error, reason} ->
-          Logger.error("Hex.pm API request failed: #{inspect(reason)}")
-          {:error, {:request_failed, reason}}
-      end
-    else
+          {:ok, %{status: status, body: body}} ->
+            Logger.warning("Hex.pm API returned status #{status}: #{inspect(body)}")
+            {:error, {:http_error, status, body}}
+
+          {:error, reason} ->
+            Logger.error("Hex.pm API request failed: #{inspect(reason)}")
+            {:error, {:request_failed, reason}}
+        end
+
       {:error, :rate_limited} ->
         Logger.warning("Hex.pm request rate limited, waiting...")
         Process.sleep(1000)

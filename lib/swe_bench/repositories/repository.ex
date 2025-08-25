@@ -47,6 +47,17 @@ defmodule SweBench.Repositories.Repository do
       ]
     end
 
+    update :update_mining_status do
+      accept [:mining_status, :mining_metadata, :mining_job_id]
+    end
+
+    update :mark_mining_completed do
+      accept [:mining_status, :mining_metadata, :mining_completed_at]
+
+      change set_attribute(:mining_status, :completed)
+      change set_attribute(:mining_completed_at, &DateTime.utc_now/0)
+    end
+
     read :by_github_id do
       argument :github_id, :integer, allow_nil?: false
       filter expr(github_id == ^arg(:github_id))
@@ -68,6 +79,23 @@ defmodule SweBench.Repositories.Repository do
 
     read :with_hex_packages do
       filter expr(not is_nil(hex_package_name))
+    end
+
+    read :by_mining_status do
+      argument :status, :atom do
+        constraints one_of: [:pending, :in_progress, :completed, :failed]
+      end
+
+      filter expr(mining_status == ^arg(:status))
+    end
+
+    read :unmined do
+      filter expr(is_nil(mining_status) or mining_status == :pending)
+    end
+
+    read :recently_mined do
+      filter expr(mining_completed_at > ago(7, :day))
+      prepare build(sort: [mining_completed_at: :desc])
     end
   end
 
@@ -154,22 +182,52 @@ defmodule SweBench.Repositories.Repository do
     update_timestamp :updated_at
 
     attribute :last_analyzed_at, :utc_datetime
+
+    # Mining-specific attributes
+    attribute :mining_status, :atom do
+      description "Repository mining status"
+      constraints one_of: [:pending, :in_progress, :completed, :failed]
+      default :pending
+    end
+
+    attribute :mining_metadata, :map do
+      description "Metadata from mining operation"
+      default %{}
+    end
+
+    attribute :mining_job_id, :uuid do
+      description "Reference to the mining job that discovered this repository"
+    end
+
+    attribute :mining_completed_at, :utc_datetime do
+      description "When mining analysis was completed"
+    end
   end
 
-  # relationships do
-  # TODO: Add relationships when Issue, PullRequest, and Instance resources are created
-  # has_many :issues, SweBench.Issues.Issue do
-  #   destination_attribute :repository_id
-  # end
+  relationships do
+    # Mining relationships
+    belongs_to :mining_job, SweBench.Repositories.MiningJob do
+      destination_attribute :id
+      source_attribute :mining_job_id
+    end
 
-  # has_many :pull_requests, SweBench.Issues.PullRequest do
-  #   destination_attribute :repository_id
-  # end
+    has_one :quality_metrics, SweBench.Repositories.QualityMetrics do
+      destination_attribute :repository_id
+    end
 
-  # has_many :task_instances, SweBench.Tasks.Instance do
-  #   destination_attribute :repository_id
-  # end
-  # end
+    # TODO: Add relationships when Issue, PullRequest, and Instance resources are created
+    # has_many :issues, SweBench.Issues.Issue do
+    #   destination_attribute :repository_id
+    # end
+
+    # has_many :pull_requests, SweBench.Issues.PullRequest do
+    #   destination_attribute :repository_id
+    # end
+
+    # has_many :task_instances, SweBench.Tasks.Instance do
+    #   destination_attribute :repository_id
+    # end
+  end
 
   identities do
     identity :unique_github_id, [:github_id]
