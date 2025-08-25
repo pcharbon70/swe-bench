@@ -8,6 +8,8 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
 
   require Logger
 
+  alias SweBench.RepositoryMining.HexRateLimiter
+
   @hex_api_base "https://hex.pm/api"
 
   @doc """
@@ -228,7 +230,7 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
   defp make_hex_request(endpoint, params \\ %{}) do
     Logger.debug("Making Hex.pm request to #{endpoint}")
 
-    case SweBench.RepositoryMining.HexRateLimiter.request_permission() do
+    case HexRateLimiter.request_permission() do
       :ok ->
       url = @hex_api_base <> endpoint
 
