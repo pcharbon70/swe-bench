@@ -51,7 +51,9 @@ defmodule SweBench.RepositoryMining.ResultAggregator do
 
   @impl true
   def handle_cast({:record_results, job_id, results}, state) do
-    Logger.debug("Recording results for job #{job_id}: #{results.repositories_discovered} repositories")
+    Logger.debug(
+      "Recording results for job #{job_id}: #{results.repositories_discovered} repositories"
+    )
 
     updated_state =
       state

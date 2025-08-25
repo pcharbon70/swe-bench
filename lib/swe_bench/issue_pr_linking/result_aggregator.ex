@@ -60,7 +60,9 @@ defmodule SweBench.IssuePrLinking.ResultAggregator do
 
   @impl true
   def handle_cast({:record_results, repository_id, results}, state) do
-    Logger.debug("Recording results for repository #{repository_id}: #{results.correlations_found} correlations")
+    Logger.debug(
+      "Recording results for repository #{repository_id}: #{results.correlations_found} correlations"
+    )
 
     updated_state =
       state
@@ -106,7 +108,7 @@ defmodule SweBench.IssuePrLinking.ResultAggregator do
     %{state | total_correlations_found: new_total}
   end
 
-  defp update_type_statistics(state, results) do
+  defp update_type_statistics(state, _results) do
     # This would be enhanced when we have detailed correlation type data
     # For now, just maintain the existing structure
     state
@@ -117,7 +119,8 @@ defmodule SweBench.IssuePrLinking.ResultAggregator do
 
     updated_dist = %{
       high_confidence: Map.get(current_dist, :high_confidence, 0) + results.high_confidence_count,
-      medium_confidence: Map.get(current_dist, :medium_confidence, 0) + results.medium_confidence_count,
+      medium_confidence:
+        Map.get(current_dist, :medium_confidence, 0) + results.medium_confidence_count,
       low_confidence: Map.get(current_dist, :low_confidence, 0) + results.low_confidence_count,
       validated: Map.get(current_dist, :validated, 0) + results.auto_validated_count,
       rejected: Map.get(current_dist, :rejected, 0) + results.rejected_count

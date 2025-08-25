@@ -94,7 +94,10 @@ defmodule SweBench.IssuePrLinking.Coordinator do
         {:reply, {:ok, job}, updated_state}
 
       {:error, reason} ->
-        Logger.error("Failed to queue repository #{repository_id} for analysis: #{inspect(reason)}")
+        Logger.error(
+          "Failed to queue repository #{repository_id} for analysis: #{inspect(reason)}"
+        )
+
         {:reply, {:error, reason}, state}
     end
   end
@@ -139,7 +142,9 @@ defmodule SweBench.IssuePrLinking.Coordinator do
 
   @impl true
   def handle_info({:worker_completed, worker_pid, repository_id, result}, state) do
-    Logger.info("Correlation analysis completed for repository #{repository_id}: #{result.correlations_found} relationships found")
+    Logger.info(
+      "Correlation analysis completed for repository #{repository_id}: #{result.correlations_found} relationships found"
+    )
 
     updated_state =
       state
@@ -155,7 +160,9 @@ defmodule SweBench.IssuePrLinking.Coordinator do
 
   @impl true
   def handle_info({:worker_failed, worker_pid, repository_id, reason}, state) do
-    Logger.error("Correlation analysis failed for repository #{repository_id}: #{inspect(reason)}")
+    Logger.error(
+      "Correlation analysis failed for repository #{repository_id}: #{inspect(reason)}"
+    )
 
     updated_state = update_worker_failure(state, worker_pid, repository_id, reason)
 
@@ -229,6 +236,7 @@ defmodule SweBench.IssuePrLinking.Coordinator do
 
   defp update_worker_completion(state, worker_pid, repository_id, result) do
     new_active_workers = Map.delete(state.active_workers, worker_pid)
+
     completed_job = %{
       repository_id: repository_id,
       result: result,
@@ -244,6 +252,7 @@ defmodule SweBench.IssuePrLinking.Coordinator do
 
   defp update_worker_failure(state, worker_pid, repository_id, reason) do
     new_active_workers = Map.delete(state.active_workers, worker_pid)
+
     failed_job = %{
       repository_id: repository_id,
       reason: reason,
@@ -284,7 +293,7 @@ defmodule SweBench.IssuePrLinking.Coordinator do
 
   defp calculate_relationship_distribution(repository_id) do
     # Query relationship distribution using Ash queries
-    links = 
+    links =
       IssuePrLink
       |> Ash.Query.for_read(:by_repository, %{repository_id: repository_id})
       |> Ash.read!()
@@ -292,11 +301,12 @@ defmodule SweBench.IssuePrLinking.Coordinator do
     links
     |> Enum.group_by(& &1.validation_status)
     |> Enum.map(fn {status, group} ->
-      {status, %{
-        count: length(group),
-        avg_confidence: calculate_average_confidence(group),
-        quality_distribution: group_by_quality_tier(group)
-      }}
+      {status,
+       %{
+         count: length(group),
+         avg_confidence: calculate_average_confidence(group),
+         quality_distribution: group_by_quality_tier(group)
+       }}
     end)
     |> Map.new()
   end

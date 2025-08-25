@@ -64,7 +64,9 @@ defmodule SweBench.IssuePrLinking.AnalysisPipeline do
       updated_stats = update_analysis_stats(state.analysis_stats, processing_time, :success)
       updated_state = %{state | analysis_stats: updated_stats}
 
-      Logger.debug("Correlation analysis #{analysis_id} completed: #{length(correlations)} relationships found")
+      Logger.debug(
+        "Correlation analysis #{analysis_id} completed: #{length(correlations)} relationships found"
+      )
 
       {:reply, {:ok, correlations}, updated_state}
     rescue
@@ -99,7 +101,9 @@ defmodule SweBench.IssuePrLinking.AnalysisPipeline do
     correlations
   end
 
-  defp normalize_strategies([:all]), do: [:commit_message, :semantic_similarity, :temporal_proximity]
+  defp normalize_strategies([:all]),
+    do: [:commit_message, :semantic_similarity, :temporal_proximity]
+
   defp normalize_strategies(strategies) when is_list(strategies), do: strategies
   defp normalize_strategies(_), do: [:commit_message]
 
@@ -125,13 +129,13 @@ defmodule SweBench.IssuePrLinking.AnalysisPipeline do
     end)
   end
 
-  defp apply_single_strategy(:semantic_similarity, issue, pull_requests) do
+  defp apply_single_strategy(:semantic_similarity, _issue, _pull_requests) do
     # Placeholder - will be implemented in Phase 2
     Logger.debug("Semantic similarity analysis - placeholder implementation")
     []
   end
 
-  defp apply_single_strategy(:temporal_proximity, issue, pull_requests) do
+  defp apply_single_strategy(:temporal_proximity, _issue, _pull_requests) do
     # Placeholder - will be implemented in Phase 2
     Logger.debug("Temporal proximity analysis - placeholder implementation")
     []
@@ -154,10 +158,14 @@ defmodule SweBench.IssuePrLinking.AnalysisPipeline do
 
     # Base confidence on reference strength
     case reference_count do
-      count when count >= 3 -> 0.95  # Multiple strong references
-      count when count >= 2 -> 0.85  # Multiple references
-      count when count >= 1 -> 0.75  # Single reference
-      _ -> 0.50  # Weak or no reference
+      # Multiple strong references
+      count when count >= 3 -> 0.95
+      # Multiple references
+      count when count >= 2 -> 0.85
+      # Single reference
+      count when count >= 1 -> 0.75
+      # Weak or no reference
+      _ -> 0.50
     end
   end
 
@@ -253,12 +261,12 @@ defmodule SweBench.IssuePrLinking.AnalysisPipeline do
     correlations
   end
 
-  defp update_analysis_stats(stats, processing_time, outcome) do
+  defp update_analysis_stats(stats, processing_time, _outcome) do
     new_total = stats.total_processed + 1
 
     new_avg_time =
       if new_total > 1 do
-        ((stats.avg_processing_time * (new_total - 1)) + processing_time) / new_total
+        (stats.avg_processing_time * (new_total - 1) + processing_time) / new_total
       else
         processing_time
       end

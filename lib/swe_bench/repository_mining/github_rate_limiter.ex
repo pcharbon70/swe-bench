@@ -98,7 +98,11 @@ defmodule SweBench.RepositoryMining.GitHubRateLimiter do
     updated_state =
       state
       |> update_remaining_from_headers(headers, "x-ratelimit-remaining", :remaining_api_requests)
-      |> update_remaining_from_headers(headers, "x-ratelimit-search-remaining", :remaining_search_requests)
+      |> update_remaining_from_headers(
+        headers,
+        "x-ratelimit-search-remaining",
+        :remaining_search_requests
+      )
 
     {:noreply, updated_state}
   end
@@ -117,9 +121,9 @@ defmodule SweBench.RepositoryMining.GitHubRateLimiter do
       end
 
     # Check if request can be permitted
+    # Keep buffer of 10 requests
     if state.api_requests_in_window < state.api_requests_per_hour and
-       state.remaining_api_requests > 10 do  # Keep buffer of 10 requests
-
+         state.remaining_api_requests > 10 do
       updated_state = %{
         state
         | api_requests_in_window: state.api_requests_in_window + 1,
@@ -146,9 +150,9 @@ defmodule SweBench.RepositoryMining.GitHubRateLimiter do
       end
 
     # Check if search request can be permitted
+    # Keep buffer of 2 requests
     if state.search_requests_in_window < state.search_requests_per_minute and
-       state.remaining_search_requests > 2 do  # Keep buffer of 2 requests
-
+         state.remaining_search_requests > 2 do
       updated_state = %{
         state
         | search_requests_in_window: state.search_requests_in_window + 1,

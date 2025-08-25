@@ -64,6 +64,20 @@ defmodule SweBench.Repositories.MiningJob do
     end
   end
 
+  validations do
+    validate attribute_does_not_equal(:max_repositories, 0) do
+      message "Must specify at least 1 repository to discover"
+    end
+
+    validate compare(:repositories_discovered, less_than_or_equal_to: :max_repositories) do
+      message "Cannot discover more repositories than maximum specified"
+    end
+
+    validate compare(:repositories_analyzed, less_than_or_equal_to: :repositories_discovered) do
+      message "Cannot analyze more repositories than discovered"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -133,11 +147,12 @@ defmodule SweBench.Repositories.MiningJob do
     end
   end
 
-  relationships do
-    has_many :discovered_repositories, SweBench.Repositories.Repository do
-      destination_attribute :mining_job_id
-    end
-  end
+  # relationships do
+  # TODO: Add relationships when Repository mining_job_id field is restored
+  # has_many :discovered_repositories, SweBench.Repositories.Repository do
+  #   destination_attribute :mining_job_id
+  # end
+  # end
 
   calculations do
     calculate :duration_seconds, :integer do
@@ -176,20 +191,6 @@ defmodule SweBench.Repositories.MiningJob do
           end
         end)
       end
-    end
-  end
-
-  validations do
-    validate attribute_does_not_equal(:max_repositories, 0) do
-      message "Must specify at least 1 repository to discover"
-    end
-
-    validate compare(:repositories_discovered, less_than_or_equal_to: :max_repositories) do
-      message "Cannot discover more repositories than maximum specified"
-    end
-
-    validate compare(:repositories_analyzed, less_than_or_equal_to: :repositories_discovered) do
-      message "Cannot analyze more repositories than discovered"
     end
   end
 end

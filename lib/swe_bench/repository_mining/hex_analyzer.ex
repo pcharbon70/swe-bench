@@ -126,8 +126,8 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
     links = Map.get(package, "links", %{})
 
     Map.has_key?(links, "GitHub") or
-    Map.has_key?(links, "Github") or
-    Map.has_key?(links, "github")
+      Map.has_key?(links, "Github") or
+      Map.has_key?(links, "github")
   end
 
   defp extract_github_url(package) do
@@ -135,8 +135,8 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
 
     github_url =
       links["GitHub"] ||
-      links["Github"] ||
-      links["github"]
+        links["Github"] ||
+        links["github"]
 
     package
     |> Map.put("github_url", github_url)
@@ -252,5 +252,4 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
         make_hex_request(endpoint, params)
     end
   end
-
 end

@@ -26,8 +26,7 @@ defmodule SweBench.IssuePrLinking.Supervisor do
       {SweBench.IssuePrLinking.Coordinator, [max_workers: max_workers]},
 
       # Dynamic supervisor for correlation workers
-      {DynamicSupervisor,
-       name: SweBench.IssuePrLinking.WorkerSupervisor, strategy: :one_for_one},
+      {DynamicSupervisor, name: SweBench.IssuePrLinking.WorkerSupervisor, strategy: :one_for_one},
 
       # Analysis pipeline components
       {SweBench.IssuePrLinking.AnalysisPipeline, []},

@@ -75,7 +75,8 @@ defmodule SweBench.IssuePrLinking do
       |> Enum.map(fn link ->
         link
         |> Ash.Changeset.for_update(:validate_link, %{
-          manual_validation_notes: "Auto-validated due to high confidence (#{link.confidence_score})"
+          manual_validation_notes:
+            "Auto-validated due to high confidence (#{link.confidence_score})"
         })
         |> Ash.update()
       end)

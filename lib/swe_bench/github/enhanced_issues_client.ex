@@ -66,15 +66,16 @@ defmodule SweBench.GitHub.EnhancedIssuesClient do
       :ok ->
         client = Client.new()
 
-        with {:ok, pr_data} <- Client.api_get(client, "/repos/#{owner}/#{repo_name}/pulls/#{pr_number}"),
+        with {:ok, pr_data} <-
+               Client.api_get(client, "/repos/#{owner}/#{repo_name}/pulls/#{pr_number}"),
              {:ok, commits} <- get_pr_commits(client, owner, repo_name, pr_number),
              {:ok, files} <- get_pr_files(client, owner, repo_name, pr_number) do
-
-          enhanced_pr = Map.merge(pr_data, %{
-            commits: commits,
-            files: files,
-            commit_messages: extract_commit_messages(commits)
-          })
+          enhanced_pr =
+            Map.merge(pr_data, %{
+              commits: commits,
+              files: files,
+              commit_messages: extract_commit_messages(commits)
+            })
 
           {:ok, enhanced_pr}
         end
@@ -214,7 +215,10 @@ defmodule SweBench.GitHub.EnhancedIssuesClient do
 
   defp fetch_pages(_client, _endpoint, _params, acc_items, current_page, max_pages)
        when current_page > max_pages do
-    Logger.info("Reached maximum pages limit (#{max_pages}), returning #{length(acc_items)} items")
+    Logger.info(
+      "Reached maximum pages limit (#{max_pages}), returning #{length(acc_items)} items"
+    )
+
     {:ok, acc_items}
   end
 

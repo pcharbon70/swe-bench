@@ -69,11 +69,19 @@ defmodule SweBench.IssuePrLinking.ValidationPipeline do
 
   defp validate_confidence_threshold(correlation) do
     if correlation.confidence_score >= @minimum_confidence do
-      add_validation_result(correlation, :confidence_threshold, :passed,
-        "Confidence #{correlation.confidence_score} meets minimum threshold")
+      add_validation_result(
+        correlation,
+        :confidence_threshold,
+        :passed,
+        "Confidence #{correlation.confidence_score} meets minimum threshold"
+      )
     else
-      add_validation_result(correlation, :confidence_threshold, :failed,
-        "Confidence #{correlation.confidence_score} below minimum threshold #{@minimum_confidence}")
+      add_validation_result(
+        correlation,
+        :confidence_threshold,
+        :failed,
+        "Confidence #{correlation.confidence_score} below minimum threshold #{@minimum_confidence}"
+      )
     end
   end
 
@@ -84,16 +92,28 @@ defmodule SweBench.IssuePrLinking.ValidationPipeline do
     case {issue_created, pr_created} do
       {%DateTime{} = issue_time, %DateTime{} = pr_time} ->
         if DateTime.compare(issue_time, pr_time) in [:lt, :eq] do
-          add_validation_result(correlation, :temporal_consistency, :passed,
-            "Issue created before or at same time as PR")
+          add_validation_result(
+            correlation,
+            :temporal_consistency,
+            :passed,
+            "Issue created before or at same time as PR"
+          )
         else
-          add_validation_result(correlation, :temporal_consistency, :warning,
-            "PR created before issue - unusual but possible")
+          add_validation_result(
+            correlation,
+            :temporal_consistency,
+            :warning,
+            "PR created before issue - unusual but possible"
+          )
         end
 
       _ ->
-        add_validation_result(correlation, :temporal_consistency, :warning,
-          "Unable to parse creation timestamps")
+        add_validation_result(
+          correlation,
+          :temporal_consistency,
+          :warning,
+          "Unable to parse creation timestamps"
+        )
     end
   end
 
@@ -109,8 +129,12 @@ defmodule SweBench.IssuePrLinking.ValidationPipeline do
         validate_relation_relationship(correlation)
 
       _ ->
-        add_validation_result(correlation, :relationship_logic, :warning,
-          "Unknown relationship type: #{correlation.relationship_type}")
+        add_validation_result(
+          correlation,
+          :relationship_logic,
+          :warning,
+          "Unknown relationship type: #{correlation.relationship_type}"
+        )
     end
   end
 
@@ -120,34 +144,58 @@ defmodule SweBench.IssuePrLinking.ValidationPipeline do
 
     case reference_strength do
       strength when strength in [:strong, :very_strong] ->
-        add_validation_result(correlation, :relationship_logic, :passed,
-          "Strong evidence for fix relationship")
+        add_validation_result(
+          correlation,
+          :relationship_logic,
+          :passed,
+          "Strong evidence for fix relationship"
+        )
 
       :moderate ->
-        add_validation_result(correlation, :relationship_logic, :passed,
-          "Moderate evidence for fix relationship")
+        add_validation_result(
+          correlation,
+          :relationship_logic,
+          :passed,
+          "Moderate evidence for fix relationship"
+        )
 
       _ ->
-        add_validation_result(correlation, :relationship_logic, :warning,
-          "Weak evidence for fix relationship")
+        add_validation_result(
+          correlation,
+          :relationship_logic,
+          :warning,
+          "Weak evidence for fix relationship"
+        )
     end
   end
 
   defp validate_reference_relationship(correlation) do
     # References are more permissive but still need some evidence
     if correlation.confidence_score >= 0.6 do
-      add_validation_result(correlation, :relationship_logic, :passed,
-        "Sufficient confidence for reference relationship")
+      add_validation_result(
+        correlation,
+        :relationship_logic,
+        :passed,
+        "Sufficient confidence for reference relationship"
+      )
     else
-      add_validation_result(correlation, :relationship_logic, :warning,
-        "Low confidence for reference relationship")
+      add_validation_result(
+        correlation,
+        :relationship_logic,
+        :warning,
+        "Low confidence for reference relationship"
+      )
     end
   end
 
   defp validate_relation_relationship(correlation) do
     # Related relationships are most permissive
-    add_validation_result(correlation, :relationship_logic, :passed,
-      "Related relationship validation passed")
+    add_validation_result(
+      correlation,
+      :relationship_logic,
+      :passed,
+      "Related relationship validation passed"
+    )
   end
 
   defp determine_validation_status(correlation) do
@@ -161,7 +209,8 @@ defmodule SweBench.IssuePrLinking.ValidationPipeline do
         not Enum.empty?(failed_validations) ->
           :rejected
 
-        correlation.confidence_score >= @auto_validate_threshold and Enum.empty?(warning_validations) ->
+        correlation.confidence_score >= @auto_validate_threshold and
+            Enum.empty?(warning_validations) ->
           :validated
 
         correlation.confidence_score >= 0.7 and length(warning_validations) <= 1 ->
@@ -214,7 +263,7 @@ defmodule SweBench.IssuePrLinking.ValidationPipeline do
 
     new_avg_time =
       if new_total > 1 do
-        ((state.avg_validation_time * (new_total - 1)) + processing_time) / new_total
+        (state.avg_validation_time * (new_total - 1) + processing_time) / new_total
       else
         processing_time
       end

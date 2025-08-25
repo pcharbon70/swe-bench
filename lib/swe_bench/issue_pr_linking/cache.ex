@@ -10,7 +10,8 @@ defmodule SweBench.IssuePrLinking.Cache do
   require Logger
 
   @cache_name :issue_pr_correlation_cache
-  @default_ttl_seconds 3600  # 1 hour
+  # 1 hour
+  @default_ttl_seconds 3600
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)
@@ -68,13 +69,13 @@ defmodule SweBench.IssuePrLinking.Cache do
   @impl true
   def init(_opts) do
     # Initialize cache with Cachex
-    {:ok, _pid} = Cachex.start_link(@cache_name, [
-      limit: 1000,           # Max 1000 entries
-      expiration: Cachex.Expiration.expiration(
-        default: :timer.seconds(@default_ttl_seconds),
-        interval: :timer.seconds(60)  # Cleanup every minute
+    {:ok, _pid} =
+      Cachex.start_link(@cache_name,
+        # Max 1000 entries
+        limit: 1000,
+        # Default TTL in milliseconds
+        default_ttl: @default_ttl_seconds * 1000
       )
-    ])
 
     state = %{
       cache_hits: 0,
@@ -118,7 +119,7 @@ defmodule SweBench.IssuePrLinking.Cache do
 
   @impl true
   def handle_call(:get_stats, _from, state) do
-    cache_info = Cachex.stats(@cache_name)
+    _cache_info = Cachex.stats(@cache_name)
 
     stats = %{
       cache_hits: state.cache_hits,

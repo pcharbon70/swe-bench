@@ -76,7 +76,10 @@ defmodule SweBench.IssuePrLinking.Worker do
     |> compile_results(state)
   rescue
     error ->
-      Logger.error("Correlation pipeline error for repository #{state.job.repository_id}: #{inspect(error)}")
+      Logger.error(
+        "Correlation pipeline error for repository #{state.job.repository_id}: #{inspect(error)}"
+      )
+
       {:error, {:pipeline_error, error}}
   end
 
@@ -84,9 +87,11 @@ defmodule SweBench.IssuePrLinking.Worker do
     Logger.debug("Fetching issues and PRs for #{repository_name}")
 
     with {:ok, issues} <- EnhancedIssuesClient.get_closed_issues(owner, repo_name, max_pages: 5),
-         {:ok, prs} <- EnhancedIssuesClient.get_merged_pull_requests(owner, repo_name, max_pages: 5) do
-
-      Logger.info("Fetched #{length(issues)} issues and #{length(prs)} PRs for #{repository_name}")
+         {:ok, prs} <-
+           EnhancedIssuesClient.get_merged_pull_requests(owner, repo_name, max_pages: 5) do
+      Logger.info(
+        "Fetched #{length(issues)} issues and #{length(prs)} PRs for #{repository_name}"
+      )
 
       {:ok,
        %{
@@ -109,7 +114,9 @@ defmodule SweBench.IssuePrLinking.Worker do
       |> Enum.sort_by(& &1.confidence_score, :desc)
       |> Enum.take(state.job.max_correlations)
 
-    Logger.info("Found #{length(correlations)} potential correlations for #{data.repository_name}")
+    Logger.info(
+      "Found #{length(correlations)} potential correlations for #{data.repository_name}"
+    )
 
     {:ok, Map.put(data, :correlations, correlations)}
   end
@@ -130,7 +137,9 @@ defmodule SweBench.IssuePrLinking.Worker do
     |> calculate_combined_confidence()
   end
 
-  defp get_enabled_strategies([:all]), do: [:commit_message, :semantic_similarity, :temporal_proximity]
+  defp get_enabled_strategies([:all]),
+    do: [:commit_message, :semantic_similarity, :temporal_proximity]
+
   defp get_enabled_strategies(strategies) when is_list(strategies), do: strategies
 
   defp apply_correlation_strategy(:commit_message, issue, pull_requests) do
@@ -143,7 +152,8 @@ defmodule SweBench.IssuePrLinking.Worker do
         issue: issue,
         pull_request: pr,
         relationship_type: determine_relationship_type(pr, issue_number),
-        confidence_score: 0.95,  # High confidence for explicit references
+        # High confidence for explicit references
+        confidence_score: 0.95,
         detection_method: :commit_message,
         evidence: %{
           commit_messages: extract_referencing_commits(pr, issue_number)
@@ -152,12 +162,12 @@ defmodule SweBench.IssuePrLinking.Worker do
     end)
   end
 
-  defp apply_correlation_strategy(:semantic_similarity, issue, pull_requests) do
+  defp apply_correlation_strategy(:semantic_similarity, _issue, _pull_requests) do
     # Placeholder for semantic similarity - will be enhanced in Phase 2
     []
   end
 
-  defp apply_correlation_strategy(:temporal_proximity, issue, pull_requests) do
+  defp apply_correlation_strategy(:temporal_proximity, _issue, _pull_requests) do
     # Placeholder for temporal analysis - will be enhanced in Phase 2
     []
   end
@@ -220,7 +230,7 @@ defmodule SweBench.IssuePrLinking.Worker do
     correlations
   end
 
-  defp validate_relationships({:ok, data}, state) do
+  defp validate_relationships({:ok, data}, _state) do
     Logger.debug("Validating relationships for #{data.repository_name}")
 
     validated_correlations =
@@ -258,7 +268,6 @@ defmodule SweBench.IssuePrLinking.Worker do
     # First, ensure issue and PR exist in database
     with {:ok, issue} <- ensure_issue_exists(correlation.issue, repository_id),
          {:ok, pr} <- ensure_pr_exists(correlation.pull_request, repository_id) do
-
       attrs = %{
         repository_id: repository_id,
         issue_id: issue.id,
@@ -355,6 +364,7 @@ defmodule SweBench.IssuePrLinking.Worker do
   end
 
   defp parse_datetime(nil), do: nil
+
   defp parse_datetime(datetime_string) when is_binary(datetime_string) do
     case DateTime.from_iso8601(datetime_string) do
       {:ok, datetime, _offset} -> datetime
@@ -377,7 +387,8 @@ defmodule SweBench.IssuePrLinking.Worker do
       medium_confidence_count: Map.get(correlations_by_confidence, :medium, 0),
       low_confidence_count: Map.get(correlations_by_confidence, :low, 0),
       auto_validated_count: count_auto_validated(data.persisted_links),
-      rejected_count: 0,  # Will be updated when validation is enhanced
+      # Will be updated when validation is enhanced
+      rejected_count: 0,
       processing_time_ms: processing_time
     }
 
@@ -413,7 +424,9 @@ defmodule SweBench.IssuePrLinking.Worker do
   end
 
   defp fail_correlation_job(state, reason) do
-    Logger.error("Correlation analysis failed for repository #{state.job.repository_id}: #{inspect(reason)}")
+    Logger.error(
+      "Correlation analysis failed for repository #{state.job.repository_id}: #{inspect(reason)}"
+    )
 
     # Notify coordinator
     send(state.coordinator, {:worker_failed, self(), state.job.repository_id, reason})

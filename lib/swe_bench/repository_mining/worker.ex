@@ -140,10 +140,11 @@ defmodule SweBench.RepositoryMining.Worker do
     with {:ok, enhanced_data} <- fetch_detailed_metadata(repo_data),
          {:ok, quality_scores} <- QualityScorer.calculate_quality_scores(enhanced_data),
          {:ok, _categorized_data} <- categorize_repository(enhanced_data, quality_scores) do
-      analyzed_repo = Map.merge(enhanced_data, %{
-        quality_scores: quality_scores,
-        analysis_completed_at: DateTime.utc_now()
-      })
+      analyzed_repo =
+        Map.merge(enhanced_data, %{
+          quality_scores: quality_scores,
+          analysis_completed_at: DateTime.utc_now()
+        })
 
       {:ok, analyzed_repo}
     end

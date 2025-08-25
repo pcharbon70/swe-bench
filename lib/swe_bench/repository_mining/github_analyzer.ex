@@ -51,7 +51,10 @@ defmodule SweBench.RepositoryMining.GitHubAnalyzer do
       {:ok, repo_data}
     else
       {:error, reason} ->
-        Logger.warning("Failed to fetch repository details for #{owner}/#{repo_name}: #{inspect(reason)}")
+        Logger.warning(
+          "Failed to fetch repository details for #{owner}/#{repo_name}: #{inspect(reason)}"
+        )
+
         {:error, reason}
     end
   end
@@ -64,7 +67,8 @@ defmodule SweBench.RepositoryMining.GitHubAnalyzer do
 
     client = Client.new()
 
-    with {:ok, contents} <- EnhancedGitHubClient.get_repository_contents(client, owner, repo_name, ""),
+    with {:ok, contents} <-
+           EnhancedGitHubClient.get_repository_contents(client, owner, repo_name, ""),
          {:ok, mix_exs} <- fetch_mix_file(client, owner, repo_name),
          {:ok, test_structure} <- analyze_test_structure(owner, repo_name) do
       structure_analysis = %{
@@ -79,7 +83,10 @@ defmodule SweBench.RepositoryMining.GitHubAnalyzer do
       {:ok, structure_analysis}
     else
       {:error, reason} ->
-        Logger.warning("Failed to analyze structure for #{owner}/#{repo_name}: #{inspect(reason)}")
+        Logger.warning(
+          "Failed to analyze structure for #{owner}/#{repo_name}: #{inspect(reason)}"
+        )
+
         {:error, reason}
     end
   end
@@ -109,7 +116,10 @@ defmodule SweBench.RepositoryMining.GitHubAnalyzer do
     base_query = Map.get(query_params, :query, "language:elixir")
 
     base_query
-    |> add_optional_filter("stars:>#{query_params[:min_stars]}", Map.has_key?(query_params, :min_stars))
+    |> add_optional_filter(
+      "stars:>#{query_params[:min_stars]}",
+      Map.has_key?(query_params, :min_stars)
+    )
     |> add_optional_filter("fork:false", Map.get(query_params, :exclude_forks, true))
     |> add_optional_filter("archived:false", Map.get(query_params, :exclude_archived, true))
   end

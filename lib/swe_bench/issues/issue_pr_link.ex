@@ -80,6 +80,20 @@ defmodule SweBench.Issues.IssuePrLink do
     end
   end
 
+  validations do
+    validate compare(:confidence_score, greater_than_or_equal_to: 0.0) do
+      message "Confidence score cannot be negative"
+    end
+
+    validate compare(:confidence_score, less_than_or_equal_to: 1.0) do
+      message "Confidence score cannot exceed 1.0"
+    end
+
+    validate present([:issue_id, :pull_request_id, :repository_id]) do
+      message "Issue, PR, and repository references are required"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -115,7 +129,15 @@ defmodule SweBench.Issues.IssuePrLink do
     attribute :detection_method, :atom do
       description "Primary method used to detect the relationship"
       allow_nil? false
-      constraints one_of: [:commit_message, :pr_description, :code_analysis, :semantic_similarity, :temporal_proximity, :manual]
+
+      constraints one_of: [
+                    :commit_message,
+                    :pr_description,
+                    :code_analysis,
+                    :semantic_similarity,
+                    :temporal_proximity,
+                    :manual
+                  ]
     end
 
     attribute :validation_status, :atom do
@@ -178,10 +200,6 @@ defmodule SweBench.Issues.IssuePrLink do
     end
   end
 
-  identities do
-    identity :unique_issue_pr, [:issue_id, :pull_request_id]
-  end
-
   calculations do
     calculate :quality_tier, :atom do
       description "Quality tier based on confidence and validation"
@@ -226,17 +244,7 @@ defmodule SweBench.Issues.IssuePrLink do
     end
   end
 
-  validations do
-    validate compare(:confidence_score, greater_than_or_equal_to: 0.0) do
-      message "Confidence score cannot be negative"
-    end
-
-    validate compare(:confidence_score, less_than_or_equal_to: 1.0) do
-      message "Confidence score cannot exceed 1.0"
-    end
-
-    validate present([:issue_id, :pull_request_id, :repository_id]) do
-      message "Issue, PR, and repository references are required"
-    end
+  identities do
+    identity :unique_issue_pr, [:issue_id, :pull_request_id]
   end
 end
