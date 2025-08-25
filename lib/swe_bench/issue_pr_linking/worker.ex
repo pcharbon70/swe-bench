@@ -9,8 +9,8 @@ defmodule SweBench.IssuePrLinking.Worker do
   use GenServer
   require Logger
 
-  alias SweBench.Issues.{Issue, PullRequest, IssuePrLink}
   alias SweBench.GitHub.EnhancedIssuesClient
+  alias SweBench.Issues.{Issue, IssuePrLink, PullRequest}
   alias SweBench.IssuePrLinking.{AnalysisPipeline, ValidationPipeline}
 
   defstruct [

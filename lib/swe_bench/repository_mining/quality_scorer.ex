@@ -197,11 +197,11 @@ defmodule SweBench.RepositoryMining.QualityScorer do
 
     cond do
       # Very complex
-      size_kb >= 10000 -> 25.0
+      size_kb >= 10_000 -> 25.0
       # Complex
-      size_kb >= 5000 -> 20.0
+      size_kb >= 5_000 -> 20.0
       # Moderate
-      size_kb >= 1000 -> 15.0
+      size_kb >= 1_000 -> 15.0
       # Simple
       size_kb >= 100 -> 10.0
       # Very simple

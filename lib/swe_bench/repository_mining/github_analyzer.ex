@@ -47,9 +47,10 @@ defmodule SweBench.RepositoryMining.GitHubAnalyzer do
   def get_repository_details(owner, repo_name) do
     Logger.debug("Fetching details for repository: #{owner}/#{repo_name}")
 
-    with {:ok, repo_data} <- EnhancedGitHubClient.get_repository_details(owner, repo_name) do
-      {:ok, repo_data}
-    else
+    case EnhancedGitHubClient.get_repository_details(owner, repo_name) do
+      {:ok, repo_data} ->
+        {:ok, repo_data}
+
       {:error, reason} ->
         Logger.warning(
           "Failed to fetch repository details for #{owner}/#{repo_name}: #{inspect(reason)}"

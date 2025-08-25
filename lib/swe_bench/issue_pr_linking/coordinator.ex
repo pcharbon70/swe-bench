@@ -9,7 +9,7 @@ defmodule SweBench.IssuePrLinking.Coordinator do
   use GenServer
   require Logger
 
-  alias SweBench.Issues.{Issue, PullRequest, IssuePrLink}
+  alias SweBench.Issues.{Issue, IssuePrLink, PullRequest}
   alias SweBench.Repositories.Repository
   alias SweBench.IssuePrLinking.{Worker, WorkerSupervisor}
 

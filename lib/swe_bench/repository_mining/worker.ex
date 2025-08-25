@@ -9,8 +9,8 @@ defmodule SweBench.RepositoryMining.Worker do
   use GenServer
   require Logger
 
-  alias SweBench.Repositories.{MiningJob, Repository, QualityMetrics}
-  alias SweBench.RepositoryMining.{HexAnalyzer, GitHubAnalyzer, QualityScorer}
+  alias SweBench.Repositories.{MiningJob, QualityMetrics, Repository}
+  alias SweBench.RepositoryMining.{GitHubAnalyzer, HexAnalyzer, QualityScorer}
 
   defstruct [
     :job,
@@ -69,8 +69,7 @@ defmodule SweBench.RepositoryMining.Worker do
   # Private implementation functions
 
   defp execute_mining_pipeline(state) do
-    try do
-      repositories =
+    repositories =
         state.job.source
         |> discover_repositories(state.job.query_params, state.job.max_repositories)
         |> analyze_repositories(state)
@@ -90,7 +89,6 @@ defmodule SweBench.RepositoryMining.Worker do
       error ->
         Logger.error("Mining pipeline error in job #{state.job.id}: #{inspect(error)}")
         {:error, {:pipeline_error, error}}
-    end
   end
 
   defp discover_repositories(source, query_params, max_repositories) do
