@@ -196,11 +196,16 @@ defmodule SweBench.RepositoryMining.QualityScorer do
     size_kb = Map.get(repo_data, :size, 0)
 
     cond do
-      size_kb >= 10000 -> 25.0  # Very complex
-      size_kb >= 5000 -> 20.0   # Complex
-      size_kb >= 1000 -> 15.0   # Moderate
-      size_kb >= 100 -> 10.0    # Simple
-      true -> 5.0               # Very simple
+      # Very complex
+      size_kb >= 10_000 -> 25.0
+      # Complex
+      size_kb >= 5_000 -> 20.0
+      # Moderate
+      size_kb >= 1_000 -> 15.0
+      # Simple
+      size_kb >= 100 -> 10.0
+      # Very simple
+      true -> 5.0
     end
   end
 
@@ -211,7 +216,8 @@ defmodule SweBench.RepositoryMining.QualityScorer do
 
   defp calculate_umbrella_complexity(repo_data) do
     if Map.get(repo_data, :is_umbrella_project, false) do
-      20.0  # Umbrella projects are more complex
+      # Umbrella projects are more complex
+      20.0
     else
       10.0
     end
@@ -316,9 +322,10 @@ defmodule SweBench.RepositoryMining.QualityScorer do
       elixir_bytes = Map.get(languages, "Elixir", 0)
 
       if total_bytes > 0 do
-        (elixir_bytes / total_bytes) * 100
+        elixir_bytes / total_bytes * 100
       else
-        100.0  # Assume 100% if no language data
+        # Assume 100% if no language data
+        100.0
       end
     else
       0.0
@@ -339,7 +346,7 @@ defmodule SweBench.RepositoryMining.QualityScorer do
       quality_scores
       |> Enum.reduce(0.0, fn {dimension, score}, acc ->
         weight = Map.get(weights, dimension, 0)
-        acc + (score * weight)
+        acc + score * weight
       end)
 
     Float.round(weighted_score, 2)

@@ -66,6 +66,16 @@ defmodule SweBench.Repositories.QualityMetrics do
     end
   end
 
+  validations do
+    validate compare(:overall_quality_score, greater_than_or_equal_to: 0.0) do
+      message "Overall quality score cannot be negative"
+    end
+
+    validate compare(:overall_quality_score, less_than_or_equal_to: 100.0) do
+      message "Overall quality score cannot exceed 100"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -183,27 +193,18 @@ defmodule SweBench.Repositories.QualityMetrics do
     end
   end
 
-  validations do
-    validate compare(:overall_quality_score, greater_than_or_equal_to: 0.0) do
-      message "Overall quality score cannot be negative"
-    end
-
-    validate compare(:overall_quality_score, less_than_or_equal_to: 100.0) do
-      message "Overall quality score cannot exceed 100"
-    end
-  end
-
   # Private helper functions for change implementations
 
   defp calculate_overall_score(_changeset, result) do
     case result do
       {:ok, quality_metrics} ->
-        overall_score = calculate_weighted_quality_score(
-          quality_metrics.code_quality_score,
-          quality_metrics.community_health_score,
-          quality_metrics.technical_complexity_score,
-          quality_metrics.maintenance_activity_score
-        )
+        overall_score =
+          calculate_weighted_quality_score(
+            quality_metrics.code_quality_score,
+            quality_metrics.community_health_score,
+            quality_metrics.technical_complexity_score,
+            quality_metrics.maintenance_activity_score
+          )
 
         category = determine_quality_category(overall_score)
 
@@ -228,10 +229,10 @@ defmodule SweBench.Repositories.QualityMetrics do
     }
 
     weighted_score =
-      (code * weights.code_quality) +
-        (community * weights.community_health) +
-        (technical * weights.technical_complexity) +
-        (maintenance * weights.maintenance_activity)
+      code * weights.code_quality +
+        community * weights.community_health +
+        technical * weights.technical_complexity +
+        maintenance * weights.maintenance_activity
 
     # Round to 2 decimal places
     Float.round(weighted_score, 2)

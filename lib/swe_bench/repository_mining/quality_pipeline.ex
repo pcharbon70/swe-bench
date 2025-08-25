@@ -115,12 +115,18 @@ defmodule SweBench.RepositoryMining.QualityPipeline do
           {:ok, %{repository_id: repository_id, processing_time: processing_time}}
 
         {:error, reason} ->
-          Logger.warning("Quality assessment failed for repository #{repository_id}: #{inspect(reason)}")
+          Logger.warning(
+            "Quality assessment failed for repository #{repository_id}: #{inspect(reason)}"
+          )
+
           {:error, %{repository_id: repository_id, reason: reason}}
       end
     rescue
       error ->
-        Logger.error("Quality assessment error for repository #{repository_id}: #{inspect(error)}")
+        Logger.error(
+          "Quality assessment error for repository #{repository_id}: #{inspect(error)}"
+        )
+
         {:error, %{repository_id: repository_id, reason: {:exception, error}}}
     end
   end
@@ -143,8 +149,8 @@ defmodule SweBench.RepositoryMining.QualityPipeline do
 
     new_average =
       if new_total > 0 do
-        ((current_stats.average_processing_time * (new_total - length(successful_results))) +
-         Enum.sum(processing_times)) / new_total
+        (current_stats.average_processing_time * (new_total - length(successful_results)) +
+           Enum.sum(processing_times)) / new_total
       else
         0.0
       end

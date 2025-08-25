@@ -718,8 +718,8 @@ defmodule SweBench.RepositorySetup.Configs.ObanConfig do
 
         {:ok, tasks}
 
-      # {:error, reason} ->
-      #   {:error, reason}
+        # {:error, reason} ->
+        #   {:error, reason}
     end
   end
 

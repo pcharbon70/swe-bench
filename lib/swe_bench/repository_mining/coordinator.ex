@@ -128,7 +128,9 @@ defmodule SweBench.RepositoryMining.Coordinator do
 
   @impl true
   def handle_info({:worker_completed, worker_pid, job_id, result}, state) do
-    Logger.info("Mining job #{job_id} completed: #{result.repositories_discovered} repositories discovered")
+    Logger.info(
+      "Mining job #{job_id} completed: #{result.repositories_discovered} repositories discovered"
+    )
 
     updated_state =
       state
