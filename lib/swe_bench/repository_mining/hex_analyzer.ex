@@ -87,20 +87,7 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
     packages =
       1..pages_needed
       |> Enum.reduce_while([], fn page, acc ->
-        case make_hex_request("/packages", %{sort: sort_by, page: page}) do
-          {:ok, page_packages} ->
-            combined = acc ++ page_packages
-
-            if length(combined) >= max_repositories do
-              {:halt, Enum.take(combined, max_repositories)}
-            else
-              {:cont, combined}
-            end
-
-          {:error, reason} ->
-            Logger.warning("Failed to fetch packages page #{page}: #{inspect(reason)}")
-            {:halt, acc}
-        end
+        fetch_single_packages_page(page, acc, sort_by, max_repositories)
       end)
 
     {:ok, packages}
@@ -224,6 +211,23 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
     case Map.get(package, "releases") do
       [latest | _] -> Map.get(latest, "version")
       _ -> Map.get(package, "latest_version")
+    end
+  end
+
+  defp fetch_single_packages_page(page, acc, sort_by, max_repositories) do
+    case make_hex_request("/packages", %{sort: sort_by, page: page}) do
+      {:ok, page_packages} ->
+        combined = acc ++ page_packages
+
+        if length(combined) >= max_repositories do
+          {:halt, Enum.take(combined, max_repositories)}
+        else
+          {:cont, combined}
+        end
+
+      {:error, reason} ->
+        Logger.warning("Failed to fetch packages page #{page}: #{inspect(reason)}")
+        {:halt, acc}
     end
   end
 
