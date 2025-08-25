@@ -11,5 +11,6 @@ defmodule SweBench.Issues do
   resources do
     resource SweBench.Issues.Issue
     resource SweBench.Issues.PullRequest
+    resource SweBench.Issues.IssuePrLink
   end
 end
