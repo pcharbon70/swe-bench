@@ -10,5 +10,7 @@ defmodule SweBench.Repositories do
 
   resources do
     resource SweBench.Repositories.Repository
+    resource SweBench.Repositories.MiningJob
+    resource SweBench.Repositories.QualityMetrics
   end
 end
