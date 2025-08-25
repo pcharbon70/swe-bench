@@ -51,7 +51,12 @@ config :spark,
 config :swe_bench,
   ecto_repos: [SweBench.Repo],
   generators: [timestamp_type: :utc_datetime],
-  ash_domains: [SweBench.Accounts, SweBench.Repositories, SweBench.Issues]
+  ash_domains: [
+    SweBench.Accounts,
+    SweBench.Repositories,
+    SweBench.Issues,
+    SweBench.ValidationResults
+  ]
 
 # Configures the endpoint
 config :swe_bench, SweBenchWeb.Endpoint,

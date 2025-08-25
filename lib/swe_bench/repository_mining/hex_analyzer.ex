@@ -236,20 +236,20 @@ defmodule SweBench.RepositoryMining.HexAnalyzer do
 
     case HexRateLimiter.request_permission() do
       :ok ->
-      url = @hex_api_base <> endpoint
+        url = @hex_api_base <> endpoint
 
-      case Req.get(url, params: params) do
-        {:ok, %{status: 200, body: body}} ->
-          {:ok, body}
+        case Req.get(url, params: params) do
+          {:ok, %{status: 200, body: body}} ->
+            {:ok, body}
 
-        {:ok, %{status: status, body: body}} ->
-          Logger.warning("Hex.pm API returned status #{status}: #{inspect(body)}")
-          {:error, {:http_error, status, body}}
+          {:ok, %{status: status, body: body}} ->
+            Logger.warning("Hex.pm API returned status #{status}: #{inspect(body)}")
+            {:error, {:http_error, status, body}}
 
-        {:error, reason} ->
-          Logger.error("Hex.pm API request failed: #{inspect(reason)}")
-          {:error, {:request_failed, reason}}
-      end
+          {:error, reason} ->
+            Logger.error("Hex.pm API request failed: #{inspect(reason)}")
+            {:error, {:request_failed, reason}}
+        end
 
       {:error, :rate_limited} ->
         Logger.warning("Hex.pm request rate limited, waiting...")
