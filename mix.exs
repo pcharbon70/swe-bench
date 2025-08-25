@@ -93,7 +93,7 @@ defmodule SweBench.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
-      {:claude, "~> 0.5", only: [:dev], runtime: false},
+      #   {:claude, "~> 0.5", only: [:dev], runtime: false},
       {:usage_rules, "~> 0.1.23"}
     ]
   end
