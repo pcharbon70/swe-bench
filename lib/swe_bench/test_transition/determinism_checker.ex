@@ -66,17 +66,7 @@ defmodule SweBench.TestTransition.DeterminismChecker do
     test_outcomes =
       test_results_list
       |> Enum.map(fn test_result ->
-        case Map.get(test_result, :tests) do
-          tests when is_list(tests) ->
-            tests
-            |> Enum.map(fn test ->
-              {test_identifier(test), test.status}
-            end)
-            |> Map.new()
-
-          _ ->
-            %{}
-        end
+        extract_test_status_map(test_result)
       end)
 
     {:ok, test_outcomes}
@@ -153,6 +143,20 @@ defmodule SweBench.TestTransition.DeterminismChecker do
     test_outcomes_list
     |> Enum.flat_map(&Map.keys/1)
     |> Enum.uniq()
+  end
+
+  defp extract_test_status_map(test_result) do
+    case Map.get(test_result, :tests) do
+      tests when is_list(tests) ->
+        tests
+        |> Enum.map(fn test ->
+          {test_identifier(test), test.status}
+        end)
+        |> Map.new()
+
+      _ ->
+        %{}
+    end
   end
 
   defp test_identifier(test) do

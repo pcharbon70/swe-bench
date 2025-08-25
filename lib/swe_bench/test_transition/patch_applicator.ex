@@ -26,9 +26,8 @@ defmodule SweBench.TestTransition.PatchApplicator do
     with {:ok, checked_out} <- checkout_base_commit(repo_path, base_commit),
          {:ok, validated} <- validate_patch_applicability(checked_out, patch_content),
          {:ok, backed_up} <- create_backup_state(validated),
-         {:ok, applied} <- apply_patch_content(backed_up),
-         {:ok, patch_info} <- validate_patch_success(applied) do
-      {:ok, patch_info}
+         {:ok, applied} <- apply_patch_content(backed_up) do
+      validate_patch_success(applied)
     end
   rescue
     error ->
