@@ -48,18 +48,18 @@ defmodule SweBench.TestTransition.QualityAssessor do
       fail_to_pass_count: Map.get(metrics, :fail_to_pass_count, 0),
       pass_to_fail_count: Map.get(metrics, :pass_to_fail_count, 0),
       total_tests: Map.get(metrics, :total_tests, 0),
-      
+
       # Quality indicators
       consistency_score: analysis.consistency_score,
       confidence_level: analysis.confidence_level,
       flakiness_score: Map.get(metrics, :flakiness_score, 0.0),
       flaky_test_count: Map.get(metrics, :flaky_test_count, 0),
-      
+
       # Transition patterns
       transition_diversity: Map.get(metrics, :transition_diversity, 0.0),
       has_meaningful_fix: Map.get(metrics, :fail_to_pass_count, 0) > 0,
       has_regressions: Map.get(metrics, :pass_to_fail_count, 0) > 0,
-      
+
       # Statistical measures
       sample_size_adequate: Map.get(metrics, :total_tests, 0) >= 3
     }
@@ -71,7 +71,7 @@ defmodule SweBench.TestTransition.QualityAssessor do
     rules = [
       # Gold tier requirements
       &assess_gold_tier_eligibility/1,
-      # Silver tier requirements  
+      # Silver tier requirements
       &assess_silver_tier_eligibility/1,
       # Bronze tier requirements
       &assess_bronze_tier_eligibility/1,
@@ -93,11 +93,11 @@ defmodule SweBench.TestTransition.QualityAssessor do
 
   defp assess_gold_tier_eligibility(factors) do
     if factors.has_meaningful_fix and
-       factors.confidence_level >= 0.95 and
-       factors.consistency_score >= 0.95 and
-       not factors.has_regressions and
-       factors.flaky_test_count == 0 and
-       factors.sample_size_adequate do
+         factors.confidence_level >= 0.95 and
+         factors.consistency_score >= 0.95 and
+         not factors.has_regressions and
+         factors.flaky_test_count == 0 and
+         factors.sample_size_adequate do
       {:eligible, :gold}
     else
       {:not_eligible, :gold}
@@ -106,10 +106,10 @@ defmodule SweBench.TestTransition.QualityAssessor do
 
   defp assess_silver_tier_eligibility(factors) do
     if factors.has_meaningful_fix and
-       factors.confidence_level >= 0.85 and
-       factors.consistency_score >= 0.85 and
-       factors.pass_to_fail_count <= 1 and
-       factors.flaky_test_count <= 1 do
+         factors.confidence_level >= 0.85 and
+         factors.consistency_score >= 0.85 and
+         factors.pass_to_fail_count <= 1 and
+         factors.flaky_test_count <= 1 do
       {:eligible, :silver}
     else
       {:not_eligible, :silver}
@@ -118,10 +118,10 @@ defmodule SweBench.TestTransition.QualityAssessor do
 
   defp assess_bronze_tier_eligibility(factors) do
     if factors.has_meaningful_fix and
-       factors.confidence_level >= 0.70 and
-       factors.consistency_score >= 0.70 and
-       factors.pass_to_fail_count <= 2 and
-       factors.flaky_test_count <= 2 do
+         factors.confidence_level >= 0.70 and
+         factors.consistency_score >= 0.70 and
+         factors.pass_to_fail_count <= 2 and
+         factors.flaky_test_count <= 2 do
       {:eligible, :bronze}
     else
       {:not_eligible, :bronze}
@@ -154,7 +154,8 @@ defmodule SweBench.TestTransition.QualityAssessor do
         Enum.any?(assessment_results, &match?({:eligible, ^tier}, &1))
       end)
       |> case do
-        nil -> :unsuitable  # Fallback
+        # Fallback
+        nil -> :unsuitable
         tier -> tier
       end
 

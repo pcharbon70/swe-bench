@@ -146,7 +146,7 @@ defmodule SweBench.TestTransition.PatchApplicator do
   end
 
   defp write_patch_to_temp_file(patch_content) do
-    temp_file = Path.join(System.tmp_dir!(), "swe_bench_patch_#{:rand.uniform(999999)}.patch")
+    temp_file = Path.join(System.tmp_dir!(), "swe_bench_patch_#{:rand.uniform(999_999)}.patch")
 
     case File.write(temp_file, patch_content) do
       :ok -> {:ok, temp_file}

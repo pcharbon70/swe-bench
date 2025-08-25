@@ -23,8 +23,7 @@ defmodule SweBench.TestTransition.Supervisor do
       {SweBench.TestTransition.Coordinator, [max_workers: max_workers]},
 
       # Dynamic supervisor for validation workers
-      {DynamicSupervisor,
-       name: SweBench.TestTransition.WorkerSupervisor, strategy: :one_for_one},
+      {DynamicSupervisor, name: SweBench.TestTransition.WorkerSupervisor, strategy: :one_for_one},
 
       # Core validation components
       {SweBench.TestTransition.TransitionAnalyzer, []},
@@ -47,7 +46,9 @@ defmodule SweBench.TestTransition.Supervisor do
         children
       end
 
-    Logger.info("Starting test transition validation infrastructure with #{max_workers} max workers")
+    Logger.info(
+      "Starting test transition validation infrastructure with #{max_workers} max workers"
+    )
 
     Supervisor.init(children, strategy: :rest_for_one)
   end

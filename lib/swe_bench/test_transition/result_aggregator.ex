@@ -96,7 +96,9 @@ defmodule SweBench.TestTransition.ResultAggregator do
   defp update_consistency_distribution(state, results) do
     consistency_level = classify_consistency_level(results.consistency_score)
     current_count = Map.get(state.consistency_distribution, consistency_level, 0)
-    updated_distribution = Map.put(state.consistency_distribution, consistency_level, current_count + 1)
+
+    updated_distribution =
+      Map.put(state.consistency_distribution, consistency_level, current_count + 1)
 
     %{state | consistency_distribution: updated_distribution}
   end

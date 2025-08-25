@@ -112,9 +112,12 @@ defmodule SweBench.TestTransition.DeterminismChecker do
     unique_statuses = Enum.uniq(statuses)
 
     case length(unique_statuses) do
-      1 -> 1.0  # Perfectly consistent
-      2 -> 0.6  # Some variation
-      _ -> 0.2  # High variation
+      # Perfectly consistent
+      1 -> 1.0
+      # Some variation
+      2 -> 0.6
+      # High variation
+      _ -> 0.2
     end
   end
 
@@ -177,7 +180,7 @@ defmodule SweBench.TestTransition.DeterminismChecker do
       case result do
         {:ok, %{overall_consistency: consistency}} ->
           if new_checks > 1 do
-            ((state.avg_consistency_score * (new_checks - 1)) + consistency) / new_checks
+            (state.avg_consistency_score * (new_checks - 1) + consistency) / new_checks
           else
             consistency
           end

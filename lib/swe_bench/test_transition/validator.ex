@@ -8,10 +8,10 @@ defmodule SweBench.TestTransition.Validator do
 
   require Logger
 
-  alias SweBench.Container.{Pool, Executor}
-  alias SweBench.TestRunner.{Orchestrator, Analyzer}
+  alias SweBench.Container.{Executor, Pool}
+  alias SweBench.TestRunner.{Analyzer, Orchestrator}
   alias SweBench.Issues.{Issue, PullRequest}
-  alias SweBench.TestTransition.{PatchApplicator, TransitionAnalyzer, QualityAssessor}
+  alias SweBench.TestTransition.{PatchApplicator, QualityAssessor, TransitionAnalyzer}
 
   @doc """
   Validates test transitions for an issue-PR pair with comprehensive analysis.
@@ -47,7 +47,6 @@ defmodule SweBench.TestTransition.Validator do
     with {:ok, issue} <- Ash.load(issue_pr_link, :issue),
          {:ok, pr} <- Ash.load(issue_pr_link, :pull_request),
          {:ok, repository} <- Ash.load(issue_pr_link, :repository) do
-      
       context = %{
         issue_pr_link: issue_pr_link,
         issue: issue.issue,
@@ -70,8 +69,8 @@ defmodule SweBench.TestTransition.Validator do
 
     with {:ok, container_id} <- acquire_validation_container(),
          {:ok, base_results} <- execute_base_tests(container_id, context, timeout),
-         {:ok, patched_results} <- execute_multi_run_patched_tests(container_id, context, validation_runs, timeout) do
-      
+         {:ok, patched_results} <-
+           execute_multi_run_patched_tests(container_id, context, validation_runs, timeout) do
       validation_results = %{
         context: context,
         base_results: base_results,
@@ -113,7 +112,6 @@ defmodule SweBench.TestTransition.Validator do
 
     with :ok <- setup_repository_at_commit(container_id, context.repository, context.base_commit),
          {:ok, test_results} <- run_tests_in_container(container_id, context, timeout) do
-      
       Logger.debug("Base tests executed: #{count_test_results(test_results)} tests")
       {:ok, test_results}
     end
@@ -126,7 +124,7 @@ defmodule SweBench.TestTransition.Validator do
       1..validation_runs
       |> Enum.map(fn run_number ->
         Logger.debug("Executing patched test run #{run_number}/#{validation_runs}")
-        
+
         with :ok <- reset_to_base_commit(container_id, context.repository, context.base_commit),
              :ok <- apply_patch_in_container(container_id, context.patch_content),
              {:ok, test_results} <- run_tests_in_container(container_id, context, timeout) do
@@ -178,15 +176,16 @@ defmodule SweBench.TestTransition.Validator do
   defp run_tests_in_container(container_id, _context, _timeout) do
     # Placeholder - will use existing TestRunner integration
     Logger.debug("Running tests in container #{container_id}")
-    
+
     # Mock test results for now
-    {:ok, %{
-      tests: [
-        %{name: "test_example", status: :failed, module: "ExampleTest"},
-        %{name: "test_another", status: :passed, module: "AnotherTest"}
-      ],
-      summary: %{passed: 1, failed: 1, total: 2}
-    }}
+    {:ok,
+     %{
+       tests: [
+         %{name: "test_example", status: :failed, module: "ExampleTest"},
+         %{name: "test_another", status: :passed, module: "AnotherTest"}
+       ],
+       summary: %{passed: 1, failed: 1, total: 2}
+     }}
   end
 
   defp reset_to_base_commit(container_id, _repository, commit_sha) do
@@ -210,13 +209,13 @@ defmodule SweBench.TestTransition.Validator do
   defp analyze_validation_results({:ok, validation_results}) do
     Logger.debug("Analyzing validation results for quality assessment")
 
-    with {:ok, transitions} <- TransitionAnalyzer.analyze_transitions(
-           validation_results.base_results,
-           validation_results.patched_results
-         ),
+    with {:ok, transitions} <-
+           TransitionAnalyzer.analyze_transitions(
+             validation_results.base_results,
+             validation_results.patched_results
+           ),
          {:ok, consistency} <- calculate_consistency_score(validation_results.patched_results),
          {:ok, confidence} <- calculate_confidence_level(transitions) do
-      
       analysis = %{
         validation_results: validation_results,
         transitions: transitions,
@@ -235,7 +234,6 @@ defmodule SweBench.TestTransition.Validator do
   defp assess_benchmark_quality({:ok, analysis}) do
     with {:ok, quality_tier} <- QualityAssessor.assess_quality(analysis),
          {:ok, final_result} <- compile_final_validation_result(analysis, quality_tier) do
-      
       Logger.info("Validation assessment complete: Quality tier #{quality_tier}")
       {:ok, final_result}
     end
@@ -247,7 +245,11 @@ defmodule SweBench.TestTransition.Validator do
 
   defp get_base_commit(pull_request) do
     # Extract base commit SHA from PR data
-    Map.get(pull_request, :base_sha, Map.get(pull_request, "base", %{}) |> Map.get("sha", "HEAD~1"))
+    Map.get(
+      pull_request,
+      :base_sha,
+      Map.get(pull_request, "base", %{}) |> Map.get("sha", "HEAD~1")
+    )
   end
 
   defp get_patch_content(pull_request) do
@@ -267,7 +269,8 @@ defmodule SweBench.TestTransition.Validator do
   defp calculate_consistency_score(patched_results) when is_list(patched_results) do
     # Calculate consistency across multiple runs
     if length(patched_results) <= 1 do
-      {:ok, 1.0}  # Single run is perfectly consistent
+      # Single run is perfectly consistent
+      {:ok, 1.0}
     else
       # Placeholder - will implement statistical analysis in Phase 4
       {:ok, 0.95}

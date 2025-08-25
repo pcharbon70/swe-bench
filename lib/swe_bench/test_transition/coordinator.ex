@@ -100,7 +100,10 @@ defmodule SweBench.TestTransition.Coordinator do
         {:reply, {:ok, job}, updated_state}
 
       {:error, reason} ->
-        Logger.error("Failed to queue validation for issue-PR link #{issue_pr_link_id}: #{inspect(reason)}")
+        Logger.error(
+          "Failed to queue validation for issue-PR link #{issue_pr_link_id}: #{inspect(reason)}"
+        )
+
         {:reply, {:error, reason}, state}
     end
   end
@@ -120,7 +123,8 @@ defmodule SweBench.TestTransition.Coordinator do
     updated_state = %{state | pending_validations: jobs ++ state.pending_validations}
     send(self(), :process_pending)
 
-    {:reply, {:ok, %{queued: length(jobs), failed: length(issue_pr_link_ids) - length(jobs)}}, updated_state}
+    {:reply, {:ok, %{queued: length(jobs), failed: length(issue_pr_link_ids) - length(jobs)}},
+     updated_state}
   end
 
   @impl true
@@ -162,7 +166,9 @@ defmodule SweBench.TestTransition.Coordinator do
 
   @impl true
   def handle_info({:worker_completed, worker_pid, validation_id, result}, state) do
-    Logger.info("Validation completed for #{validation_id}: Quality tier #{result.benchmark_quality}")
+    Logger.info(
+      "Validation completed for #{validation_id}: Quality tier #{result.benchmark_quality}"
+    )
 
     updated_state =
       state
@@ -252,6 +258,7 @@ defmodule SweBench.TestTransition.Coordinator do
 
   defp update_worker_completion(state, worker_pid, validation_id, result) do
     new_active_workers = Map.delete(state.active_workers, worker_pid)
+
     completed_job = %{
       validation_id: validation_id,
       result: result,
@@ -267,6 +274,7 @@ defmodule SweBench.TestTransition.Coordinator do
 
   defp update_worker_failure(state, worker_pid, validation_id, reason) do
     new_active_workers = Map.delete(state.active_workers, worker_pid)
+
     failed_job = %{
       validation_id: validation_id,
       reason: reason,

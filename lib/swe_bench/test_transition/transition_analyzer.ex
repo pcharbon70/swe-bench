@@ -124,9 +124,12 @@ defmodule SweBench.TestTransition.TransitionAnalyzer do
     unique_statuses = Enum.uniq(patched_statuses)
 
     case length(unique_statuses) do
-      1 -> 1.0  # Perfectly consistent
-      2 -> 0.7  # Some inconsistency
-      _ -> 0.3  # High inconsistency
+      # Perfectly consistent
+      1 -> 1.0
+      # Some inconsistency
+      2 -> 0.7
+      # High inconsistency
+      _ -> 0.3
     end
   end
 
@@ -140,7 +143,7 @@ defmodule SweBench.TestTransition.TransitionAnalyzer do
   defp detect_flaky_behavior({:ok, {transitions, grouped_transitions}}) do
     flaky_tests =
       transitions
-      |> Enum.filter(&is_flaky_test?/1)
+      |> Enum.filter(&flaky_test?/1)
       |> Enum.map(& &1.test_name)
 
     flakiness_score = calculate_flakiness_score(transitions)
@@ -159,7 +162,7 @@ defmodule SweBench.TestTransition.TransitionAnalyzer do
     {:error, reason}
   end
 
-  defp is_flaky_test?(transition) do
+  defp flaky_test?(transition) do
     # A test is considered flaky if it has low consistency across runs
     transition.consistency < 0.8
   end
@@ -202,10 +205,14 @@ defmodule SweBench.TestTransition.TransitionAnalyzer do
     unique_types = length(transition_types)
 
     case unique_types do
-      1 -> 0.0  # Single transition type
-      2 -> 0.5  # Two transition types
-      3 -> 0.8  # Three transition types
-      _ -> 1.0  # High diversity
+      # Single transition type
+      1 -> 0.0
+      # Two transition types
+      2 -> 0.5
+      # Three transition types
+      3 -> 0.8
+      # High diversity
+      _ -> 1.0
     end
   end
 

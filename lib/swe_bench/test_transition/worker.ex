@@ -9,8 +9,8 @@ defmodule SweBench.TestTransition.Worker do
   use GenServer
   require Logger
 
-  alias SweBench.ValidationResults.ValidationResult
   alias SweBench.TestTransition.Validator
+  alias SweBench.ValidationResults.ValidationResult
 
   defstruct [
     :job,

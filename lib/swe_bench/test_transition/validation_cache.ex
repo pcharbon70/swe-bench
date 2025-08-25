@@ -10,7 +10,8 @@ defmodule SweBench.TestTransition.ValidationCache do
   require Logger
 
   @cache_name :test_transition_validation_cache
-  @default_ttl_seconds 7200  # 2 hours
+  # 2 hours
+  @default_ttl_seconds 7200
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)

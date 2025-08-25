@@ -79,6 +79,24 @@ defmodule SweBench.ValidationResults.ValidationResult do
     end
   end
 
+  validations do
+    validate compare(:consistency_score, greater_than_or_equal_to: 0.0) do
+      message "Consistency score cannot be negative"
+    end
+
+    validate compare(:confidence_level, greater_than_or_equal_to: 0.0) do
+      message "Confidence level cannot be negative"
+    end
+
+    validate compare(:fail_to_pass_count, greater_than_or_equal_to: 0) do
+      message "FAIL_TO_PASS count cannot be negative"
+    end
+
+    validate present([:issue_pr_link_id, :repository_id, :base_commit_sha]) do
+      message "Issue-PR link, repository, and commit references are required"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -213,9 +231,10 @@ defmodule SweBench.ValidationResults.ValidationResult do
       calculation fn records, _context ->
         records
         |> Enum.map(fn record ->
-          total_tests = (record.fail_to_pass_count || 0) +
-                       (record.pass_to_pass_count || 0) +
-                       (record.pass_to_fail_count || 0)
+          total_tests =
+            (record.fail_to_pass_count || 0) +
+              (record.pass_to_pass_count || 0) +
+              (record.pass_to_fail_count || 0)
 
           if total_tests > 0 do
             (record.fail_to_pass_count || 0) / total_tests
@@ -232,8 +251,9 @@ defmodule SweBench.ValidationResults.ValidationResult do
       calculation fn records, _context ->
         records
         |> Enum.map(fn record ->
-          base_score = (record.confidence_level || 0.0) * 0.7 +
-                      (record.consistency_score || 0.0) * 0.3
+          base_score =
+            (record.confidence_level || 0.0) * 0.7 +
+              (record.consistency_score || 0.0) * 0.3
 
           # Penalty for regressions
           regression_penalty = min(0.2, (record.pass_to_fail_count || 0) * 0.05)
@@ -241,24 +261,6 @@ defmodule SweBench.ValidationResults.ValidationResult do
           max(0.0, base_score - regression_penalty)
         end)
       end
-    end
-  end
-
-  validations do
-    validate compare(:consistency_score, greater_than_or_equal_to: 0.0) do
-      message "Consistency score cannot be negative"
-    end
-
-    validate compare(:confidence_level, greater_than_or_equal_to: 0.0) do
-      message "Confidence level cannot be negative"
-    end
-
-    validate compare(:fail_to_pass_count, greater_than_or_equal_to: 0) do
-      message "FAIL_TO_PASS count cannot be negative"
-    end
-
-    validate present([:issue_pr_link_id, :repository_id, :base_commit_sha]) do
-      message "Issue-PR link, repository, and commit references are required"
     end
   end
 end

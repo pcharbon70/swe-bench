@@ -89,11 +89,12 @@ defmodule SweBench.TestTransition.ValidationReporter do
     validation_results
     |> Enum.group_by(& &1.benchmark_quality)
     |> Enum.map(fn {quality, group} ->
-      {quality, %{
-        count: length(group),
-        percentage: length(group) / length(validation_results) * 100,
-        avg_confidence: calculate_avg_confidence(group)
-      }}
+      {quality,
+       %{
+         count: length(group),
+         percentage: length(group) / length(validation_results) * 100,
+         avg_confidence: calculate_avg_confidence(group)
+       }}
     end)
     |> Map.new()
   end
@@ -103,7 +104,7 @@ defmodule SweBench.TestTransition.ValidationReporter do
       %{trend: :insufficient_data}
     else
       consistencies = Enum.map(validation_results, & &1.consistency_score)
-      
+
       %{
         avg_consistency: Enum.sum(consistencies) / length(consistencies),
         min_consistency: Enum.min(consistencies),
@@ -126,7 +127,7 @@ defmodule SweBench.TestTransition.ValidationReporter do
     if Enum.empty?(validation_results) do
       %{avg_processing_time: 0, total_processing_time: 0}
     else
-      processing_times = 
+      processing_times =
         validation_results
         |> Enum.map(&Map.get(&1, :execution_time_ms, 0))
         |> Enum.filter(&(&1 > 0))
@@ -193,9 +194,9 @@ defmodule SweBench.TestTransition.ValidationReporter do
   end
 
   defp assess_benchmark_readiness(patterns) do
-    high_quality_percentage = 
+    high_quality_percentage =
       (get_in(patterns, [:quality_distribution, :gold, :percentage]) || 0) +
-      (get_in(patterns, [:quality_distribution, :silver, :percentage]) || 0)
+        (get_in(patterns, [:quality_distribution, :silver, :percentage]) || 0)
 
     cond do
       high_quality_percentage >= 70 -> :excellent
@@ -236,10 +237,10 @@ defmodule SweBench.TestTransition.ValidationReporter do
     total = patterns.total_validations
 
     if total > 0 do
-      successful = 
+      successful =
         (get_in(patterns, [:quality_distribution, :gold, :count]) || 0) +
-        (get_in(patterns, [:quality_distribution, :silver, :count]) || 0) +
-        (get_in(patterns, [:quality_distribution, :bronze, :count]) || 0)
+          (get_in(patterns, [:quality_distribution, :silver, :count]) || 0) +
+          (get_in(patterns, [:quality_distribution, :bronze, :count]) || 0)
 
       successful / total
     else
@@ -309,7 +310,7 @@ defmodule SweBench.TestTransition.ValidationReporter do
     if Enum.empty?(validation_results) do
       0.0
     else
-      total_transitions = 
+      total_transitions =
         validation_results
         |> Enum.map(fn result ->
           (result.fail_to_pass_count || 0) + (result.pass_to_fail_count || 0)
@@ -324,15 +325,16 @@ defmodule SweBench.TestTransition.ValidationReporter do
     if Enum.empty?(validation_results) do
       0.0
     else
-      total_flaky = 
+      total_flaky =
         validation_results
         |> Enum.map(&length(&1.flaky_tests || []))
         |> Enum.sum()
 
-      total_tests = 
+      total_tests =
         validation_results
         |> Enum.map(fn result ->
-          (result.fail_to_pass_count || 0) + (result.pass_to_pass_count || 0) + (result.pass_to_fail_count || 0)
+          (result.fail_to_pass_count || 0) + (result.pass_to_pass_count || 0) +
+            (result.pass_to_fail_count || 0)
         end)
         |> Enum.sum()
 
