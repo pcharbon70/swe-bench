@@ -94,7 +94,9 @@ defmodule SweBench.MixProject do
       {:dialyxir, "~> 1.3", only: [:dev], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
       {:claude, "~> 0.5", only: [:dev], runtime: false},
-      {:usage_rules, "~> 0.1.23"}
+      {:usage_rules, "~> 0.1.23"},
+      {:benchee, "~> 1.1"},
+      {:benchee_html, "~> 1.0", only: :dev}
     ]
   end
 
