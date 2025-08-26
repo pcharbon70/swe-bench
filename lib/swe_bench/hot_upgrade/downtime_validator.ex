@@ -159,7 +159,8 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
           cluster_id: cluster_id,
           endpoints: service_endpoints,
           upgrade_spec: upgrade_spec,
-          monitoring_interval: 100,  # Check every 100ms
+          # Check every 100ms
+          monitoring_interval: 100,
           baseline_established: false
         }
 
@@ -189,7 +190,9 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
     {:error, reason}
   end
 
-  defp calculate_downtime_metrics({:ok, {monitoring_config, upgrade_result, availability_results}}) do
+  defp calculate_downtime_metrics(
+         {:ok, {monitoring_config, upgrade_result, availability_results}}
+       ) do
     Logger.debug("Calculating downtime metrics")
 
     downtime_periods = identify_downtime_periods(availability_results)
@@ -234,7 +237,8 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
     |> Enum.map(fn node ->
       %{
         node: node,
-        endpoint: "http://#{node}:4000",  # Placeholder endpoint
+        # Placeholder endpoint
+        endpoint: "http://#{node}:4000",
         health_check: "http://#{node}:4000/health"
       }
     end)
@@ -278,7 +282,8 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
       availability_checks: 50,
       successful_checks: 49,
       failed_checks: 1,
-      check_results: []  # Detailed check results
+      # Detailed check results
+      check_results: []
     }
   end
 
@@ -303,7 +308,7 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
     successful_checks = availability_results.successful_checks
 
     if total_checks > 0 do
-      (successful_checks / total_checks) * 100
+      successful_checks / total_checks * 100
     else
       100.0
     end
@@ -321,7 +326,7 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
   defp calculate_upgrade_efficiency(upgrade_result, downtime_metrics) do
     # Calculate upgrade efficiency score
     if upgrade_result.duration_ms > 0 do
-      1.0 - (downtime_metrics.total_downtime_ms / upgrade_result.duration_ms)
+      1.0 - downtime_metrics.total_downtime_ms / upgrade_result.duration_ms
     else
       1.0
     end
@@ -342,9 +347,10 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
     efficiency_weight = 0.4
 
     availability_score = downtime_metrics.availability_percentage / 100
-    efficiency_score = 1.0  # Placeholder efficiency score
+    # Placeholder efficiency score
+    efficiency_score = 1.0
 
-    (availability_score * availability_weight) + (efficiency_score * efficiency_weight)
+    availability_score * availability_weight + efficiency_score * efficiency_weight
   end
 
   defp build_monitoring_config(opts) do
@@ -374,7 +380,8 @@ defmodule SweBench.HotUpgrade.DowntimeValidator do
 
     new_avg_downtime =
       if new_total > 1 do
-        ((current_stats.avg_downtime_ms * (new_total - 1)) + evaluation_result.downtime_ms) / new_total
+        (current_stats.avg_downtime_ms * (new_total - 1) + evaluation_result.downtime_ms) /
+          new_total
       else
         evaluation_result.downtime_ms
       end

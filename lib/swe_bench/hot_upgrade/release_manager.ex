@@ -76,6 +76,7 @@ defmodule SweBench.HotUpgrade.ReleaseManager do
       case result do
         {:ok, release_info} ->
           updated_cache = Map.put(state.release_cache, cache_key, release_info)
+
           updated_stats = %{
             state.release_statistics
             | releases_created: state.release_statistics.releases_created + 1
@@ -98,7 +99,8 @@ defmodule SweBench.HotUpgrade.ReleaseManager do
 
     updated_stats = %{
       state.release_statistics
-      | upgrade_instructions_generated: state.release_statistics.upgrade_instructions_generated + 1
+      | upgrade_instructions_generated:
+          state.release_statistics.upgrade_instructions_generated + 1
     }
 
     updated_state = %{state | release_statistics: updated_stats}
@@ -148,7 +150,8 @@ defmodule SweBench.HotUpgrade.ReleaseManager do
       applications: Map.get(version_spec, :applications, [:swe_bench]),
       include_erts: Map.get(version_spec, :include_erts, true),
       upgrade_support: Map.get(version_spec, :upgrade_support, true),
-      debug_info: true  # Required for upgrade testing
+      # Required for upgrade testing
+      debug_info: true
     }
   end
 
@@ -191,7 +194,8 @@ defmodule SweBench.HotUpgrade.ReleaseManager do
 
     # Validate release package structure and completeness
     validation_result = %{
-      package_exists: true,  # Placeholder validation
+      # Placeholder validation
+      package_exists: true,
       structure_valid: true,
       upgrade_capable: release_config.upgrade_support,
       validation_timestamp: DateTime.utc_now()
@@ -204,7 +208,9 @@ defmodule SweBench.HotUpgrade.ReleaseManager do
     {:error, reason}
   end
 
-  defp extract_release_metadata({:ok, {project_path, release_config, release_package, validation_result}}) do
+  defp extract_release_metadata(
+         {:ok, {project_path, release_config, release_package, validation_result}}
+       ) do
     Logger.debug("Extracting release metadata")
 
     release_metadata = %{
@@ -251,7 +257,7 @@ defmodule SweBench.HotUpgrade.ReleaseManager do
   defp create_upgrade_instructions(old_release, new_release) do
     # Generate upgrade instructions between releases
     # Placeholder for upgrade instruction generation
-    
+
     instructions = %{
       upgrade_type: determine_upgrade_type(old_release, new_release),
       state_migration_required: requires_state_migration?(old_release, new_release),

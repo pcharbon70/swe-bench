@@ -23,8 +23,7 @@ defmodule SweBench.HotUpgrade.Supervisor do
       {SweBench.HotUpgrade.UpgradeCoordinator, [max_concurrent: max_concurrent_upgrades]},
 
       # Dynamic supervisor for upgrade evaluation workers
-      {DynamicSupervisor,
-       name: SweBench.HotUpgrade.WorkerSupervisor, strategy: :one_for_one},
+      {DynamicSupervisor, name: SweBench.HotUpgrade.WorkerSupervisor, strategy: :one_for_one},
 
       # Core upgrade evaluation components
       {SweBench.HotUpgrade.ReleaseManager, []},
@@ -52,7 +51,9 @@ defmodule SweBench.HotUpgrade.Supervisor do
         children
       end
 
-    Logger.info("Starting hot upgrade evaluation infrastructure with #{max_concurrent_upgrades} max concurrent upgrades")
+    Logger.info(
+      "Starting hot upgrade evaluation infrastructure with #{max_concurrent_upgrades} max concurrent upgrades"
+    )
 
     Supervisor.init(children, strategy: :rest_for_one)
   end
@@ -111,7 +112,8 @@ defmodule SweBench.HotUpgrade.Supervisor do
     distributed_supervisor_pid = GenServer.whereis(SweBench.Distributed.ClusterSupervisor)
 
     %{
-      distributed_available: not is_nil(distributed_supervisor_pid) and Process.alive?(distributed_supervisor_pid),
+      distributed_available:
+        not is_nil(distributed_supervisor_pid) and Process.alive?(distributed_supervisor_pid),
       cluster_coordination: check_cluster_coordination_health(),
       container_orchestration: check_container_orchestration_health()
     }

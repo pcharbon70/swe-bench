@@ -61,7 +61,10 @@ defmodule SweBench.HotUpgrade.UpgradeCoordinator do
       }
     }
 
-    Logger.info("Hot upgrade coordinator started with #{max_concurrent} max concurrent evaluations")
+    Logger.info(
+      "Hot upgrade coordinator started with #{max_concurrent} max concurrent evaluations"
+    )
+
     {:ok, state}
   end
 
@@ -125,10 +128,11 @@ defmodule SweBench.HotUpgrade.UpgradeCoordinator do
         {:noreply, state}
 
       {evaluation_info, remaining_evaluations} ->
-        completed_evaluation = Map.merge(evaluation_info, %{
-          result: result,
-          completed_at: DateTime.utc_now()
-        })
+        completed_evaluation =
+          Map.merge(evaluation_info, %{
+            result: result,
+            completed_at: DateTime.utc_now()
+          })
 
         updated_statistics = update_upgrade_statistics(state.upgrade_statistics, result)
 
@@ -152,10 +156,11 @@ defmodule SweBench.HotUpgrade.UpgradeCoordinator do
         {:noreply, state}
 
       {evaluation_info, remaining_evaluations} ->
-        failed_evaluation = Map.merge(evaluation_info, %{
-          error: reason,
-          failed_at: DateTime.utc_now()
-        })
+        failed_evaluation =
+          Map.merge(evaluation_info, %{
+            error: reason,
+            failed_at: DateTime.utc_now()
+          })
 
         updated_state = %{
           state
@@ -202,8 +207,8 @@ defmodule SweBench.HotUpgrade.UpgradeCoordinator do
     # Update state preservation average
     new_state_preservation_avg =
       if new_total > 1 do
-        ((current_stats.state_preservation_avg * (new_total - 1)) + 
-         evaluation_result.state_preservation) / new_total
+        (current_stats.state_preservation_avg * (new_total - 1) +
+           evaluation_result.state_preservation) / new_total
       else
         evaluation_result.state_preservation
       end

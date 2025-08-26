@@ -129,12 +129,13 @@ defmodule SweBench.HotUpgrade.StateMigrationTester do
   defp validate_callback_implementation({:ok, nil}) do
     Logger.debug("No code_change/3 callback found")
 
-    {:ok, %{
-      callback_present: false,
-      callback_implementation: :missing,
-      parameter_handling: :not_applicable,
-      return_pattern: :not_applicable
-    }}
+    {:ok,
+     %{
+       callback_present: false,
+       callback_implementation: :missing,
+       parameter_handling: :not_applicable,
+       return_pattern: :not_applicable
+     }}
   end
 
   defp validate_callback_implementation({:error, reason}) do
@@ -153,7 +154,8 @@ defmodule SweBench.HotUpgrade.StateMigrationTester do
           migration_success: false,
           reason: :no_callback,
           old_state: old_state,
-          new_state: old_state  # No transformation without callback
+          # No transformation without callback
+          new_state: old_state
         }
       end
 
@@ -209,7 +211,7 @@ defmodule SweBench.HotUpgrade.StateMigrationTester do
   defp simulate_code_change_execution(validation_result, old_state, new_state_spec) do
     # Simulate executing the code_change/3 callback
     # Placeholder for actual migration simulation
-    
+
     %{
       migration_success: validation_result.callback_present,
       old_state: old_state,
@@ -250,7 +252,7 @@ defmodule SweBench.HotUpgrade.StateMigrationTester do
       # Compare old and new state for data preservation
       old_keys = Map.keys(migration_result.old_state)
       new_keys = Map.keys(migration_result.new_state)
-      
+
       preservation_ratio = length(old_keys -- new_keys) / length(old_keys)
       max(0.0, 1.0 - preservation_ratio)
     else
@@ -262,7 +264,8 @@ defmodule SweBench.HotUpgrade.StateMigrationTester do
     # Assess data integrity during transformation
     # Placeholder for data integrity validation
     if migration_result.migration_success do
-      0.9  # High integrity assumed for successful migrations
+      # High integrity assumed for successful migrations
+      0.9
     else
       0.0
     end
@@ -277,9 +280,9 @@ defmodule SweBench.HotUpgrade.StateMigrationTester do
     preservation_score = assess_state_preservation(migration_result)
     integrity_score = assess_data_integrity(migration_result)
 
-    (callback_score * callback_weight) +
-      (preservation_score * preservation_weight) +
-      (integrity_score * integrity_weight)
+    callback_score * callback_weight +
+      preservation_score * preservation_weight +
+      integrity_score * integrity_weight
   end
 
   defp load_migration_scenarios do
@@ -315,8 +318,8 @@ defmodule SweBench.HotUpgrade.StateMigrationTester do
 
     new_preservation_avg =
       if new_total > 1 do
-        ((current_stats.state_preservation_rate * (new_total - 1)) +
-         evaluation_result.state_preservation) / new_total
+        (current_stats.state_preservation_rate * (new_total - 1) +
+           evaluation_result.state_preservation) / new_total
       else
         evaluation_result.state_preservation
       end
