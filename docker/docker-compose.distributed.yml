@@ -1,0 +1,108 @@
+# Docker Compose configuration for distributed Elixir testing
+# Supports multi-node clusters with proper networking and Erlang distribution
+
+services:
+  swe_bench_node_1:
+    build:
+      context: ..
+      dockerfile: docker/distributed-node.dockerfile
+    environment:
+      - NODE_NAME=node1@node1
+      - CLUSTER_COOKIE=swe_bench_test_cluster_2025
+      - CLUSTER_SIZE=3
+      - MIX_ENV=test
+      - ERLANG_DISTRIBUTION=true
+      - EPMD_ENABLED=false
+    networks:
+      - swe_bench_cluster
+    ports:
+      - "9000:9000"
+      - "4369:4369"  # EPMD port if needed
+    healthcheck:
+      test: ["CMD", "epmd", "-names"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  swe_bench_node_2:
+    build:
+      context: ..
+      dockerfile: docker/distributed-node.dockerfile
+    environment:
+      - NODE_NAME=node2@node2
+      - CLUSTER_COOKIE=swe_bench_test_cluster_2025
+      - CLUSTER_SIZE=3
+      - MIX_ENV=test
+      - ERLANG_DISTRIBUTION=true
+      - EPMD_ENABLED=false
+    networks:
+      - swe_bench_cluster
+    ports:
+      - "9001:9000"
+      - "4370:4369"
+    healthcheck:
+      test: ["CMD", "epmd", "-names"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - swe_bench_node_1
+
+  swe_bench_node_3:
+    build:
+      context: ..
+      dockerfile: docker/distributed-node.dockerfile
+    environment:
+      - NODE_NAME=node3@node3
+      - CLUSTER_COOKIE=swe_bench_test_cluster_2025
+      - CLUSTER_SIZE=3
+      - MIX_ENV=test
+      - ERLANG_DISTRIBUTION=true
+      - EPMD_ENABLED=false
+    networks:
+      - swe_bench_cluster
+    ports:
+      - "9002:9000"
+      - "4371:4369"
+    healthcheck:
+      test: ["CMD", "epmd", "-names"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - swe_bench_node_1
+      - swe_bench_node_2
+
+  # Test coordination node (optional)
+  swe_bench_coordinator:
+    build:
+      context: ..
+      dockerfile: docker/distributed-node.dockerfile
+    environment:
+      - NODE_NAME=coordinator@coordinator
+      - CLUSTER_COOKIE=swe_bench_test_cluster_2025
+      - CLUSTER_SIZE=3
+      - MIX_ENV=test
+      - ERLANG_DISTRIBUTION=true
+      - NODE_ROLE=coordinator
+    networks:
+      - swe_bench_cluster
+    ports:
+      - "9003:9000"
+    depends_on:
+      - swe_bench_node_1
+      - swe_bench_node_2
+      - swe_bench_node_3
+
+networks:
+  swe_bench_cluster:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
+
+volumes:
+  cluster_data:
+    driver: local
