@@ -22,27 +22,33 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
     setup do
       # Create test data with complete pipeline setup
       test_data = create_test_repository_with_data()
-      
+
       # Create test validation results
       validation_results = create_test_validation_results(test_data)
-      
+
       %{
         test_data: test_data,
         validation_results: validation_results
       }
     end
 
-    test "generates task instances from validation results", %{validation_results: validation_results} do
+    test "generates task instances from validation results", %{
+      validation_results: validation_results
+    } do
       validation_ids = Enum.map(validation_results, & &1.id)
 
       # Start task generation
       assert {:ok, generation_job} = TaskGeneration.generate_instances(validation_ids)
 
       # Wait for completion
-      assert :ok = wait_for_condition(fn ->
-        status = TaskGeneration.get_generation_status()
-        status.completed_jobs > 0
-      end, 120_000)
+      assert :ok =
+               wait_for_condition(
+                 fn ->
+                   status = TaskGeneration.get_generation_status()
+                   status.completed_jobs > 0
+                 end,
+                 120_000
+               )
 
       # Validate results
       {:ok, task_instances} = TaskGeneration.list_task_instances()
@@ -63,26 +69,32 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
 
       {:ok, _job} = TaskGeneration.generate_instances(validation_ids)
 
-      assert :ok = wait_for_condition(fn ->
-        status = TaskGeneration.get_generation_status()
-        status.completed_jobs > 0
-      end, 60_000)
+      assert :ok =
+               wait_for_condition(
+                 fn ->
+                   status = TaskGeneration.get_generation_status()
+                   status.completed_jobs > 0
+                 end,
+                 60_000
+               )
 
       # Get generated instances
       {:ok, task_instances} = TaskGeneration.list_task_instances()
-      
+
       # Validate SWE-bench format compliance
       Enum.each(task_instances, fn instance ->
         # Required SWE-bench fields
         assert not is_nil(instance.instance_id)
         assert String.match?(instance.instance_id, ~r/^[a-zA-Z0-9_-]+$/)
         assert not is_nil(instance.base_commit_sha)
-        assert String.length(instance.base_commit_sha) == 40 or String.length(instance.base_commit_sha) <= 8
-        
+
+        assert String.length(instance.base_commit_sha) == 40 or
+                 String.length(instance.base_commit_sha) <= 8
+
         # Content requirements
         assert is_binary(instance.problem_statement)
         assert is_binary(instance.patch_content)
-        
+
         # Metadata validation
         assert is_map(instance.task_metadata)
         assert is_map(instance.evaluation_metadata)
@@ -92,7 +104,8 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
     test "handles generation failures gracefully", %{test_data: test_data} do
       # Create invalid validation result
       invalid_attrs = %{
-        issue_pr_link_id: Ash.UUID.generate(),  # Non-existent link
+        # Non-existent link
+        issue_pr_link_id: Ash.UUID.generate(),
         repository_id: test_data.repository.id,
         base_commit_sha: "invalid_commit",
         confidence_level: 0.95,
@@ -100,17 +113,20 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
         benchmark_quality: :gold
       }
 
-      {:ok, invalid_validation} = ValidationResult
-      |> Ash.Changeset.for_create(:create_validation, invalid_attrs)
-      |> Ash.create()
+      {:ok, invalid_validation} =
+        ValidationResult
+        |> Ash.Changeset.for_create(:create_validation, invalid_attrs)
+        |> Ash.create()
 
       # Attempt generation with invalid data
       result = TaskGeneration.generate_instances([invalid_validation.id])
-      
+
       # Should handle gracefully
       case result do
-        {:ok, _} -> :ok  # If it succeeds, that's fine
-        {:error, _} -> :ok  # If it fails gracefully, that's also fine
+        # If it succeeds, that's fine
+        {:ok, _} -> :ok
+        # If it fails gracefully, that's also fine
+        {:error, _} -> :ok
       end
 
       # System should remain stable
@@ -126,10 +142,14 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
       # Generate instances
       {:ok, _job} = TaskGeneration.generate_instances(validation_ids)
 
-      assert :ok = wait_for_condition(fn ->
-        status = TaskGeneration.get_generation_status()
-        status.completed_jobs > 0
-      end, 60_000)
+      assert :ok =
+               wait_for_condition(
+                 fn ->
+                   status = TaskGeneration.get_generation_status()
+                   status.completed_jobs > 0
+                 end,
+                 60_000
+               )
 
       end_time = DateTime.utc_now()
       processing_time_seconds = DateTime.diff(end_time, start_time)
@@ -139,7 +159,7 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
 
       # Validate throughput target
       status = TaskGeneration.get_generation_status()
-      
+
       if status.uptime_seconds > 0 do
         assert status.throughput_per_hour >= 50, "Should achieve reasonable throughput"
       end
@@ -147,15 +167,21 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
   end
 
   describe "metadata enrichment and complexity analysis" do
-    test "enriches task instances with comprehensive metadata", %{validation_results: validation_results} do
+    test "enriches task instances with comprehensive metadata", %{
+      validation_results: validation_results
+    } do
       validation_ids = Enum.take(Enum.map(validation_results, & &1.id), 1)
 
       {:ok, _job} = TaskGeneration.generate_instances(validation_ids)
 
-      assert :ok = wait_for_condition(fn ->
-        status = TaskGeneration.get_generation_status()
-        status.completed_jobs > 0
-      end, 30_000)
+      assert :ok =
+               wait_for_condition(
+                 fn ->
+                   status = TaskGeneration.get_generation_status()
+                   status.completed_jobs > 0
+                 end,
+                 30_000
+               )
 
       {:ok, [task_instance | _]} = TaskGeneration.list_task_instances()
 
@@ -169,6 +195,7 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
 
       # Validate complexity analysis
       complexity_data = get_in(task_instance.task_metadata, [:complexity_analysis])
+
       if complexity_data do
         assert is_map(complexity_data)
       end
@@ -179,10 +206,14 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
 
       {:ok, _job} = TaskGeneration.generate_instances(validation_ids)
 
-      assert :ok = wait_for_condition(fn ->
-        status = TaskGeneration.get_generation_status()
-        status.completed_jobs > 0
-      end, 60_000)
+      assert :ok =
+               wait_for_condition(
+                 fn ->
+                   status = TaskGeneration.get_generation_status()
+                   status.completed_jobs > 0
+                 end,
+                 60_000
+               )
 
       {:ok, task_instances} = TaskGeneration.list_task_instances()
 
@@ -204,11 +235,12 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
 
   defp create_test_validation_results(test_data) do
     # Create test issue-PR links
-    issue_pr_links = create_test_issue_pr_links(
-      test_data.issues,
-      test_data.pull_requests,
-      test_data.repository
-    )
+    issue_pr_links =
+      create_test_issue_pr_links(
+        test_data.issues,
+        test_data.pull_requests,
+        test_data.repository
+      )
 
     # Create validation results for each link
     issue_pr_links
@@ -232,9 +264,10 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
         }
       }
 
-      {:ok, validation_result} = ValidationResult
-      |> Ash.Changeset.for_create(:create_validation, attrs)
-      |> Ash.create()
+      {:ok, validation_result} =
+        ValidationResult
+        |> Ash.Changeset.for_create(:create_validation, attrs)
+        |> Ash.create()
 
       validation_result
     end)
