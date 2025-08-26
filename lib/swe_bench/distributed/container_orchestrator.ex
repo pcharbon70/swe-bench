@@ -371,7 +371,7 @@ defmodule SweBench.Distributed.ContainerOrchestrator do
           :pong -> %{node_info | status: :connected, last_seen: DateTime.utc_now()}
           :pang -> %{node_info | status: :disconnected}
         end
-        
+
         Map.put(nodes_map, node, updated_info)
     end
   end

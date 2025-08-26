@@ -10,8 +10,8 @@ defmodule SweBench.IssuePrLinking.Worker do
   require Logger
 
   alias SweBench.GitHub.EnhancedIssuesClient
-  alias SweBench.Issues.{Issue, IssuePrLink, PullRequest}
   alias SweBench.IssuePrLinking.ValidationPipeline
+  alias SweBench.Issues.{Issue, IssuePrLink, PullRequest}
 
   defstruct [
     :job,

@@ -197,18 +197,16 @@ defmodule SweBench.Distributed.MetricsCollector do
   end
 
   defp collect_remote_node_metrics(node) do
-    try do
-      remote_metrics = :rpc.call(node, __MODULE__, :collect_local_node_metrics, [], 5000)
-      {:ok, remote_metrics}
-    catch
-      :exit, {:timeout, _} ->
-        Logger.warning("Timeout collecting metrics from node: #{node}")
-        {:error, :timeout}
+    remote_metrics = :rpc.call(node, __MODULE__, :collect_local_node_metrics, [], 5000)
+    {:ok, remote_metrics}
+  catch
+    :exit, {:timeout, _} ->
+      Logger.warning("Timeout collecting metrics from node: #{node}")
+      {:error, :timeout}
 
-      :exit, {:nodedown, _} ->
-        Logger.warning("Node down while collecting metrics: #{node}")
-        {:error, :nodedown}
-    end
+    :exit, {:nodedown, _} ->
+      Logger.warning("Node down while collecting metrics: #{node}")
+      {:error, :nodedown}
   end
 
   defp get_message_queue_stats do
