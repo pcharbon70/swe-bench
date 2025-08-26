@@ -235,4 +235,3 @@ defmodule SweBench.QualityValidation.AutomatedValidator do
     }
   end
 end
-

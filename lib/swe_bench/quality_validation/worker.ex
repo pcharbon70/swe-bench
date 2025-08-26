@@ -280,4 +280,3 @@ defmodule SweBench.QualityValidation.Worker do
     send(state.coordinator, {:worker_failed, self(), state.job.id, reason})
   end
 end
-

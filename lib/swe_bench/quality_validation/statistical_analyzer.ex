@@ -315,4 +315,3 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
     }
   end
 end
-
