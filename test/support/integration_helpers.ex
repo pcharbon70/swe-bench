@@ -17,7 +17,7 @@ defmodule SweBench.IntegrationHelpers do
     repository = create_test_repository(opts)
     issues = create_test_issues(repository, Keyword.get(opts, :issue_count, 3))
     prs = create_test_pull_requests(repository, Keyword.get(opts, :pr_count, 3))
-    
+
     %{
       repository: repository,
       issues: issues,
@@ -47,9 +47,10 @@ defmodule SweBench.IntegrationHelpers do
       mining_completed_at: DateTime.utc_now()
     }
 
-    {:ok, repository} = Repository
-    |> Ash.Changeset.for_create(:create, attrs)
-    |> Ash.create()
+    {:ok, repository} =
+      Repository
+      |> Ash.Changeset.for_create(:create, attrs)
+      |> Ash.create()
 
     repository
   end
@@ -65,15 +66,17 @@ defmodule SweBench.IntegrationHelpers do
         github_id: :rand.uniform(999_999),
         number: i,
         title: "Test issue #{i}",
-        body: "This is a test issue for integration testing. It describes a problem that needs to be solved with code changes.",
+        body:
+          "This is a test issue for integration testing. It describes a problem that needs to be solved with code changes.",
         state: "closed",
         labels: ["bug", "enhancement"],
         closed_at: DateTime.add(DateTime.utc_now(), -i * 3600, :second)
       }
 
-      {:ok, issue} = Issue
-      |> Ash.Changeset.for_create(:create, attrs)
-      |> Ash.create()
+      {:ok, issue} =
+        Issue
+        |> Ash.Changeset.for_create(:create, attrs)
+        |> Ash.create()
 
       issue
     end)
@@ -101,9 +104,10 @@ defmodule SweBench.IntegrationHelpers do
         closed_at: DateTime.add(DateTime.utc_now(), -i * 1800, :second)
       }
 
-      {:ok, pr} = PullRequest
-      |> Ash.Changeset.for_create(:create, attrs)
-      |> Ash.create()
+      {:ok, pr} =
+        PullRequest
+        |> Ash.Changeset.for_create(:create, attrs)
+        |> Ash.create()
 
       pr
     end)
@@ -130,9 +134,10 @@ defmodule SweBench.IntegrationHelpers do
         }
       }
 
-      {:ok, link} = IssuePrLink
-      |> Ash.Changeset.for_create(:create_link, attrs)
-      |> Ash.create()
+      {:ok, link} =
+        IssuePrLink
+        |> Ash.Changeset.for_create(:create_link, attrs)
+        |> Ash.create()
 
       link
     end)
@@ -145,22 +150,28 @@ defmodule SweBench.IntegrationHelpers do
     end_time = System.monotonic_time(:millisecond) + timeout_ms
 
     Stream.repeatedly(fn ->
-      if System.monotonic_time(:millisecond) < end_time do
-        case condition_fn.() do
-          true -> :success
-          false -> 
-            Process.sleep(1000)
-            :continue
-        end
-      else
-        :timeout
-      end
+      check_condition_with_timeout(condition_fn, end_time)
     end)
     |> Stream.drop_while(&(&1 == :continue))
     |> Enum.take(1)
     |> case do
       [:success] -> :ok
       [:timeout] -> {:error, :timeout}
+    end
+  end
+
+  defp check_condition_with_timeout(condition_fn, end_time) do
+    if System.monotonic_time(:millisecond) < end_time do
+      case condition_fn.() do
+        true ->
+          :success
+
+        false ->
+          Process.sleep(1000)
+          :continue
+      end
+    else
+      :timeout
     end
   end
 
@@ -195,18 +206,21 @@ defmodule SweBench.IntegrationHelpers do
   def validate_pipeline_data_quality do
     # Validate that generated task instances meet quality standards
     {:ok, task_instances} = TaskGeneration.list_task_instances()
-    
+
     if length(task_instances) > 0 do
       # Check quality tier distribution
       quality_distribution = Enum.frequencies_by(task_instances, & &1.quality_tier)
-      
+
       total_instances = length(task_instances)
-      high_quality_count = Map.get(quality_distribution, :gold, 0) + Map.get(quality_distribution, :silver, 0)
-      
-      quality_percentage = if total_instances > 0, do: high_quality_count / total_instances, else: 0
-      
+
+      high_quality_count =
+        Map.get(quality_distribution, :gold, 0) + Map.get(quality_distribution, :silver, 0)
+
+      quality_percentage =
+        if total_instances > 0, do: high_quality_count / total_instances, else: 0
+
       assert quality_percentage >= 0.3, "At least 30% of instances should be high quality"
-      
+
       # Validate instance completeness
       Enum.each(task_instances, fn instance ->
         assert String.length(instance.problem_statement) > 20
