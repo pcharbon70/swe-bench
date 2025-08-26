@@ -12,8 +12,8 @@ defmodule SweBench.Integration.TaskGenerationIntegrationTest do
   import SweBench.IntegrationHelpers
 
   alias SweBench.TaskGeneration
-  alias SweBench.ValidationResults.ValidationResult
   alias SweBench.TaskInstances.TaskInstance
+  alias SweBench.ValidationResults.ValidationResult
 
   @moduletag :integration
   @moduletag :task_generation

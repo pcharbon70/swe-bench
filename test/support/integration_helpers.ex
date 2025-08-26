@@ -6,8 +6,8 @@ defmodule SweBench.IntegrationHelpers do
   and validation of integration test scenarios.
   """
 
+  alias SweBench.Issues.{Issue, IssuePrLink, PullRequest}
   alias SweBench.Repositories.Repository
-  alias SweBench.Issues.{Issue, PullRequest, IssuePrLink}
   alias SweBench.TaskInstances.TaskInstance
 
   @doc """
@@ -183,7 +183,7 @@ defmodule SweBench.IntegrationHelpers do
     mining_stats = RepositoryMining.get_mining_status()
     assert mining_stats.total_repositories_discovered >= 0
 
-    # Issue-PR linking statistics  
+    # Issue-PR linking statistics
     linking_stats = IssuePrLinking.get_analysis_status()
     assert linking_stats.total_correlations_found >= 0
 

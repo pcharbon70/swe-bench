@@ -12,12 +12,12 @@ defmodule SweBench.Integration.EndToEndPipelineTest do
   import SweBench.IntegrationHelpers
 
   alias SweBench.{
-    RepositoryMining,
+    DataStorage,
     IssuePrLinking,
-    TestTransition,
-    TaskGeneration,
     QualityValidation,
-    DataStorage
+    RepositoryMining,
+    TaskGeneration,
+    TestTransition
   }
 
   @moduletag :integration

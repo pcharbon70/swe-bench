@@ -12,11 +12,11 @@ defmodule SweBench.Performance.PipelinePerformanceTest do
   import SweBench.IntegrationHelpers
 
   alias SweBench.{
-    RepositoryMining,
     IssuePrLinking,
-    TestTransition,
+    QualityValidation,
+    RepositoryMining,
     TaskGeneration,
-    QualityValidation
+    TestTransition
   }
 
   @moduletag :performance
@@ -219,7 +219,7 @@ defmodule SweBench.Performance.PipelinePerformanceTest do
     wait_for_mining_completion()
     phase_1_end = DateTime.utc_now()
 
-    # Phase 3.2: Issue-PR Linking  
+    # Phase 3.2: Issue-PR Linking
     phase_2_start = DateTime.utc_now()
     {:ok, _} = IssuePrLinking.analyze_repository(repository.id)
     wait_for_linking_completion()

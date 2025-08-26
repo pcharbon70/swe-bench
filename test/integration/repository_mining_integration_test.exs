@@ -11,8 +11,8 @@ defmodule SweBench.Integration.RepositoryMiningIntegrationTest do
 
   import SweBench.IntegrationHelpers
 
-  alias SweBench.RepositoryMining
   alias SweBench.Repositories.Repository
+  alias SweBench.RepositoryMining
 
   @moduletag :integration
   @moduletag :repository_mining
@@ -154,7 +154,7 @@ defmodule SweBench.Integration.RepositoryMiningIntegrationTest do
           language: "Elixir"
         })
 
-      # Lower-quality repository  
+      # Lower-quality repository
       low_quality_repo =
         create_test_repository(%{
           stars_count: 5,
