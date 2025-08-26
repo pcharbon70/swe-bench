@@ -74,7 +74,12 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     if Enum.empty?(missing_fields) do
       add_validation_result(task_data, :format_compliance, :passed, "All required fields present")
     else
-      add_validation_result(task_data, :format_compliance, :failed, "Missing fields: #{inspect(missing_fields)}")
+      add_validation_result(
+        task_data,
+        :format_compliance,
+        :failed,
+        "Missing fields: #{inspect(missing_fields)}"
+      )
     end
   end
 
@@ -90,10 +95,21 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     failed_validations = Enum.filter(validations, fn {passed, _message} -> not passed end)
 
     if Enum.empty?(failed_validations) do
-      add_validation_result(task_data, :content_completeness, :passed, "All content validation passed")
+      add_validation_result(
+        task_data,
+        :content_completeness,
+        :passed,
+        "All content validation passed"
+      )
     else
       messages = Enum.map(failed_validations, fn {_passed, message} -> message end)
-      add_validation_result(task_data, :content_completeness, :warning, "Issues: #{Enum.join(messages, ", ")}")
+
+      add_validation_result(
+        task_data,
+        :content_completeness,
+        :warning,
+        "Issues: #{Enum.join(messages, ", ")}"
+      )
     end
   end
 
@@ -107,7 +123,13 @@ defmodule SweBench.TaskGeneration.QualityValidator do
       add_validation_result(task_data, :patch_integrity, :passed, "Patch format valid")
     else
       failed_checks = extract_failed_checks(integrity_checks)
-      add_validation_result(task_data, :patch_integrity, :failed, "Failed checks: #{inspect(failed_checks)}")
+
+      add_validation_result(
+        task_data,
+        :patch_integrity,
+        :failed,
+        "Failed checks: #{inspect(failed_checks)}"
+      )
     end
   end
 
@@ -121,7 +143,13 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     clarity_score = passed_count / map_size(clarity_metrics)
 
     status = determine_clarity_status(clarity_score)
-    add_validation_result(task_data, :problem_clarity, status, "Clarity score: #{Float.round(clarity_score, 2)}")
+
+    add_validation_result(
+      task_data,
+      :problem_clarity,
+      status,
+      "Clarity score: #{Float.round(clarity_score, 2)}"
+    )
   end
 
   defp assess_benchmark_suitability(task_data) do
@@ -161,7 +189,9 @@ defmodule SweBench.TaskGeneration.QualityValidator do
   defp calculate_clarity_metrics(problem_statement) do
     %{
       sufficient_length: String.length(problem_statement) >= 100,
-      has_context: String.contains?(problem_statement, "when") or String.contains?(problem_statement, "should"),
+      has_context:
+        String.contains?(problem_statement, "when") or
+          String.contains?(problem_statement, "should"),
       has_specifics: contains_code_references?(problem_statement),
       clear_requirements: contains_clear_requirements?(problem_statement)
     }
@@ -269,7 +299,7 @@ defmodule SweBench.TaskGeneration.QualityValidator do
 
     new_avg_time =
       if new_total > 1 do
-        ((state.avg_validation_time * (new_total - 1)) + processing_time) / new_total
+        (state.avg_validation_time * (new_total - 1) + processing_time) / new_total
       else
         processing_time
       end

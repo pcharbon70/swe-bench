@@ -56,7 +56,8 @@ config :swe_bench,
     SweBench.Repositories,
     SweBench.Issues,
     SweBench.ValidationResults,
-    SweBench.TaskInstances
+    SweBench.TaskInstances,
+    SweBench.QualityAssurance
   ]
 
 # Configures the endpoint
