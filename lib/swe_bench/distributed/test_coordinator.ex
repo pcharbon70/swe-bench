@@ -161,11 +161,12 @@ defmodule SweBench.Distributed.TestCoordinator do
     # Create barriers based on test coordination strategy
     coordination_strategy = Map.get(test_spec, :coordination_strategy, :sequential)
 
-    barriers = case coordination_strategy do
-      :sequential -> create_sequential_barriers(node_assignments)
-      :parallel -> create_parallel_barriers(node_assignments)
-      :coordinated -> create_coordinated_barriers(node_assignments)
-    end
+    barriers =
+      case coordination_strategy do
+        :sequential -> create_sequential_barriers(node_assignments)
+        :parallel -> create_parallel_barriers(node_assignments)
+        :coordinated -> create_coordinated_barriers(node_assignments)
+      end
 
     {:ok, {test_spec, cluster_id, node_assignments, barriers}}
   end
@@ -225,7 +226,8 @@ defmodule SweBench.Distributed.TestCoordinator do
 
   defp create_node_assignments(test_spec, available_nodes) do
     # Simple round-robin assignment for now
-    test_phases = Map.get(test_spec, :phases, [%{type: :default, node_count: length(available_nodes)}])
+    test_phases =
+      Map.get(test_spec, :phases, [%{type: :default, node_count: length(available_nodes)}])
 
     test_phases
     |> Enum.zip(available_nodes)
@@ -259,7 +261,8 @@ defmodule SweBench.Distributed.TestCoordinator do
       node: node,
       test_phase: test_phase,
       execution_result: :success,
-      execution_time: :rand.uniform(5000),  # Placeholder timing
+      # Placeholder timing
+      execution_time: :rand.uniform(5000),
       executed_at: DateTime.utc_now()
     }
   end

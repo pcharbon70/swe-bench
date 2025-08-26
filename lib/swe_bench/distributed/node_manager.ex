@@ -106,7 +106,8 @@ defmodule SweBench.Distributed.NodeManager do
       successful_connections: successful_connections,
       failed_connections: failed_connections,
       cluster_topology: updated_topology,
-      total_nodes: length(successful_connections) + 1  # +1 for local node
+      # +1 for local node
+      total_nodes: length(successful_connections) + 1
     }
 
     {:reply, {:ok, result}, updated_state}
@@ -144,11 +145,12 @@ defmodule SweBench.Distributed.NodeManager do
   def handle_cast({:node_event, {:nodeup, node}}, state) do
     Logger.info("Node connected: #{node}")
 
-    updated_nodes = Map.put(state.connected_nodes, node, %{
-      status: :connected,
-      connected_at: DateTime.utc_now(),
-      last_seen: DateTime.utc_now()
-    })
+    updated_nodes =
+      Map.put(state.connected_nodes, node, %{
+        status: :connected,
+        connected_at: DateTime.utc_now(),
+        last_seen: DateTime.utc_now()
+      })
 
     # Notify distributed test coordinator
     SweBench.Distributed.TestCoordinator.handle_node_event({:nodeup, node})
@@ -162,14 +164,16 @@ defmodule SweBench.Distributed.NodeManager do
   def handle_cast({:node_event, {:nodedown, node}}, state) do
     Logger.warning("Node disconnected: #{node}")
 
-    updated_nodes = 
+    updated_nodes =
       case Map.get(state.connected_nodes, node) do
-        nil -> state.connected_nodes
-        node_info -> 
+        nil ->
+          state.connected_nodes
+
+        node_info ->
           Map.put(state.connected_nodes, node, %{
-            node_info | 
-            status: :disconnected,
-            disconnected_at: DateTime.utc_now()
+            node_info
+            | status: :disconnected,
+              disconnected_at: DateTime.utc_now()
           })
       end
 
@@ -217,7 +221,8 @@ defmodule SweBench.Distributed.NodeManager do
   end
 
   defp determine_cluster_topology(connected_node_names) do
-    total_nodes = length(connected_node_names) + 1  # +1 for local node
+    # +1 for local node
+    total_nodes = length(connected_node_names) + 1
 
     case total_nodes do
       1 -> :single_node
@@ -230,7 +235,8 @@ defmodule SweBench.Distributed.NodeManager do
 
   defp calculate_connectivity_health(state) do
     total_nodes = map_size(state.connected_nodes) + 1
-    healthy_nodes = count_healthy_connections(state.connected_nodes) + 1  # +1 for local
+    # +1 for local
+    healthy_nodes = count_healthy_connections(state.connected_nodes) + 1
 
     health_percentage = healthy_nodes / total_nodes
 
@@ -261,7 +267,8 @@ defmodule SweBench.Distributed.NodeManager do
     if total_expected > 0 do
       healthy_connections / total_expected
     else
-      1.0  # Single node is always healthy
+      # Single node is always healthy
+      1.0
     end
   end
 
@@ -271,7 +278,7 @@ defmodule SweBench.Distributed.NodeManager do
     total_nodes = map_size(state.connected_nodes)
 
     # Consider it a partition if more than 30% of nodes are disconnected
-    if total_nodes > 0 and (disconnected_nodes / total_nodes) > 0.3 do
+    if total_nodes > 0 and disconnected_nodes / total_nodes > 0.3 do
       true
     else
       false
@@ -290,16 +297,23 @@ defmodule SweBench.Distributed.NodeManager do
   defp update_node_connectivity(current_nodes, ping_results) do
     ping_results
     |> Enum.reduce(current_nodes, fn {node, ping_result}, acc ->
-      case Map.get(acc, node) do
-        nil -> acc
-        node_info ->
-          updated_info = case ping_result do
-            :pong -> %{node_info | status: :connected, last_seen: DateTime.utc_now()}
-            :pang -> %{node_info | status: :disconnected}
-          end
-          Map.put(acc, node, updated_info)
-      end
+      update_single_node_status(acc, node, ping_result)
     end)
+  end
+
+  defp update_single_node_status(nodes_map, node, ping_result) do
+    case Map.get(nodes_map, node) do
+      nil ->
+        nodes_map
+
+      node_info ->
+        updated_info = case ping_result do
+          :pong -> %{node_info | status: :connected, last_seen: DateTime.utc_now()}
+          :pang -> %{node_info | status: :disconnected}
+        end
+
+        Map.put(nodes_map, node, updated_info)
+    end
   end
 
   defp schedule_connectivity_check do

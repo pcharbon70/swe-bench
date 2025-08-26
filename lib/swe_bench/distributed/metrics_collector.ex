@@ -62,7 +62,7 @@ defmodule SweBench.Distributed.MetricsCollector do
 
   @impl true
   def handle_call({:get_cluster_metrics, cluster_id}, _from, state) do
-    cluster_metrics = 
+    cluster_metrics =
       case cluster_id do
         nil -> aggregate_all_cluster_metrics(state.cluster_metrics)
         id -> Map.get(state.cluster_metrics, id, %{})
@@ -136,11 +136,21 @@ defmodule SweBench.Distributed.MetricsCollector do
     )
   end
 
-  def handle_telemetry_event([:swe_bench, :distributed, :message_sent], measurements, metadata, _config) do
+  def handle_telemetry_event(
+        [:swe_bench, :distributed, :message_sent],
+        measurements,
+        metadata,
+        _config
+      ) do
     record_distributed_event(:message_sent, measurements, metadata)
   end
 
-  def handle_telemetry_event([:swe_bench, :distributed, :test_coordinated], measurements, metadata, _config) do
+  def handle_telemetry_event(
+        [:swe_bench, :distributed, :test_coordinated],
+        measurements,
+        metadata,
+        _config
+      ) do
     record_distributed_event(:test_coordinated, measurements, metadata)
   end
 
@@ -161,11 +171,12 @@ defmodule SweBench.Distributed.MetricsCollector do
   defp collect_cluster_wide_metrics do
     # Collect metrics from local node and all connected nodes
     local_metrics = collect_local_node_metrics()
-    
-    cluster_metrics = Node.list()
-    |> Enum.map(&collect_remote_node_metrics/1)
-    |> Enum.filter(&match?({:ok, _}, &1))
-    |> Enum.map(fn {:ok, metrics} -> metrics end)
+
+    cluster_metrics =
+      Node.list()
+      |> Enum.map(&collect_remote_node_metrics/1)
+      |> Enum.filter(&match?({:ok, _}, &1))
+      |> Enum.map(fn {:ok, metrics} -> metrics end)
 
     %{
       timestamp: DateTime.utc_now(),
@@ -193,7 +204,7 @@ defmodule SweBench.Distributed.MetricsCollector do
       :exit, {:timeout, _} ->
         Logger.warning("Timeout collecting metrics from node: #{node}")
         {:error, :timeout}
-      
+
       :exit, {:nodedown, _} ->
         Logger.warning("Node down while collecting metrics: #{node}")
         {:error, :nodedown}
@@ -230,7 +241,8 @@ defmodule SweBench.Distributed.MetricsCollector do
     metrics_list
     |> Enum.map(&Map.get(&1, :memory_usage, 0))
     |> Enum.sum()
-    |> Kernel./(1024 * 1024)  # Convert to MB
+    # Convert to MB
+    |> Kernel./(1024 * 1024)
   end
 
   defp calculate_total_processes(metrics_list) do
@@ -240,7 +252,7 @@ defmodule SweBench.Distributed.MetricsCollector do
   end
 
   defp calculate_avg_queue_length(metrics_list) do
-    queue_lengths = 
+    queue_lengths =
       metrics_list
       |> Enum.map(&get_in(&1, [:message_queue_lengths, :avg_queue_length]))
       |> Enum.filter(&(&1 != nil))
@@ -257,12 +269,13 @@ defmodule SweBench.Distributed.MetricsCollector do
       %{no_data: true}
     else
       recent_metrics = Enum.take(history, 10)
-      
+
       %{
         data_points: length(recent_metrics),
         avg_cluster_size: calculate_avg_cluster_size(recent_metrics),
         memory_trend: calculate_memory_trend(recent_metrics),
-        performance_trend: :stable  # Placeholder
+        # Placeholder
+        performance_trend: :stable
       }
     end
   end
@@ -278,7 +291,7 @@ defmodule SweBench.Distributed.MetricsCollector do
   end
 
   defp calculate_memory_trend(metrics_history) do
-    memory_values = 
+    memory_values =
       metrics_history
       |> Enum.map(&get_in(&1, [:cluster_summary, :total_memory_mb]))
       |> Enum.filter(&(&1 != nil))
@@ -343,14 +356,17 @@ defmodule SweBench.Distributed.MetricsCollector do
       :insufficient_data
     else
       # Calculate average time between collections
-      :normal  # Placeholder
+      # Placeholder
+      :normal
     end
   end
 
   defp calculate_data_freshness(collections) do
     case List.first(collections) do
-      nil -> :no_data
-      latest -> 
+      nil ->
+        :no_data
+
+      latest ->
         age_seconds = DateTime.diff(DateTime.utc_now(), latest.timestamp)
         if age_seconds < 60, do: :fresh, else: :stale
     end

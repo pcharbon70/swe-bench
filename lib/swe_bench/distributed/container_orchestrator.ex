@@ -81,7 +81,8 @@ defmodule SweBench.Distributed.ContainerOrchestrator do
         updated_state = %{
           state
           | active_clusters: Map.put(state.active_clusters, cluster_id, cluster_info),
-            cluster_networks: Map.put(state.cluster_networks, cluster_id, cluster_info.network_info)
+            cluster_networks:
+              Map.put(state.cluster_networks, cluster_id, cluster_info.network_info)
         }
 
         {:reply, {:ok, cluster_info}, updated_state}
@@ -227,14 +228,15 @@ defmodule SweBench.Distributed.ContainerOrchestrator do
       # Simulate container creation for now
       Logger.debug("Deploying container: #{container_name} on port #{port}")
 
-      {:ok, %{
-        container_id: generate_container_id(),
-        node_name: node_name,
-        container_name: container_name,
-        port: port,
-        status: :running,
-        deployed_at: DateTime.utc_now()
-      }}
+      {:ok,
+       %{
+         container_id: generate_container_id(),
+         node_name: node_name,
+         container_name: container_name,
+         port: port,
+         status: :running,
+         deployed_at: DateTime.utc_now()
+       }}
     rescue
       error ->
         Logger.error("Failed to deploy container #{container_name}: #{inspect(error)}")
@@ -260,7 +262,10 @@ defmodule SweBench.Distributed.ContainerOrchestrator do
     {:error, reason}
   end
 
-  defp compile_cluster_result({:ok, {_cluster_spec, network_info, container_info, distribution_config}}, cluster_id) do
+  defp compile_cluster_result(
+         {:ok, {_cluster_spec, network_info, container_info, distribution_config}},
+         cluster_id
+       ) do
     cluster_result = %{
       cluster_id: cluster_id,
       nodes: extract_node_names(container_info),
@@ -352,15 +357,22 @@ defmodule SweBench.Distributed.ContainerOrchestrator do
   defp update_node_connectivity(current_nodes, ping_results) do
     ping_results
     |> Enum.reduce(current_nodes, fn {node, ping_result}, acc ->
-      case Map.get(acc, node) do
-        nil -> acc
-        node_info ->
-          case ping_result do
-            :pong -> %{node_info | status: :connected, last_seen: DateTime.utc_now()}
-            :pang -> %{node_info | status: :disconnected}
-          end
-          |> then(&Map.put(acc, node, &1))
-      end
+      update_single_node_connectivity(acc, node, ping_result)
     end)
+  end
+
+  defp update_single_node_connectivity(nodes_map, node, ping_result) do
+    case Map.get(nodes_map, node) do
+      nil ->
+        nodes_map
+
+      node_info ->
+        updated_info = case ping_result do
+          :pong -> %{node_info | status: :connected, last_seen: DateTime.utc_now()}
+          :pang -> %{node_info | status: :disconnected}
+        end
+        
+        Map.put(nodes_map, node, updated_info)
+    end
   end
 end
