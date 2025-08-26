@@ -6,7 +6,7 @@ defmodule SweBench.HotUpgrade do
   AI models on BEAM VM upgrade scenarios and zero-downtime deployment patterns.
   """
 
-  alias SweBench.HotUpgrade.{UpgradeCoordinator, ReleaseManager, StateMigrationTester}
+  alias SweBench.HotUpgrade.{ReleaseManager, StateMigrationTester, UpgradeCoordinator}
 
   @doc """
   Evaluates an upgrade scenario for a task instance.
