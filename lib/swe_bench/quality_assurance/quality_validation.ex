@@ -282,4 +282,3 @@ defmodule SweBench.QualityAssurance.QualityValidation do
     Enum.count(stages, & &1)
   end
 end
-

@@ -225,4 +225,3 @@ defmodule SweBench.QualityAssurance.ReviewSession do
     end
   end
 end
-

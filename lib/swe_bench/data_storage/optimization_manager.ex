@@ -130,7 +130,7 @@ defmodule SweBench.DataStorage.OptimizationManager do
 
   defp execute_optimization_step(:indexes, opts) do
     Logger.debug("Executing index optimization")
-    
+
     case IndexManager.create_production_indexes() do
       {:ok, indexes_created} ->
         {:ok, {:indexes, %{created: length(indexes_created), indexes: indexes_created}}}
@@ -180,12 +180,12 @@ defmodule SweBench.DataStorage.OptimizationManager do
   defp compile_optimization_results(step_results) do
     {successful_steps, failed_steps} = Enum.split_with(step_results, &match?({:ok, _}, &1))
 
-    success_details = 
+    success_details =
       successful_steps
       |> Enum.map(fn {:ok, {step, details}} -> {step, details} end)
       |> Map.new()
 
-    failure_details = 
+    failure_details =
       failed_steps
       |> Enum.map(fn {:error, {step, reason}} -> {step, reason} end)
       |> Map.new()
@@ -323,7 +323,7 @@ defmodule SweBench.DataStorage.OptimizationManager do
 
   defp calculate_optimization_score(successful_steps, failed_steps) do
     total_steps = length(successful_steps) + length(failed_steps)
-    
+
     if total_steps > 0 do
       length(successful_steps) / total_steps
     else

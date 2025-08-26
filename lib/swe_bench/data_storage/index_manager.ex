@@ -12,37 +12,51 @@ defmodule SweBench.DataStorage.IndexManager do
 
   @production_indexes [
     # Task instances performance indexes
-    {:task_instances, [:repository_id, :quality_tier, :packaging_status], %{name: "idx_task_instances_repo_quality_status"}},
+    {:task_instances, [:repository_id, :quality_tier, :packaging_status],
+     %{name: "idx_task_instances_repo_quality_status"}},
     {:task_instances, [:created_at], %{name: "idx_task_instances_created_at"}},
-    {:task_instances, [:quality_tier], %{where: "quality_tier IN ('gold', 'silver')", name: "idx_task_instances_high_quality"}},
-    {:task_instances, [:packaging_status], %{where: "packaging_status = 'ready'", name: "idx_task_instances_ready"}},
-    {:task_instances, [:difficulty_level, :complexity_score], %{name: "idx_task_instances_difficulty_complexity"}},
-    
+    {:task_instances, [:quality_tier],
+     %{where: "quality_tier IN ('gold', 'silver')", name: "idx_task_instances_high_quality"}},
+    {:task_instances, [:packaging_status],
+     %{where: "packaging_status = 'ready'", name: "idx_task_instances_ready"}},
+    {:task_instances, [:difficulty_level, :complexity_score],
+     %{name: "idx_task_instances_difficulty_complexity"}},
+
     # Validation results indexes
-    {:validation_results, [:repository_id, :benchmark_quality, :confidence_level], %{name: "idx_validation_results_repo_quality_confidence"}},
-    {:validation_results, [:created_at], %{where: "benchmark_quality != 'unsuitable'", name: "idx_validation_results_suitable"}},
+    {:validation_results, [:repository_id, :benchmark_quality, :confidence_level],
+     %{name: "idx_validation_results_repo_quality_confidence"}},
+    {:validation_results, [:created_at],
+     %{where: "benchmark_quality != 'unsuitable'", name: "idx_validation_results_suitable"}},
     {:validation_results, [:issue_pr_link_id], %{name: "idx_validation_results_link"}},
-    
+
     # Repository analysis indexes
     {:repositories, [:language, :stars_count], %{name: "idx_repositories_language_stars"}},
-    {:repositories, [:mining_status, :mining_completed_at], %{name: "idx_repositories_mining_status"}},
+    {:repositories, [:mining_status, :mining_completed_at],
+     %{name: "idx_repositories_mining_status"}},
     {:repositories, [:is_umbrella_project], %{name: "idx_repositories_umbrella"}},
-    
+
     # Issue-PR relationship indexes
-    {:issue_pr_links, [:repository_id, :confidence_score], %{name: "idx_issue_pr_links_repo_confidence"}},
-    {:issue_pr_links, [:validation_status, :confidence_score], %{name: "idx_issue_pr_links_validation_confidence"}},
-    
+    {:issue_pr_links, [:repository_id, :confidence_score],
+     %{name: "idx_issue_pr_links_repo_confidence"}},
+    {:issue_pr_links, [:validation_status, :confidence_score],
+     %{name: "idx_issue_pr_links_validation_confidence"}},
+
     # Quality validation indexes
-    {:quality_validations, [:task_instance_id, :validation_stage], %{name: "idx_quality_validations_task_stage"}},
-    {:quality_validations, [:quality_score], %{where: "validation_status = 'completed'", name: "idx_quality_validations_completed"}}
+    {:quality_validations, [:task_instance_id, :validation_stage],
+     %{name: "idx_quality_validations_task_stage"}},
+    {:quality_validations, [:quality_score],
+     %{where: "validation_status = 'completed'", name: "idx_quality_validations_completed"}}
   ]
 
   @jsonb_indexes [
     # JSONB GIN indexes for metadata queries
     {:task_instances, [:task_metadata], %{using: :gin, name: "idx_task_instances_metadata_gin"}},
-    {:task_instances, [:evaluation_metadata], %{using: :gin, name: "idx_task_instances_eval_metadata_gin"}},
-    {:repositories, [:analysis_metadata], %{using: :gin, name: "idx_repositories_analysis_metadata_gin"}},
-    {:validation_results, [:validation_metadata], %{using: :gin, name: "idx_validation_results_metadata_gin"}}
+    {:task_instances, [:evaluation_metadata],
+     %{using: :gin, name: "idx_task_instances_eval_metadata_gin"}},
+    {:repositories, [:analysis_metadata],
+     %{using: :gin, name: "idx_repositories_analysis_metadata_gin"}},
+    {:validation_results, [:validation_metadata],
+     %{using: :gin, name: "idx_validation_results_metadata_gin"}}
   ]
 
   def start_link(opts) do
@@ -53,7 +67,8 @@ defmodule SweBench.DataStorage.IndexManager do
   Creates all production indexes for optimal performance.
   """
   def create_production_indexes do
-    GenServer.call(__MODULE__, :create_production_indexes, 300_000)  # 5 minutes timeout
+    # 5 minutes timeout
+    GenServer.call(__MODULE__, :create_production_indexes, 300_000)
   end
 
   @doc """
@@ -89,7 +104,7 @@ defmodule SweBench.DataStorage.IndexManager do
 
     # Create standard indexes
     standard_results = create_standard_indexes()
-    
+
     # Create JSONB indexes
     jsonb_results = create_jsonb_indexes()
 
@@ -151,7 +166,7 @@ defmodule SweBench.DataStorage.IndexManager do
 
     try do
       sql = build_index_sql(index_name, table, columns, where_clause, false)
-      
+
       case Repo.query(sql) do
         {:ok, _result} ->
           Logger.info("Created index #{index_name}")
@@ -177,7 +192,7 @@ defmodule SweBench.DataStorage.IndexManager do
 
     try do
       sql = build_jsonb_index_sql(index_name, table, columns)
-      
+
       case Repo.query(sql) do
         {:ok, _result} ->
           Logger.info("Created JSONB index #{index_name}")

@@ -6,7 +6,7 @@ defmodule SweBench.DataStorage do
   data management capabilities for the SWE-bench-Elixir system.
   """
 
-  alias SweBench.DataStorage.{OptimizationManager, IndexManager, PartitionManager}
+  alias SweBench.DataStorage.{IndexManager, OptimizationManager, PartitionManager}
 
   @doc """
   Optimizes database for production performance.

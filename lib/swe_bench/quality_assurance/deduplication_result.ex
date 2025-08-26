@@ -184,4 +184,3 @@ defmodule SweBench.QualityAssurance.DeduplicationResult do
     identity :unique_task_pair, [:primary_task_id, :similar_task_id]
   end
 end
-

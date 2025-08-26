@@ -371,4 +371,3 @@ defmodule SweBench.QualityValidation.Coordinator do
     Process.send_after(self(), :process_pending, 30_000)
   end
 end
-

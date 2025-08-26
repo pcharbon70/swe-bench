@@ -182,4 +182,3 @@ defmodule SweBench.QualityAssurance.StatisticalAnalysis do
     end
   end
 end
-

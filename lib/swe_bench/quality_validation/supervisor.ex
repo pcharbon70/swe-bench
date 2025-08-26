@@ -101,4 +101,3 @@ defmodule SweBench.QualityValidation.Supervisor do
     :ok
   end
 end
-

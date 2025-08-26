@@ -6,7 +6,7 @@ defmodule SweBench.DataVersioning do
   coordination for benchmark dataset evolution and management.
   """
 
-  alias SweBench.DataVersioning.{VersionManager, ReleaseCoordinator}
+  alias SweBench.DataVersioning.{ReleaseCoordinator, VersionManager}
 
   @doc """
   Creates a new dataset release with semantic versioning.

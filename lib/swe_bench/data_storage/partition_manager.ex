@@ -12,25 +12,28 @@ defmodule SweBench.DataStorage.PartitionManager do
 
   @partition_tables [
     # Task instances partitioned by creation date (monthly)
-    {:task_instances, :range, :created_at, %{
-      interval: :monthly,
-      retention_months: 24,
-      partition_key: "created_at"
-    }},
-    
+    {:task_instances, :range, :created_at,
+     %{
+       interval: :monthly,
+       retention_months: 24,
+       partition_key: "created_at"
+     }},
+
     # Validation results partitioned by validation date
-    {:validation_results, :range, :created_at, %{
-      interval: :monthly,
-      retention_months: 12,
-      partition_key: "created_at"
-    }},
-    
+    {:validation_results, :range, :created_at,
+     %{
+       interval: :monthly,
+       retention_months: 12,
+       partition_key: "created_at"
+     }},
+
     # Quality validations partitioned by creation date
-    {:quality_validations, :range, :created_at, %{
-      interval: :monthly,
-      retention_months: 6,
-      partition_key: "created_at"
-    }}
+    {:quality_validations, :range, :created_at,
+     %{
+       interval: :monthly,
+       retention_months: 6,
+       partition_key: "created_at"
+     }}
   ]
 
   def start_link(opts) do
@@ -41,7 +44,8 @@ defmodule SweBench.DataStorage.PartitionManager do
   Configures table partitioning for production scale.
   """
   def configure_partitioning do
-    GenServer.call(__MODULE__, :configure_partitioning, 600_000)  # 10 minutes timeout
+    # 10 minutes timeout
+    GenServer.call(__MODULE__, :configure_partitioning, 600_000)
   end
 
   @doc """
@@ -129,7 +133,7 @@ defmodule SweBench.DataStorage.PartitionManager do
     Logger.debug("Running partition maintenance")
 
     maintenance_result = run_partition_maintenance()
-    
+
     updated_state = %{
       state
       | partition_maintenance_last_run: DateTime.utc_now(),
@@ -165,7 +169,7 @@ defmodule SweBench.DataStorage.PartitionManager do
 
   defp configure_range_partitioning(table, partition_key, config) do
     interval = Map.get(config, :interval, :monthly)
-    
+
     # Check if table is already partitioned
     case check_if_partitioned(table) do
       false ->
@@ -199,7 +203,7 @@ defmodule SweBench.DataStorage.PartitionManager do
 
   defp create_monthly_partition(table, partition_date) do
     partition_name = generate_partition_name(table, partition_date)
-    
+
     {start_date, end_date} = calculate_partition_bounds(partition_date)
 
     sql = """
@@ -241,7 +245,10 @@ defmodule SweBench.DataStorage.PartitionManager do
 
   defp convert_to_hash_partitioned_table(table, partition_key, partition_count) do
     # Placeholder - will implement hash partitioning conversion
-    Logger.debug("Converting #{table} to hash partitioned table with #{partition_count} partitions")
+    Logger.debug(
+      "Converting #{table} to hash partitioned table with #{partition_count} partitions"
+    )
+
     :ok
   end
 
@@ -250,7 +257,7 @@ defmodule SweBench.DataStorage.PartitionManager do
       :monthly ->
         # Create partitions for current month and next few months
         current_date = Date.utc_today()
-        
+
         for month_offset <- -1..3 do
           partition_date = Date.add(current_date, month_offset * 30)
           create_monthly_partition(table, partition_date)
@@ -259,7 +266,7 @@ defmodule SweBench.DataStorage.PartitionManager do
       :weekly ->
         # Create weekly partitions
         current_date = Date.utc_today()
-        
+
         for week_offset <- -1..8 do
           partition_date = Date.add(current_date, week_offset * 7)
           create_weekly_partition(table, partition_date)
@@ -270,7 +277,7 @@ defmodule SweBench.DataStorage.PartitionManager do
   defp create_weekly_partition(table, partition_date) do
     # Similar to monthly but with weekly intervals
     partition_name = generate_weekly_partition_name(table, partition_date)
-    
+
     # Calculate week boundaries
     start_of_week = Date.beginning_of_week(partition_date)
     end_of_week = Date.end_of_week(partition_date)

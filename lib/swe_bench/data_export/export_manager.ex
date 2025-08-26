@@ -85,9 +85,15 @@ defmodule SweBench.DataExport.ExportManager do
     case start_export_process(export_job) do
       {:ok, pid} ->
         updated_job = Map.put(export_job, :pid, pid)
-        updated_state = %{state | active_exports: Map.put(state.active_exports, export_id, updated_job)}
 
-        {:reply, {:ok, %{export_id: export_id, estimated_completion: export_job.estimated_completion}}, updated_state}
+        updated_state = %{
+          state
+          | active_exports: Map.put(state.active_exports, export_id, updated_job)
+        }
+
+        {:reply,
+         {:ok, %{export_id: export_id, estimated_completion: export_job.estimated_completion}},
+         updated_state}
 
       {:error, reason} ->
         {:reply, {:error, reason}, state}
@@ -127,11 +133,12 @@ defmodule SweBench.DataExport.ExportManager do
         {:noreply, state}
 
       {export_job, remaining_exports} ->
-        completed_job = Map.merge(export_job, %{
-          status: :completed,
-          completed_at: DateTime.utc_now(),
-          result: result
-        })
+        completed_job =
+          Map.merge(export_job, %{
+            status: :completed,
+            completed_at: DateTime.utc_now(),
+            result: result
+          })
 
         updated_statistics = update_export_statistics(state.export_statistics, completed_job)
 
@@ -155,11 +162,12 @@ defmodule SweBench.DataExport.ExportManager do
         {:noreply, state}
 
       {export_job, remaining_exports} ->
-        failed_job = Map.merge(export_job, %{
-          status: :failed,
-          failed_at: DateTime.utc_now(),
-          error: reason
-        })
+        failed_job =
+          Map.merge(export_job, %{
+            status: :failed,
+            failed_at: DateTime.utc_now(),
+            error: reason
+          })
 
         updated_state = %{
           state
@@ -177,16 +185,17 @@ defmodule SweBench.DataExport.ExportManager do
     # Placeholder - will start actual export pipeline
     Logger.debug("Starting export process for job #{export_job.id}")
 
-    {:ok, spawn_link(fn ->
-      # Simulate export work
-      Process.sleep(1000)
-      send(self(), {:export_completed, export_job.id, %{files_created: 1, size_mb: 10}})
-    end)}
+    {:ok,
+     spawn_link(fn ->
+       # Simulate export work
+       Process.sleep(1000)
+       send(self(), {:export_completed, export_job.id, %{files_created: 1, size_mb: 10}})
+     end)}
   end
 
   defp estimate_completion_time(format, opts) do
     # Estimate based on format and data size
-    base_time_minutes = 
+    base_time_minutes =
       case format do
         :json -> 5
         :csv -> 3
@@ -196,9 +205,9 @@ defmodule SweBench.DataExport.ExportManager do
 
     # Add time based on filters (more data = more time)
     filter_complexity = calculate_filter_complexity(Map.get(opts, :filters, %{}))
-    
+
     estimated_minutes = base_time_minutes + filter_complexity
-    
+
     DateTime.add(DateTime.utc_now(), estimated_minutes * 60, :second)
   end
 
@@ -210,8 +219,8 @@ defmodule SweBench.DataExport.ExportManager do
   defp calculate_export_estimation(format, filters) do
     # Estimate export size and duration
     estimated_records = estimate_record_count(filters)
-    
-    size_per_record_kb = 
+
+    size_per_record_kb =
       case format do
         :json -> 2.5
         :csv -> 0.5
@@ -219,12 +228,13 @@ defmodule SweBench.DataExport.ExportManager do
         _ -> 2.0
       end
 
-    estimated_size_mb = (estimated_records * size_per_record_kb) / 1024
+    estimated_size_mb = estimated_records * size_per_record_kb / 1024
 
     %{
       estimated_records: estimated_records,
       estimated_size_mb: round(estimated_size_mb),
-      estimated_duration_minutes: round(estimated_size_mb / 10),  # ~10MB/minute processing
+      # ~10MB/minute processing
+      estimated_duration_minutes: round(estimated_size_mb / 10),
       format: format
     }
   end
@@ -235,7 +245,7 @@ defmodule SweBench.DataExport.ExportManager do
 
     # Adjust based on filters
     quality_filter = Map.get(filters, :quality_tier)
-    
+
     case quality_filter do
       :gold -> round(base_count * 0.3)
       :silver -> round(base_count * 0.4)
@@ -248,12 +258,12 @@ defmodule SweBench.DataExport.ExportManager do
     new_total = current_stats.total_exports + 1
     new_successful = current_stats.successful_exports + 1
 
-    processing_time_minutes = 
+    processing_time_minutes =
       DateTime.diff(completed_job.completed_at, completed_job.started_at) / 60
 
-    new_avg_time = 
+    new_avg_time =
       if new_total > 1 do
-        ((current_stats.avg_export_time * (new_total - 1)) + processing_time_minutes) / new_total
+        (current_stats.avg_export_time * (new_total - 1) + processing_time_minutes) / new_total
       else
         processing_time_minutes
       end
