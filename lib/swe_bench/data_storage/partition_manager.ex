@@ -132,7 +132,7 @@ defmodule SweBench.DataStorage.PartitionManager do
   def handle_info(:partition_maintenance, state) do
     Logger.debug("Running partition maintenance")
 
-    maintenance_result = run_partition_maintenance()
+    _maintenance_result = run_partition_maintenance()
 
     updated_state = %{
       state
@@ -243,7 +243,7 @@ defmodule SweBench.DataStorage.PartitionManager do
     :ok
   end
 
-  defp convert_to_hash_partitioned_table(table, partition_key, partition_count) do
+  defp convert_to_hash_partitioned_table(table, _partition_key, partition_count) do
     # Placeholder - will implement hash partitioning conversion
     Logger.debug(
       "Converting #{table} to hash partitioned table with #{partition_count} partitions"
@@ -335,21 +335,22 @@ defmodule SweBench.DataStorage.PartitionManager do
     }
   end
 
-  defp get_index_usage_statistics do
-    []
-  end
-
-  defp identify_unused_indexes do
-    []
-  end
-
-  defp suggest_missing_indexes do
-    []
-  end
-
-  defp calculate_index_performance_impact do
-    %{query_speedup: 1.0, space_overhead_mb: 0}
-  end
+  # Remove unused functions - placeholders for future implementation
+  # defp get_index_usage_statistics do
+  #   []
+  # end
+  #
+  # defp identify_unused_indexes do
+  #   []
+  # end
+  #
+  # defp suggest_missing_indexes do
+  #   []
+  # end
+  #
+  # defp calculate_index_performance_impact do
+  #   %{query_speedup: 1.0, space_overhead_mb: 0}
+  # end
 
   defp schedule_partition_maintenance do
     # Run partition maintenance daily

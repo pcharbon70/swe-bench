@@ -142,7 +142,7 @@ defmodule SweBench.QualityValidation.Worker do
 
     # Calculate overall quality score
     overall_score = calculate_overall_quality_score(validation_results)
-    confidence = calculate_overall_confidence(validation_results)
+    _confidence = calculate_overall_confidence(validation_results)
 
     attrs = %{
       task_instance_id: task_instance.id,
@@ -176,7 +176,7 @@ defmodule SweBench.QualityValidation.Worker do
   end
 
   defp compile_worker_results(
-         {:ok, {task_instance, validation_results, quality_validation}},
+         {:ok, {task_instance, _validation_results, quality_validation}},
          state
        ) do
     processing_time = DateTime.diff(DateTime.utc_now(), state.start_time, :millisecond)

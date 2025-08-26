@@ -96,7 +96,7 @@ defmodule SweBench.QualityValidation.DeduplicationSystem do
   defp calculate_similarity_scores(task_instance) do
     Logger.debug("Calculating similarity scores for task #{task_instance.instance_id}")
 
-    candidates = get_step_result(task_instance, :candidate_search, :candidates_found, 0)
+    _candidates = get_step_result(task_instance, :candidate_search, :candidates_found, 0)
 
     # Placeholder for similarity calculations
     similarity_results = %{

@@ -11,7 +11,7 @@ defmodule SweBench.IssuePrLinking.Worker do
 
   alias SweBench.GitHub.EnhancedIssuesClient
   alias SweBench.Issues.{Issue, IssuePrLink, PullRequest}
-  alias SweBench.IssuePrLinking.{AnalysisPipeline, ValidationPipeline}
+  alias SweBench.IssuePrLinking.ValidationPipeline
 
   defstruct [
     :job,

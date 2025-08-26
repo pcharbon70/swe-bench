@@ -86,9 +86,10 @@ defmodule SweBench.TaskGeneration.ComplexityAnalyzer do
     {:ok, Map.put(task_data, :solution_complexity, solution_metrics)}
   end
 
-  defp assess_solution_complexity({:error, reason}) do
-    {:error, reason}
-  end
+  # Remove unused error clause - placeholder for future error handling
+  # defp assess_solution_complexity({:error, reason}) do
+  #   {:error, reason}
+  # end
 
   defp estimate_resolution_difficulty({:ok, task_data}) do
     Logger.debug("Estimating resolution difficulty")
@@ -123,9 +124,10 @@ defmodule SweBench.TaskGeneration.ComplexityAnalyzer do
     {:ok, Map.put(task_data, :difficulty_assessment, difficulty_assessment)}
   end
 
-  defp estimate_resolution_difficulty({:error, reason}) do
-    {:error, reason}
-  end
+  # Remove unused error clause - placeholder for future error handling
+  # defp estimate_resolution_difficulty({:error, reason}) do
+  #   {:error, reason}
+  # end
 
   defp compile_complexity_metrics({:ok, task_data}) do
     complexity_analysis = %{
@@ -144,9 +146,10 @@ defmodule SweBench.TaskGeneration.ComplexityAnalyzer do
     {:ok, complexity_analysis}
   end
 
-  defp compile_complexity_metrics({:error, reason}) do
-    {:error, reason}
-  end
+  # Remove unused error clause - placeholder for future error handling
+  # defp compile_complexity_metrics({:error, reason}) do
+  #   {:error, reason}
+  # end
 
   # Helper functions for complexity calculation
 
@@ -276,12 +279,13 @@ defmodule SweBench.TaskGeneration.ComplexityAnalyzer do
     :math.sqrt(variance)
   end
 
-  defp extract_file_path(diff_line) do
-    case Regex.run(~r/diff --git a\/(.+) b\//, diff_line) do
-      [_full, file_path] -> file_path
-      _ -> "unknown"
-    end
-  end
+  # Remove unused function - placeholder for future implementation
+  # defp extract_file_path(diff_line) do
+  #   case Regex.run(~r/diff --git a\/(.+) b\//, diff_line) do
+  #     [_full, file_path] -> file_path
+  #     _ -> "unknown"
+  #   end
+  # end
 
   defp update_complexity_stats(state, result, processing_time) do
     new_total = state.analyses_completed + 1

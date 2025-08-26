@@ -9,8 +9,7 @@ defmodule SweBench.TaskGeneration.Coordinator do
   use GenServer
   require Logger
 
-  alias SweBench.TaskInstances.{GenerationJob, TaskInstance}
-  alias SweBench.ValidationResults.ValidationResult
+  alias SweBench.TaskInstances.GenerationJob
   alias SweBench.TaskGeneration.{Worker, WorkerSupervisor}
 
   defstruct [

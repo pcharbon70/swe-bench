@@ -8,10 +8,8 @@ defmodule SweBench.TestTransition.Validator do
 
   require Logger
 
-  alias SweBench.Container.{Executor, Pool}
-  alias SweBench.TestRunner.{Analyzer, Orchestrator}
-  alias SweBench.Issues.{Issue, PullRequest}
-  alias SweBench.TestTransition.{PatchApplicator, QualityAssessor, TransitionAnalyzer}
+  alias SweBench.Container.Pool
+  alias SweBench.TestTransition.{QualityAssessor, TransitionAnalyzer}
 
   @doc """
   Validates test transitions for an issue-PR pair with comprehensive analysis.
