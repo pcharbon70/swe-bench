@@ -131,7 +131,8 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
     combined_metrics = %{
       quality_percentile: get_metric(analysis_results, :quality_percentile, :quality_percentile),
       is_outlier: get_metric(analysis_results, :outlier_detection, :is_outlier),
-      complexity_category: get_metric(analysis_results, :complexity_distribution, :complexity_category),
+      complexity_category:
+        get_metric(analysis_results, :complexity_distribution, :complexity_category),
       statistical_confidence: calculate_statistical_confidence(analysis_results)
     }
 
@@ -147,7 +148,7 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
 
   defp calculate_distribution_metrics(task_instances) when is_list(task_instances) do
     # Calculate dataset-wide distribution metrics
-    quality_scores = Enum.map(task_instances, & &1.quality_score || 0.5)
+    quality_scores = Enum.map(task_instances, &(&1.quality_score || 0.5))
 
     distribution = %{
       mean: Enum.sum(quality_scores) / length(quality_scores),
@@ -162,10 +163,11 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
 
   defp identify_dataset_outliers({:ok, distribution}) do
     # Implement outlier identification logic
-    outlier_threshold = distribution.mean + (2 * distribution.std_dev)
+    outlier_threshold = distribution.mean + 2 * distribution.std_dev
 
     outliers = %{
-      outlier_count: 0,  # Placeholder
+      # Placeholder
+      outlier_count: 0,
       outlier_threshold: outlier_threshold,
       outlier_instances: []
     }
@@ -176,7 +178,8 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
   defp analyze_quality_trends({:ok, {distribution, outliers}}) do
     # Analyze quality trends over time
     trends = %{
-      quality_trend: :stable,  # Placeholder
+      # Placeholder
+      quality_trend: :stable,
       trend_confidence: 0.80,
       improvement_rate: 0.0
     }
@@ -203,7 +206,7 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
   end
 
   defp calculate_statistical_confidence(analysis_results) do
-    confidences = 
+    confidences =
       analysis_results
       |> Enum.map(&Map.get(&1.metrics, :confidence, 0.5))
       |> Enum.filter(&(&1 > 0))
@@ -223,13 +226,16 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
     outlier_penalty = if metrics.is_outlier, do: 0.1, else: 0.0
 
     # Adjust for complexity appropriateness
-    complexity_adjustment = 
+    complexity_adjustment =
       case metrics.complexity_category do
-        :very_easy -> 0.0   # May be too simple
+        # May be too simple
+        :very_easy -> 0.0
         :easy -> 0.05
-        :moderate -> 0.1    # Ideal complexity
+        # Ideal complexity
+        :moderate -> 0.1
         :hard -> 0.05
-        :very_hard -> 0.0   # May be too complex
+        # May be too complex
+        :very_hard -> 0.0
         _ -> 0.0
       end
 
@@ -253,7 +259,7 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
 
   defp calculate_standard_deviation(values) do
     mean = Enum.sum(values) / length(values)
-    
+
     variance =
       values
       |> Enum.map(&((&1 - mean) * (&1 - mean)))
@@ -296,7 +302,7 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
 
     new_avg_time =
       if new_total > 1 do
-        ((state.avg_analysis_time * (new_total - 1)) + processing_time) / new_total
+        (state.avg_analysis_time * (new_total - 1) + processing_time) / new_total
       else
         processing_time
       end
@@ -309,3 +315,4 @@ defmodule SweBench.QualityValidation.StatisticalAnalyzer do
     }
   end
 end
+

@@ -41,7 +41,11 @@ defmodule SweBench.QualityAssurance.DeduplicationResult do
 
     read :by_task_instance do
       argument :task_instance_id, :uuid, allow_nil?: false
-      filter expr(primary_task_id == ^arg(:task_instance_id) or similar_task_id == ^arg(:task_instance_id))
+
+      filter expr(
+               primary_task_id == ^arg(:task_instance_id) or
+                 similar_task_id == ^arg(:task_instance_id)
+             )
     end
 
     read :deduplication_candidates do
@@ -55,6 +59,24 @@ defmodule SweBench.QualityAssurance.DeduplicationResult do
       end
 
       filter expr(similarity_type == ^arg(:type))
+    end
+  end
+
+  validations do
+    validate present([:primary_task_id, :similar_task_id, :similarity_score]) do
+      message "Primary task, similar task, and similarity score are required"
+    end
+
+    validate compare(:similarity_score, greater_than_or_equal_to: 0.0) do
+      message "Similarity score cannot be negative"
+    end
+
+    validate compare(:similarity_score, less_than_or_equal_to: 1.0) do
+      message "Similarity score cannot exceed 1.0"
+    end
+
+    validate attribute_does_not_equal(:primary_task_id, :similar_task_id) do
+      message "Primary and similar task must be different instances"
     end
   end
 
@@ -122,10 +144,6 @@ defmodule SweBench.QualityAssurance.DeduplicationResult do
     end
   end
 
-  identities do
-    identity :unique_task_pair, [:primary_task_id, :similar_task_id]
-  end
-
   calculations do
     calculate :similarity_category, :atom do
       description "Categorized similarity level"
@@ -153,7 +171,7 @@ defmodule SweBench.QualityAssurance.DeduplicationResult do
           base_priority = round(record.similarity_score * 100)
 
           # Boost priority for high-confidence, high-similarity matches
-          confidence_boost = 
+          confidence_boost =
             if (record.analysis_confidence || 0.0) > 0.9, do: 10, else: 0
 
           base_priority + confidence_boost
@@ -162,21 +180,8 @@ defmodule SweBench.QualityAssurance.DeduplicationResult do
     end
   end
 
-  validations do
-    validate present([:primary_task_id, :similar_task_id, :similarity_score]) do
-      message "Primary task, similar task, and similarity score are required"
-    end
-
-    validate compare(:similarity_score, greater_than_or_equal_to: 0.0) do
-      message "Similarity score cannot be negative"
-    end
-
-    validate compare(:similarity_score, less_than_or_equal_to: 1.0) do
-      message "Similarity score cannot exceed 1.0"
-    end
-
-    validate attribute_does_not_equal(:primary_task_id, :similar_task_id) do
-      message "Primary and similar task must be different instances"
-    end
+  identities do
+    identity :unique_task_pair, [:primary_task_id, :similar_task_id]
   end
 end
+

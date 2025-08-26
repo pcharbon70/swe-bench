@@ -84,10 +84,13 @@ defmodule SweBench.QualityValidation.DeduplicationSystem do
     similar_tasks =
       SweBench.TaskInstances.TaskInstance
       |> Ash.Query.for_read(:by_repository, %{repository_id: task_instance.repository_id})
-      |> Ash.Query.limit(50)  # Limit for performance
+      # Limit for performance
+      |> Ash.Query.limit(50)
       |> Ash.read!()
 
-    add_deduplication_step(task_instance, :candidate_search, %{candidates_found: length(similar_tasks)})
+    add_deduplication_step(task_instance, :candidate_search, %{
+      candidates_found: length(similar_tasks)
+    })
   end
 
   defp calculate_similarity_scores(task_instance) do
@@ -113,7 +116,8 @@ defmodule SweBench.QualityValidation.DeduplicationSystem do
     recommendations = %{
       high_similarity_matches: [],
       deduplication_candidates: [],
-      uniqueness_score: 0.95,  # High uniqueness (no significant duplicates)
+      # High uniqueness (no significant duplicates)
+      uniqueness_score: 0.95,
       recommendation: :keep
     }
 
@@ -124,14 +128,18 @@ defmodule SweBench.QualityValidation.DeduplicationSystem do
     deduplication_steps = Map.get(task_instance, :deduplication_steps, [])
 
     # Extract final recommendations
-    recommendations = get_step_result(task_instance, :recommendation_evaluation, :recommendation, :keep)
-    uniqueness_score = get_step_result(task_instance, :recommendation_evaluation, :uniqueness_score, 0.95)
+    recommendations =
+      get_step_result(task_instance, :recommendation_evaluation, :recommendation, :keep)
+
+    uniqueness_score =
+      get_step_result(task_instance, :recommendation_evaluation, :uniqueness_score, 0.95)
 
     deduplication_summary = %{
       uniqueness_score: uniqueness_score,
       deduplication_recommendation: recommendations,
       similarity_analysis: compile_similarity_summary(deduplication_steps),
-      deduplication_confidence: 0.90,  # Placeholder
+      # Placeholder
+      deduplication_confidence: 0.90,
       analysis_stage: :deduplication,
       analyzed_at: DateTime.utc_now()
     }
@@ -143,7 +151,7 @@ defmodule SweBench.QualityValidation.DeduplicationSystem do
     # Implement multi-dimensional similarity calculation
     code_sim = calculate_code_similarity(task_a.patch_content, task_b.patch_content)
     text_sim = calculate_text_similarity(task_a.problem_statement, task_b.problem_statement)
-    
+
     # Weighted combination
     combined_similarity = code_sim * 0.6 + text_sim * 0.4
 
@@ -234,7 +242,7 @@ defmodule SweBench.QualityValidation.DeduplicationSystem do
 
     new_avg_time =
       if new_total > 1 do
-        ((state.avg_check_time * (new_total - 1)) + processing_time) / new_total
+        (state.avg_check_time * (new_total - 1) + processing_time) / new_total
       else
         processing_time
       end
@@ -247,3 +255,4 @@ defmodule SweBench.QualityValidation.DeduplicationSystem do
     }
   end
 end
+

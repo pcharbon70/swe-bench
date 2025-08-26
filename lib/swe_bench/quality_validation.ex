@@ -6,8 +6,8 @@ defmodule SweBench.QualityValidation do
   statistical analysis, deduplication, and human review coordination.
   """
 
-  alias SweBench.QualityValidation.Coordinator
   alias SweBench.QualityAssurance.QualityValidation
+  alias SweBench.QualityValidation.Coordinator
 
   @doc """
   Performs comprehensive quality validation on a task instance.

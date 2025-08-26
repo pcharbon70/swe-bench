@@ -69,6 +69,24 @@ defmodule SweBench.QualityAssurance.ReviewSession do
     end
   end
 
+  validations do
+    validate present([:task_instance_id, :reviewer_id, :quality_rating]) do
+      message "Task instance, reviewer, and quality rating are required"
+    end
+
+    validate compare(:quality_rating, greater_than_or_equal_to: 1) do
+      message "Quality rating must be at least 1"
+    end
+
+    validate compare(:quality_rating, less_than_or_equal_to: 5) do
+      message "Quality rating cannot exceed 5"
+    end
+
+    validate compare(:review_duration_seconds, greater_than_or_equal_to: 0) do
+      message "Review duration cannot be negative"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -206,22 +224,5 @@ defmodule SweBench.QualityAssurance.ReviewSession do
       end
     end
   end
-
-  validations do
-    validate present([:task_instance_id, :reviewer_id, :quality_rating]) do
-      message "Task instance, reviewer, and quality rating are required"
-    end
-
-    validate compare(:quality_rating, greater_than_or_equal_to: 1) do
-      message "Quality rating must be at least 1"
-    end
-
-    validate compare(:quality_rating, less_than_or_equal_to: 5) do
-      message "Quality rating cannot exceed 5"
-    end
-
-    validate compare(:review_duration_seconds, greater_than_or_equal_to: 0) do
-      message "Review duration cannot be negative"
-    end
-  end
 end
+

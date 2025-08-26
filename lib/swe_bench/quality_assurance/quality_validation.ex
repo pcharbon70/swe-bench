@@ -49,7 +49,13 @@ defmodule SweBench.QualityAssurance.QualityValidation do
 
     read :by_validation_stage do
       argument :stage, :atom do
-        constraints one_of: [:automated, :statistical, :deduplication, :human_review, :comprehensive]
+        constraints one_of: [
+                      :automated,
+                      :statistical,
+                      :deduplication,
+                      :human_review,
+                      :comprehensive
+                    ]
       end
 
       filter expr(validation_stage == ^arg(:stage))
@@ -81,6 +87,24 @@ defmodule SweBench.QualityAssurance.QualityValidation do
     end
   end
 
+  validations do
+    validate present([:task_instance_id, :validation_stage, :quality_score]) do
+      message "Task instance, validation stage, and quality score are required"
+    end
+
+    validate compare(:quality_score, greater_than_or_equal_to: 0.0) do
+      message "Quality score cannot be negative"
+    end
+
+    validate compare(:quality_score, less_than_or_equal_to: 1.0) do
+      message "Quality score cannot exceed 1.0"
+    end
+
+    validate compare(:reviewer_count, greater_than_or_equal_to: 0) do
+      message "Reviewer count cannot be negative"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
@@ -92,7 +116,14 @@ defmodule SweBench.QualityAssurance.QualityValidation do
     attribute :validation_stage, :atom do
       description "Stage of validation performed"
       allow_nil? false
-      constraints one_of: [:automated, :statistical, :deduplication, :human_review, :comprehensive]
+
+      constraints one_of: [
+                    :automated,
+                    :statistical,
+                    :deduplication,
+                    :human_review,
+                    :comprehensive
+                  ]
     end
 
     # Quality scores and metrics
@@ -209,7 +240,10 @@ defmodule SweBench.QualityAssurance.QualityValidation do
         records
         |> Enum.map(fn record ->
           stages_completed = count_completed_validation_stages(record)
-          total_stages = 4  # automated, statistical, deduplication, human_review
+
+          # automated, statistical, deduplication, human_review
+
+          total_stages = 4
 
           stages_completed / total_stages
         end)
@@ -236,24 +270,6 @@ defmodule SweBench.QualityAssurance.QualityValidation do
     end
   end
 
-  validations do
-    validate present([:task_instance_id, :validation_stage, :quality_score]) do
-      message "Task instance, validation stage, and quality score are required"
-    end
-
-    validate compare(:quality_score, greater_than_or_equal_to: 0.0) do
-      message "Quality score cannot be negative"
-    end
-
-    validate compare(:quality_score, less_than_or_equal_to: 1.0) do
-      message "Quality score cannot exceed 1.0"
-    end
-
-    validate compare(:reviewer_count, greater_than_or_equal_to: 0) do
-      message "Reviewer count cannot be negative"
-    end
-  end
-
   # Helper function for completeness calculation
   defp count_completed_validation_stages(record) do
     stages = [
@@ -266,3 +282,4 @@ defmodule SweBench.QualityAssurance.QualityValidation do
     Enum.count(stages, & &1)
   end
 end
+

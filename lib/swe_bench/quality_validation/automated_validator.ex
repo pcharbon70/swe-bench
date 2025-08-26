@@ -130,7 +130,7 @@ defmodule SweBench.QualityValidation.AutomatedValidator do
     passed_validations = Enum.count(validation_results, &(&1.status == :passed))
     total_validations = length(validation_results)
 
-    automated_score = 
+    automated_score =
       if total_validations > 0 do
         passed_validations / total_validations
       else
@@ -172,7 +172,7 @@ defmodule SweBench.QualityValidation.AutomatedValidator do
       base_confidence = passed_count / total_count
 
       # Adjust confidence based on validation comprehensiveness
-      detail_scores = 
+      detail_scores =
         validation_results
         |> Enum.map(&get_detail_quality_score/1)
         |> Enum.filter(&(&1 > 0))
@@ -219,7 +219,7 @@ defmodule SweBench.QualityValidation.AutomatedValidator do
 
     new_avg_time =
       if new_total > 1 do
-        ((state.avg_validation_time * (new_total - 1)) + processing_time) / new_total
+        (state.avg_validation_time * (new_total - 1) + processing_time) / new_total
       else
         processing_time
       end
@@ -235,3 +235,4 @@ defmodule SweBench.QualityValidation.AutomatedValidator do
     }
   end
 end
+

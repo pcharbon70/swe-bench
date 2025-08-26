@@ -36,7 +36,13 @@ defmodule SweBench.QualityAssurance.StatisticalAnalysis do
 
     read :by_analysis_type do
       argument :type, :atom do
-        constraints one_of: [:distribution, :outlier_detection, :trend_analysis, :quality_metrics, :comprehensive]
+        constraints one_of: [
+                      :distribution,
+                      :outlier_detection,
+                      :trend_analysis,
+                      :quality_metrics,
+                      :comprehensive
+                    ]
       end
 
       filter expr(analysis_type == ^arg(:type))
@@ -59,13 +65,30 @@ defmodule SweBench.QualityAssurance.StatisticalAnalysis do
     end
   end
 
+  validations do
+    validate present([:analysis_type, :instance_count]) do
+      message "Analysis type and instance count are required"
+    end
+
+    validate compare(:instance_count, greater_than: 0) do
+      message "Instance count must be greater than 0"
+    end
+  end
+
   attributes do
     uuid_primary_key :id
 
     attribute :analysis_type, :atom do
       description "Type of statistical analysis performed"
       allow_nil? false
-      constraints one_of: [:distribution, :outlier_detection, :trend_analysis, :quality_metrics, :comprehensive]
+
+      constraints one_of: [
+                    :distribution,
+                    :outlier_detection,
+                    :trend_analysis,
+                    :quality_metrics,
+                    :comprehensive
+                  ]
     end
 
     attribute :dataset_version, :string do
@@ -153,19 +176,10 @@ defmodule SweBench.QualityAssurance.StatisticalAnalysis do
           outlier_count = Map.get(record.outlier_analysis, :outlier_count, 0)
           total_instances = record.instance_count || 1
 
-          (outlier_count / total_instances) * 100
+          outlier_count / total_instances * 100
         end)
       end
     end
   end
-
-  validations do
-    validate present([:analysis_type, :instance_count]) do
-      message "Analysis type and instance count are required"
-    end
-
-    validate compare(:instance_count, greater_than: 0) do
-      message "Instance count must be greater than 0"
-    end
-  end
 end
+

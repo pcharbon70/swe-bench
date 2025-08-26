@@ -10,7 +10,7 @@ defmodule SweBench.QualityValidation.Worker do
   require Logger
 
   alias SweBench.QualityAssurance.QualityValidation
-  alias SweBench.QualityValidation.{AutomatedValidator, StatisticalAnalyzer, DeduplicationSystem}
+  alias SweBench.QualityValidation.{AutomatedValidator, DeduplicationSystem, StatisticalAnalyzer}
 
   defstruct [
     :job,
@@ -175,7 +175,10 @@ defmodule SweBench.QualityValidation.Worker do
     {:error, reason}
   end
 
-  defp compile_worker_results({:ok, {task_instance, validation_results, quality_validation}}, state) do
+  defp compile_worker_results(
+         {:ok, {task_instance, validation_results, quality_validation}},
+         state
+       ) do
     processing_time = DateTime.diff(DateTime.utc_now(), state.start_time, :millisecond)
 
     worker_result = %{
@@ -218,7 +221,8 @@ defmodule SweBench.QualityValidation.Worker do
       end
 
     if Enum.empty?(scores) do
-      0.5  # Default neutral score
+      # Default neutral score
+      0.5
     else
       Enum.sum(scores) / length(scores)
     end
@@ -276,3 +280,4 @@ defmodule SweBench.QualityValidation.Worker do
     send(state.coordinator, {:worker_failed, self(), state.job.id, reason})
   end
 end
+

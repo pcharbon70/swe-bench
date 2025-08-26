@@ -115,7 +115,10 @@ defmodule SweBench.QualityValidation.Coordinator do
         {:reply, {:ok, job}, updated_state}
 
       {:error, reason} ->
-        Logger.error("Failed to queue quality validation for task #{task_instance_id}: #{inspect(reason)}")
+        Logger.error(
+          "Failed to queue quality validation for task #{task_instance_id}: #{inspect(reason)}"
+        )
+
         {:reply, {:error, reason}, state}
     end
   end
@@ -135,7 +138,8 @@ defmodule SweBench.QualityValidation.Coordinator do
     updated_state = %{state | pending_validations: jobs ++ state.pending_validations}
     send(self(), :process_pending)
 
-    {:reply, {:ok, %{queued: length(jobs), failed: length(task_instance_ids) - length(jobs)}}, updated_state}
+    {:reply, {:ok, %{queued: length(jobs), failed: length(task_instance_ids) - length(jobs)}},
+     updated_state}
   end
 
   @impl true
@@ -191,7 +195,9 @@ defmodule SweBench.QualityValidation.Coordinator do
 
   @impl true
   def handle_info({:worker_completed, worker_pid, validation_id, result}, state) do
-    Logger.info("Quality validation #{validation_id} completed: Quality score #{result.quality_score}")
+    Logger.info(
+      "Quality validation #{validation_id} completed: Quality score #{result.quality_score}"
+    )
 
     updated_state =
       state
@@ -280,6 +286,7 @@ defmodule SweBench.QualityValidation.Coordinator do
 
   defp update_worker_completion(state, worker_pid, validation_id, result) do
     new_active_workers = Map.delete(state.active_workers, worker_pid)
+
     completed_job = %{
       validation_id: validation_id,
       result: result,
@@ -295,6 +302,7 @@ defmodule SweBench.QualityValidation.Coordinator do
 
   defp update_worker_failure(state, worker_pid, validation_id, reason) do
     new_active_workers = Map.delete(state.active_workers, worker_pid)
+
     failed_job = %{
       validation_id: validation_id,
       reason: reason,
@@ -319,21 +327,24 @@ defmodule SweBench.QualityValidation.Coordinator do
     # Update running averages and counts
     updated_stats = %{
       automated_validations: current_stats.automated_validations + 1,
-      statistical_analyses: current_stats.statistical_analyses + Map.get(result, :statistical_count, 0),
-      deduplication_checks: current_stats.deduplication_checks + Map.get(result, :deduplication_count, 0),
+      statistical_analyses:
+        current_stats.statistical_analyses + Map.get(result, :statistical_count, 0),
+      deduplication_checks:
+        current_stats.deduplication_checks + Map.get(result, :deduplication_count, 0),
       human_reviews: current_stats.human_reviews + Map.get(result, :human_review_count, 0),
-      avg_quality_score: update_running_average(
-        current_stats.avg_quality_score,
-        result.quality_score,
-        current_stats.automated_validations + 1
-      )
+      avg_quality_score:
+        update_running_average(
+          current_stats.avg_quality_score,
+          result.quality_score,
+          current_stats.automated_validations + 1
+        )
     }
 
     %{state | quality_statistics: updated_stats}
   end
 
   defp update_running_average(current_avg, new_value, count) when count > 1 do
-    ((current_avg * (count - 1)) + new_value) / count
+    (current_avg * (count - 1) + new_value) / count
   end
 
   defp update_running_average(_current_avg, new_value, _count), do: new_value
@@ -360,3 +371,4 @@ defmodule SweBench.QualityValidation.Coordinator do
     Process.send_after(self(), :process_pending, 30_000)
   end
 end
+
