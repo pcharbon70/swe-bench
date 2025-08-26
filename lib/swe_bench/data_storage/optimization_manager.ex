@@ -128,7 +128,7 @@ defmodule SweBench.DataStorage.OptimizationManager do
 
   # Private implementation functions
 
-  defp execute_optimization_step(:indexes, opts) do
+  defp execute_optimization_step(:indexes, _opts) do
     Logger.debug("Executing index optimization")
 
     case IndexManager.create_production_indexes() do
@@ -140,7 +140,7 @@ defmodule SweBench.DataStorage.OptimizationManager do
     end
   end
 
-  defp execute_optimization_step(:partitions, opts) do
+  defp execute_optimization_step(:partitions, _opts) do
     Logger.debug("Executing partition configuration")
 
     case PartitionManager.configure_partitioning() do

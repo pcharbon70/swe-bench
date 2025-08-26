@@ -9,7 +9,7 @@ defmodule SweBench.QualityValidation.Coordinator do
   use GenServer
   require Logger
 
-  alias SweBench.QualityAssurance.{QualityValidation, ReviewSession}
+  # Remove unused aliases - placeholders for future implementation
   alias SweBench.TaskInstances.TaskInstance
   alias SweBench.QualityValidation.{Worker, WorkerSupervisor}
 
@@ -316,7 +316,7 @@ defmodule SweBench.QualityValidation.Coordinator do
     }
   end
 
-  defp update_validation_totals(state, result) do
+  defp update_validation_totals(state, _result) do
     new_total = state.total_validations_completed + 1
     %{state | total_validations_completed: new_total}
   end

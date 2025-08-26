@@ -116,7 +116,7 @@ defmodule SweBench.TaskGeneration.Generator do
     {:error, reason}
   end
 
-  defp enrich_with_metadata({:ok, task_data}, opts) do
+  defp enrich_with_metadata({:ok, task_data}, _opts) do
     Logger.debug("Enriching task instance with metadata")
 
     with {:ok, code_analysis} <- Enricher.analyze_code_changes(task_data.patch_content),
@@ -193,7 +193,7 @@ defmodule SweBench.TaskGeneration.Generator do
     "#{repo_name}-#{issue_number}"
   end
 
-  defp extract_issue_number(issue_pr_link) do
+  defp extract_issue_number(_issue_pr_link) do
     # Extract issue number from the relationship
     # Placeholder - will extract from actual issue data
     :rand.uniform(9999)
@@ -238,7 +238,7 @@ defmodule SweBench.TaskGeneration.Generator do
     {:ok, metadata}
   end
 
-  defp extract_hints(task_data) do
+  defp extract_hints(_task_data) do
     # Extract helpful hints from issue and validation data
     []
   end
@@ -279,7 +279,7 @@ defmodule SweBench.TaskGeneration.Generator do
     end
   end
 
-  defp determine_difficulty_level(task_data) do
+  defp determine_difficulty_level(_task_data) do
     # Determine difficulty based on complexity metrics
     # Placeholder - will use actual complexity analysis
     :medium

@@ -213,7 +213,7 @@ defmodule SweBench.DataStorage.IndexManager do
     end
   end
 
-  defp build_index_sql(index_name, table, columns, where_clause, concurrent \\ true) do
+  defp build_index_sql(index_name, table, columns, where_clause, concurrent \\ false) do
     concurrent_keyword = if concurrent, do: "CONCURRENTLY ", else: ""
     column_list = Enum.join(columns, ", ")
     where_part = if where_clause, do: " WHERE #{where_clause}", else: ""

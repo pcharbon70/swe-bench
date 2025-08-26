@@ -6,7 +6,7 @@ defmodule SweBench.DataExport do
   compression, and streaming processing for large benchmark datasets.
   """
 
-  alias SweBench.DataExport.{ExportManager, ExportPipeline}
+  alias SweBench.DataExport.ExportManager
 
   @doc """
   Starts an export job for dataset extraction.

@@ -98,7 +98,7 @@ defmodule SweBench.TaskGeneration.Packager do
     {:error, reason}
   end
 
-  defp create_compressed_package({:ok, {instances, metadata}}, opts) do
+  defp create_compressed_package({:ok, {instances, metadata}}, _opts) do
     Logger.debug("Creating compressed package")
 
     # Placeholder implementation - will create actual compressed packages
