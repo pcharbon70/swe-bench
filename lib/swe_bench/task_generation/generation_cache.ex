@@ -11,7 +11,7 @@ defmodule SweBench.TaskGeneration.GenerationCache do
 
   @cache_name :task_generation_cache
   # 4 hours
-  @default_ttl_seconds 14400
+  @default_ttl_seconds 14_400
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)

@@ -106,7 +106,7 @@ defmodule SweBench.TaskInstances.GenerationJob do
     attribute :target_count, :integer do
       description "Target number of instances to generate"
       default 100
-      constraints min: 1, max: 10000
+      constraints min: 1, max: 10_000
     end
 
     attribute :priority, :integer do

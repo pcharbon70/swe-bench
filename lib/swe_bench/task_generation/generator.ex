@@ -9,9 +9,9 @@ defmodule SweBench.TaskGeneration.Generator do
   use GenServer
   require Logger
 
-  alias SweBench.ValidationResults.ValidationResult
+  alias SweBench.TaskGeneration.{ComplexityAnalyzer, Enricher, QualityValidator}
   alias SweBench.TaskInstances.TaskInstance
-  alias SweBench.TaskGeneration.{Enricher, ComplexityAnalyzer, QualityValidator}
+  alias SweBench.ValidationResults.ValidationResult
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, opts, name: __MODULE__)

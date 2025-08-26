@@ -74,12 +74,7 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     if Enum.empty?(missing_fields) do
       add_validation_result(task_data, :format_compliance, :passed, "All required fields present")
     else
-      add_validation_result(
-        task_data,
-        :format_compliance,
-        :failed,
-        "Missing fields: #{inspect(missing_fields)}"
-      )
+      add_validation_result(task_data, :format_compliance, :failed, "Missing fields: #{inspect(missing_fields)}")
     end
   end
 
@@ -95,21 +90,10 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     failed_validations = Enum.filter(validations, fn {passed, _message} -> not passed end)
 
     if Enum.empty?(failed_validations) do
-      add_validation_result(
-        task_data,
-        :content_completeness,
-        :passed,
-        "All content validation passed"
-      )
+      add_validation_result(task_data, :content_completeness, :passed, "All content validation passed")
     else
       messages = Enum.map(failed_validations, fn {_passed, message} -> message end)
-
-      add_validation_result(
-        task_data,
-        :content_completeness,
-        :warning,
-        "Issues: #{Enum.join(messages, ", ")}"
-      )
+      add_validation_result(task_data, :content_completeness, :warning, "Issues: #{Enum.join(messages, ", ")}")
     end
   end
 
@@ -117,28 +101,13 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     Logger.debug("Validating patch integrity")
 
     patch_content = task_data.patch_content
-
-    integrity_checks = %{
-      has_diff_headers: String.contains?(patch_content, "diff --git"),
-      has_hunks: String.contains?(patch_content, "@@"),
-      has_changes: String.contains?(patch_content, "+") or String.contains?(patch_content, "-"),
-      valid_format: validate_patch_format(patch_content)
-    }
+    integrity_checks = build_integrity_checks(patch_content)
 
     if Enum.all?(Map.values(integrity_checks)) do
       add_validation_result(task_data, :patch_integrity, :passed, "Patch format valid")
     else
-      failed_checks =
-        integrity_checks
-        |> Enum.filter(fn {_check, passed} -> not passed end)
-        |> Enum.map(fn {check, _passed} -> check end)
-
-      add_validation_result(
-        task_data,
-        :patch_integrity,
-        :failed,
-        "Failed checks: #{inspect(failed_checks)}"
-      )
+      failed_checks = extract_failed_checks(integrity_checks)
+      add_validation_result(task_data, :patch_integrity, :failed, "Failed checks: #{inspect(failed_checks)}")
     end
   end
 
@@ -146,75 +115,94 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     Logger.debug("Validating problem clarity")
 
     problem_statement = task_data.problem_statement
-
-    clarity_metrics = %{
-      sufficient_length: String.length(problem_statement) >= 100,
-      has_context:
-        String.contains?(problem_statement, "when") or
-          String.contains?(problem_statement, "should"),
-      has_specifics: contains_code_references?(problem_statement),
-      clear_requirements: contains_clear_requirements?(problem_statement)
-    }
+    clarity_metrics = calculate_clarity_metrics(problem_statement)
 
     passed_count = Enum.count(Map.values(clarity_metrics), & &1)
     clarity_score = passed_count / map_size(clarity_metrics)
 
-    status =
-      cond do
-        clarity_score >= 0.75 -> :passed
-        clarity_score >= 0.50 -> :warning
-        true -> :failed
-      end
-
-    add_validation_result(
-      task_data,
-      :problem_clarity,
-      status,
-      "Clarity score: #{Float.round(clarity_score, 2)}"
-    )
+    status = determine_clarity_status(clarity_score)
+    add_validation_result(task_data, :problem_clarity, status, "Clarity score: #{Float.round(clarity_score, 2)}")
   end
 
   defp assess_benchmark_suitability(task_data) do
     Logger.debug("Assessing benchmark suitability")
 
     validation_results = Map.get(task_data, :validation_results, [])
-
-    # Count validation outcomes
-    passed_validations = Enum.count(validation_results, &(&1.status == :passed))
-    warning_validations = Enum.count(validation_results, &(&1.status == :warning))
-    failed_validations = Enum.count(validation_results, &(&1.status == :failed))
-
-    total_validations = length(validation_results)
-
-    benchmark_quality =
-      cond do
-        failed_validations == 0 and warning_validations <= 1 and passed_validations >= 3 ->
-          :gold
-
-        failed_validations == 0 and warning_validations <= 2 and passed_validations >= 2 ->
-          :silver
-
-        failed_validations <= 1 and passed_validations >= 2 ->
-          :bronze
-
-        true ->
-          :unsuitable
-      end
+    validation_summary = calculate_validation_summary(validation_results)
+    benchmark_quality = determine_benchmark_quality(validation_summary)
 
     quality_assessment = %{
       benchmark_quality: benchmark_quality,
-      validation_summary: %{
-        passed: passed_validations,
-        warnings: warning_validations,
-        failed: failed_validations,
-        total: total_validations
-      },
-      suitability_score:
-        calculate_suitability_score(passed_validations, warning_validations, failed_validations),
-      assessment_confidence: calculate_assessment_confidence(total_validations)
+      validation_summary: validation_summary,
+      suitability_score: calculate_suitability_score(validation_summary),
+      assessment_confidence: calculate_assessment_confidence(validation_summary.total)
     }
 
     {:ok, quality_assessment}
+  end
+
+  # Helper functions for complexity reduction
+
+  defp build_integrity_checks(patch_content) do
+    %{
+      has_diff_headers: String.contains?(patch_content, "diff --git"),
+      has_hunks: String.contains?(patch_content, "@@"),
+      has_changes: String.contains?(patch_content, "+") or String.contains?(patch_content, "-"),
+      valid_format: validate_patch_format(patch_content)
+    }
+  end
+
+  defp extract_failed_checks(integrity_checks) do
+    integrity_checks
+    |> Enum.filter(fn {_check, passed} -> not passed end)
+    |> Enum.map(fn {check, _passed} -> check end)
+  end
+
+  defp calculate_clarity_metrics(problem_statement) do
+    %{
+      sufficient_length: String.length(problem_statement) >= 100,
+      has_context: String.contains?(problem_statement, "when") or String.contains?(problem_statement, "should"),
+      has_specifics: contains_code_references?(problem_statement),
+      clear_requirements: contains_clear_requirements?(problem_statement)
+    }
+  end
+
+  defp determine_clarity_status(clarity_score) do
+    cond do
+      clarity_score >= 0.75 -> :passed
+      clarity_score >= 0.50 -> :warning
+      true -> :failed
+    end
+  end
+
+  defp calculate_validation_summary(validation_results) do
+    %{
+      passed: Enum.count(validation_results, &(&1.status == :passed)),
+      warnings: Enum.count(validation_results, &(&1.status == :warning)),
+      failed: Enum.count(validation_results, &(&1.status == :failed)),
+      total: length(validation_results)
+    }
+  end
+
+  defp determine_benchmark_quality(summary) do
+    cond do
+      gold_quality?(summary) -> :gold
+      silver_quality?(summary) -> :silver
+      bronze_quality?(summary) -> :bronze
+      true -> :unsuitable
+    end
+  end
+
+  defp gold_quality?(%{passed: passed, warnings: warnings, failed: failed}) do
+    failed == 0 and warnings <= 1 and passed >= 3
+  end
+
+  defp silver_quality?(%{passed: passed, warnings: warnings, failed: failed}) do
+    failed == 0 and warnings <= 2 and passed >= 2
+  end
+
+  defp bronze_quality?(%{passed: passed, failed: failed}) do
+    failed <= 1 and passed >= 2
   end
 
   defp add_validation_result(task_data, stage, status, message) do
@@ -249,7 +237,7 @@ defmodule SweBench.TaskGeneration.QualityValidator do
     Enum.any?(requirement_words, &String.contains?(String.downcase(text), &1))
   end
 
-  defp calculate_suitability_score(passed, warnings, failed) do
+  defp calculate_suitability_score(%{passed: passed, warnings: warnings, failed: failed}) do
     total = passed + warnings + failed
 
     if total > 0 do
@@ -281,7 +269,7 @@ defmodule SweBench.TaskGeneration.QualityValidator do
 
     new_avg_time =
       if new_total > 1 do
-        (state.avg_validation_time * (new_total - 1) + processing_time) / new_total
+        ((state.avg_validation_time * (new_total - 1)) + processing_time) / new_total
       else
         processing_time
       end
