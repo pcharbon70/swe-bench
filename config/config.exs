@@ -55,7 +55,8 @@ config :swe_bench,
     SweBench.Accounts,
     SweBench.Repositories,
     SweBench.Issues,
-    SweBench.ValidationResults
+    SweBench.ValidationResults,
+    SweBench.TaskInstances
   ]
 
 # Configures the endpoint
