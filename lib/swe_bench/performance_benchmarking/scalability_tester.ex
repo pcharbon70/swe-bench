@@ -258,28 +258,13 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
   end
 
   defp test_concurrent_execution(implementation, concurrency, scalability_spec) do
-    # Test implementation under concurrent load
     test_input = Map.get(scalability_spec, :concurrent_input, [1, 2, 3])
-
-    tasks =
-      1..concurrency
-      |> Enum.map(fn _i ->
-        Task.async(fn ->
-          :timer.tc(fn -> implementation.(test_input) end)
-        end)
-      end)
-
+    
+    tasks = create_concurrent_tasks(implementation, test_input, concurrency)
+    
     case Task.await_many(tasks, 30_000) do
       results when is_list(results) ->
-        concurrent_metrics = %{
-          concurrency_level: concurrency,
-          execution_times: Enum.map(results, &elem(&1, 0)),
-          avg_execution_time: Enum.sum(Enum.map(results, &elem(&1, 0))) / length(results),
-          throughput:
-            concurrency * 1_000_000 /
-              (Enum.sum(Enum.map(results, &elem(&1, 0))) / length(results))
-        }
-
+        concurrent_metrics = build_concurrent_metrics(results, concurrency)
         {:ok, concurrent_metrics}
 
       {:error, reason} ->
@@ -288,6 +273,29 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
   rescue
     error ->
       {:error, {:concurrent_test_failed, error}}
+  end
+
+  defp create_concurrent_tasks(implementation, test_input, concurrency) do
+    1..concurrency
+    |> Enum.map(fn _i ->
+      Task.async(fn -> time_execution(implementation, test_input) end)
+    end)
+  end
+
+  defp time_execution(implementation, test_input) do
+    :timer.tc(fn -> implementation.(test_input) end)
+  end
+
+  defp build_concurrent_metrics(results, concurrency) do
+    execution_times = Enum.map(results, &elem(&1, 0))
+    avg_time = Enum.sum(execution_times) / length(results)
+    
+    %{
+      concurrency_level: concurrency,
+      execution_times: execution_times,
+      avg_execution_time: avg_time,
+      throughput: concurrency * 1_000_000 / avg_time
+    }
   end
 
   defp benchmark_with_input_size(implementation, test_input, timeout) do
