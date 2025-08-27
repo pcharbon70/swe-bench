@@ -14,18 +14,18 @@ This section creates the Phoenix LiveView-based web interface that provides intu
   - [ ] 5.1.1.5 Configure asset pipeline and bundling
 
 - [ ] 5.1.2 Implement evaluation interface
-  - [ ] 5.1.2.1 Create task submission form
-  - [ ] 5.1.2.2 Build real-time evaluation progress tracker
-  - [ ] 5.1.2.3 Display live log streaming
-  - [ ] 5.1.2.4 Show test execution results
-  - [ ] 5.1.2.5 Implement result download functionality
+  - [ ] 5.1.2.1 Create admin-only task submission form with role authentication
+  - [ ] 5.1.2.2 Build real-time evaluation progress tracker for admin monitoring
+  - [ ] 5.1.2.3 Display live log streaming with admin access controls
+  - [ ] 5.1.2.4 Show test execution results with public read access
+  - [ ] 5.1.2.5 Implement result download functionality with proper permissions
 
-- [ ] 5.1.3 Build result visualization dashboard
-  - [ ] 5.1.3.1 Create score distribution charts
-  - [ ] 5.1.3.2 Implement repository performance matrices
-  - [ ] 5.1.3.3 Display pattern matching analysis
-  - [ ] 5.1.3.4 Show OTP compliance metrics
-  - [ ] 5.1.3.5 Generate comparative analytics
+- [ ] 5.1.3 Build public result visualization dashboard
+  - [ ] 5.1.3.1 Create public evaluation results list with sortable columns
+  - [ ] 5.1.3.2 Implement interactive score distribution graphs and charts
+  - [ ] 5.1.3.3 Display repository performance matrices with filtering
+  - [ ] 5.1.3.4 Show pattern matching analysis with visual indicators
+  - [ ] 5.1.3.5 Generate comparative analytics with trend graphs
 
 - [ ] 5.1.4 Create dataset explorer
   - [ ] 5.1.4.1 Build searchable task instance browser
@@ -100,18 +100,18 @@ This section implements a comprehensive LiveView component architecture that pro
   - [ ] 5.3.1.5 Build component communication patterns
 
 - [ ] 5.3.2 Implement evaluation interface components
-  - [ ] 5.3.2.1 Create evaluation submission form component
-  - [ ] 5.3.2.2 Build real-time progress tracker component
-  - [ ] 5.3.2.3 Implement live log streaming component
-  - [ ] 5.3.2.4 Add test execution results display component
-  - [ ] 5.3.2.5 Create result download interface component
+  - [ ] 5.3.2.1 Create admin-only evaluation submission form component with authentication
+  - [ ] 5.3.2.2 Build real-time progress tracker component for admin monitoring
+  - [ ] 5.3.2.3 Implement live log streaming component with role-based access
+  - [ ] 5.3.2.4 Add public evaluation results list component with sortable columns
+  - [ ] 5.3.2.5 Create result download interface component with permission controls
 
-- [ ] 5.3.3 Build visualization dashboard components
-  - [ ] 5.3.3.1 Create interactive score distribution charts
-  - [ ] 5.3.3.2 Implement repository performance matrix views
-  - [ ] 5.3.3.3 Build pattern matching analysis displays
-  - [ ] 5.3.3.4 Add OTP compliance metric visualizations
-  - [ ] 5.3.3.5 Create comparative analytics dashboard
+- [ ] 5.3.3 Build public visualization dashboard components  
+  - [ ] 5.3.3.1 Create public interactive score distribution graphs with real-time updates
+  - [ ] 5.3.3.2 Implement public repository performance chart views with filtering
+  - [ ] 5.3.3.3 Build public pattern matching analysis displays with visual indicators
+  - [ ] 5.3.3.4 Add public OTP compliance metric visualizations with trend analysis
+  - [ ] 5.3.3.5 Create public comparative analytics dashboard with interactive charts
 
 - [ ] 5.3.4 Create dataset exploration components
   - [ ] 5.3.4.1 Build real-time searchable task browser
@@ -133,7 +133,7 @@ This section implements a comprehensive LiveView component architecture that pro
 
 ## 5.4 Authentication & Authorization System
 
-This section implements comprehensive security infrastructure including user authentication, API key management, and role-based access control. The system supports multiple authentication methods including OAuth2, JWT tokens, and API keys, with rate limiting and usage tracking ensuring fair resource allocation and preventing abuse.
+This section implements comprehensive security infrastructure including user authentication and role-based access control with clear separation between admin and public user capabilities. The system provides public read access to evaluation results and visualizations while restricting evaluation execution to authenticated admin users only. Multiple authentication methods including OAuth2 and password-based authentication ensure secure admin access with proper session management and usage tracking.
 
 ### Tasks:
 - [ ] 5.4.1 Implement user authentication
@@ -150,12 +150,12 @@ This section implements comprehensive security infrastructure including user aut
   - [ ] 5.4.2.4 Build session analytics and monitoring
   - [ ] 5.4.2.5 Implement session management interface
 
-- [ ] 5.4.3 Create authorization framework
-  - [ ] 5.4.3.1 Define user roles and permissions
-  - [ ] 5.4.3.2 Implement resource-based access control
-  - [ ] 5.4.3.3 Add organization/team support
-  - [ ] 5.4.3.4 Create permission inheritance
-  - [ ] 5.4.3.5 Build audit logging
+- [ ] 5.4.3 Create admin/public authorization framework
+  - [ ] 5.4.3.1 Define admin and public user roles with clear permissions
+  - [ ] 5.4.3.2 Implement admin-only evaluation execution access control
+  - [ ] 5.4.3.3 Ensure public read access to results list and visualizations
+  - [ ] 5.4.3.4 Create role-based LiveView component rendering
+  - [ ] 5.4.3.5 Build comprehensive audit logging for admin actions
 
 - [ ] 5.4.4 Implement usage limiting
   - [ ] 5.4.4.1 Configure user evaluation limits
