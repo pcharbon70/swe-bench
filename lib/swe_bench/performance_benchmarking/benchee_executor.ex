@@ -259,14 +259,12 @@ defmodule SweBench.PerformanceBenchmarking.BencheeExecutor do
   end
 
   defp run_benchee_safely(benchmark_functions, config) do
-    try do
-      benchee_results = Benchee.run(benchmark_functions, config)
-      {:ok, benchee_results}
-    rescue
-      error ->
-        Logger.error("Benchee execution failed: #{inspect(error)}")
-        {:error, error}
-    end
+    benchee_results = Benchee.run(benchmark_functions, config)
+    {:ok, benchee_results}
+  rescue
+    error ->
+      Logger.error("Benchee execution failed: #{inspect(error)}")
+      {:error, error}
   end
 
   defp extract_performance_metrics(benchee_results) do

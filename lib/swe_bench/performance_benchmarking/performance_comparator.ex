@@ -222,13 +222,11 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
   end
 
   defp run_benchee_benchmark(benchmark_functions, config) do
-    try do
-      results = Benchee.run(benchmark_functions, config)
-      {:ok, results}
-    rescue
-      error ->
-        {:error, error}
-    end
+    results = Benchee.run(benchmark_functions, config)
+    {:ok, results}
+  rescue
+    error ->
+      {:error, error}
   end
 
   defp extract_key_metrics(benchee_results) do
