@@ -238,7 +238,7 @@ defmodule SweBench.PartialCreditScoring.ImprovementSuggester do
         suggestions
       end
 
-    if length(suggestions) == 0 do
+    if suggestions == [] do
       ["Code quality is good - maintain standards"]
     else
       suggestions
@@ -283,7 +283,7 @@ defmodule SweBench.PartialCreditScoring.ImprovementSuggester do
         suggestions
       end
 
-    if length(suggestions) == 0 do
+    if suggestions == [] do
       ["Performance is adequate - consider micro-optimizations"]
     else
       suggestions
@@ -324,7 +324,7 @@ defmodule SweBench.PartialCreditScoring.ImprovementSuggester do
         ["Write pure functions without side effects" | suggestions]
       end
 
-    if length(suggestions) == 0 do
+    if suggestions == [] do
       ["Functional programming patterns are well used"]
     else
       suggestions

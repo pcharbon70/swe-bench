@@ -105,7 +105,7 @@ defmodule SweBench.PartialCreditScoring.SolutionAnalyzer do
     # Simple term extraction - could be enhanced with NLP
     description
     |> String.split(~r/\W+/)
-    |> Enum.filter(fn word -> 
+    |> Enum.filter(fn word ->
         String.length(word) > 3 and word not in ["the", "and", "for", "with", "that", "this"]
     end)
     # Take top 10 meaningful terms
@@ -116,18 +116,20 @@ defmodule SweBench.PartialCreditScoring.SolutionAnalyzer do
     expected_functions = Map.get(solution_data, :expected_functions, [])
     implemented_functions = Map.get(solution_data, :implemented_functions, [])
 
-    if length(expected_functions) > 0 do
-      matches =
-        Enum.count(expected_functions, fn expected ->
-          Enum.any?(implemented_functions, fn impl -> String.contains?(impl, expected) end)
-        end)
-
-      # At least 50% of expected functions
-      matches / length(expected_functions) > 0.5
-    else
+    if expected_functions == [] do
       # No expectations means this check passes
       true
+    else
+      matches = count_function_matches(expected_functions, implemented_functions)
+      # At least 50% of expected functions
+      matches / length(expected_functions) > 0.5
     end
+  end
+
+  defp count_function_matches(expected_functions, implemented_functions) do
+    Enum.count(expected_functions, fn expected ->
+      Enum.any?(implemented_functions, fn impl -> String.contains?(impl, expected) end)
+    end)
   end
 
   defp check_problem_constraints(solution_data) do

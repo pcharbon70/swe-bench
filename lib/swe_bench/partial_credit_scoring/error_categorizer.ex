@@ -90,13 +90,18 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
 
   defp determine_error_category(error) when is_binary(error) do
     cond do
-      String.contains?(error, "syntax") or String.contains?(error, "parse") -> :compilation
-      String.contains?(error, "test") or String.contains?(error, "assert") -> :test
-      String.contains?(error, "runtime") or String.contains?(error, "exception") -> :runtime
-      String.contains?(error, "logic") or String.contains?(error, "incorrect") -> :logic
+      compilation_error?(error) -> :compilation
+      test_error?(error) -> :test
+      runtime_error?(error) -> :runtime
+      logic_error?(error) -> :logic
       true -> :unknown
     end
   end
+
+  defp compilation_error?(error), do: String.contains?(error, "syntax") or String.contains?(error, "parse")
+  defp test_error?(error), do: String.contains?(error, "test") or String.contains?(error, "assert")
+  defp runtime_error?(error), do: String.contains?(error, "runtime") or String.contains?(error, "exception")
+  defp logic_error?(error), do: String.contains?(error, "logic") or String.contains?(error, "incorrect")
 
   defp determine_error_category(_error), do: :unknown
 
