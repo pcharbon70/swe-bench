@@ -102,10 +102,10 @@ defmodule SweBench.ConcurrentEvaluation.MetricsCollector do
       Map.get(evaluation_data, :mailbox_score, 50.0),
       Map.get(evaluation_data, :supervisor_score, 50.0)
     ]
-    
+
     mean = Enum.sum(scores) / length(scores)
     variance = calculate_score_variance(scores, mean)
-    
+
     %{
       mean_score: mean,
       variance: variance,
@@ -123,11 +123,12 @@ defmodule SweBench.ConcurrentEvaluation.MetricsCollector do
   defp calculate_confidence_intervals(evaluation_data) do
     # Basic confidence interval calculation for concurrent metrics
     concurrent_score = Map.get(evaluation_data, :concurrent_score, 50.0)
-    
+
     # Assume normal distribution with estimated standard error
-    standard_error = 5.0  # Estimated based on typical evaluation variance
+    # Estimated based on typical evaluation variance
+    standard_error = 5.0
     confidence_95 = 1.96 * standard_error
-    
+
     %{
       confidence_level: 0.95,
       lower_bound: max(0.0, concurrent_score - confidence_95),
@@ -150,11 +151,12 @@ defmodule SweBench.ConcurrentEvaluation.MetricsCollector do
   end
 
   defp calculate_average_concurrent_score(metrics_history) do
-    scores = metrics_history
-    |> Enum.map(fn metrics ->
+    scores =
+      metrics_history
+      |> Enum.map(fn metrics ->
         get_in(metrics, [:concurrent_metrics, :overall_concurrent_score]) || 50.0
-    end)
-    
+      end)
+
     if scores != [] do
       Enum.sum(scores) / length(scores)
     else
@@ -167,21 +169,24 @@ defmodule SweBench.ConcurrentEvaluation.MetricsCollector do
   end
 
   defp analyze_score_trends(metrics_history) do
-    recent_scores = metrics_history
-    |> Enum.take(-5)  # Last 5 evaluations
-    |> Enum.map(fn metrics ->
+    recent_scores =
+      metrics_history
+      # Last 5 evaluations
+      |> Enum.take(-5)
+      |> Enum.map(fn metrics ->
         get_in(metrics, [:concurrent_metrics, :overall_concurrent_score]) || 50.0
-    end)
-    
+      end)
+
     first_half_avg = recent_scores |> Enum.take(2) |> Enum.sum() |> Kernel./(2)
     second_half_avg = recent_scores |> Enum.drop(3) |> Enum.sum() |> Kernel./(2)
-    
-    trend = cond do
-      second_half_avg > first_half_avg + 5 -> :improving
-      second_half_avg < first_half_avg - 5 -> :declining  
-      true -> :stable
-    end
-    
+
+    trend =
+      cond do
+        second_half_avg > first_half_avg + 5 -> :improving
+        second_half_avg < first_half_avg - 5 -> :declining
+        true -> :stable
+      end
+
     %{
       trend: trend,
       recent_average: Enum.sum(recent_scores) / length(recent_scores),
@@ -191,10 +196,14 @@ defmodule SweBench.ConcurrentEvaluation.MetricsCollector do
 
   defp initialize_intervals do
     %{
-      process_metrics: 2000,    # 2 second intervals
-      race_detection: 5000,     # 5 second intervals  
-      deadlock_analysis: 10000, # 10 second intervals
-      mailbox_monitoring: 3000  # 3 second intervals
+      # 2 second intervals
+      process_metrics: 2000,
+      # 5 second intervals
+      race_detection: 5000,
+      # 10 second intervals
+      deadlock_analysis: 10_000,
+      # 3 second intervals
+      mailbox_monitoring: 3000
     }
   end
 end

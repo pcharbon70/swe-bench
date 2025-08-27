@@ -259,9 +259,9 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
 
   defp test_concurrent_execution(implementation, concurrency, scalability_spec) do
     test_input = Map.get(scalability_spec, :concurrent_input, [1, 2, 3])
-    
+
     tasks = create_concurrent_tasks(implementation, test_input, concurrency)
-    
+
     case Task.await_many(tasks, 30_000) do
       results when is_list(results) ->
         concurrent_metrics = build_concurrent_metrics(results, concurrency)
@@ -289,7 +289,7 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
   defp build_concurrent_metrics(results, concurrency) do
     execution_times = Enum.map(results, &elem(&1, 0))
     avg_time = Enum.sum(execution_times) / length(results)
-    
+
     %{
       concurrency_level: concurrency,
       execution_times: execution_times,

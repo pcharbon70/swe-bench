@@ -11,14 +11,14 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
   require Logger
 
   alias SweBench.ConcurrentEvaluation.{
+    DeadlockAnalyzer,
     DecisionEngine,
+    FaultInjector,
+    MailboxMonitor,
     MetricsCollector,
     ProcessMonitor,
     RaceDetector,
-    DeadlockAnalyzer,
-    MailboxMonitor,
-    SupervisorTracker,
-    FaultInjector
+    SupervisorTracker
   }
 
   defstruct [
@@ -63,7 +63,7 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
   @impl true
   def init(config) do
     concurrent_config = build_concurrent_config(config)
-    
+
     state = %__MODULE__{
       config: concurrent_config,
       active_evaluations: %{},
@@ -72,47 +72,53 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
       circuit_breaker_state: :closed
     }
 
-    Logger.info("ConcurrentEvaluation.Harness initialized with #{state.monitoring_tier} monitoring")
+    Logger.info(
+      "ConcurrentEvaluation.Harness initialized with #{state.monitoring_tier} monitoring"
+    )
+
     {:ok, state}
   end
 
   @impl true
   def handle_call({:evaluate_concurrent_system, solution_data, options}, from, state) do
     evaluation_id = generate_evaluation_id()
-    
+
     # Determine monitoring tier based on solution complexity
     monitoring_tier = DecisionEngine.determine_monitoring_tier(solution_data, options)
-    
+
     # Check circuit breaker state
     case state.circuit_breaker_state do
       :open ->
         {:reply, {:error, :circuit_breaker_open}, state}
-      
+
       _ ->
         # Start concurrent evaluation
-        evaluation_task = Task.async(fn ->
-          perform_concurrent_evaluation(solution_data, monitoring_tier, state.config)
-        end)
-        
+        evaluation_task =
+          Task.async(fn ->
+            perform_concurrent_evaluation(solution_data, monitoring_tier, state.config)
+          end)
+
         # Store evaluation for monitoring
-        new_evaluations = Map.put(state.active_evaluations, evaluation_id, %{
-          task: evaluation_task,
-          from: from,
-          solution_data: solution_data,
-          monitoring_tier: monitoring_tier,
-          started_at: DateTime.utc_now()
-        })
-        
+        new_evaluations =
+          Map.put(state.active_evaluations, evaluation_id, %{
+            task: evaluation_task,
+            from: from,
+            solution_data: solution_data,
+            monitoring_tier: monitoring_tier,
+            started_at: DateTime.utc_now()
+          })
+
         # Process results asynchronously
-        spawn_link(fn -> 
+        spawn_link(fn ->
           monitor_evaluation_completion(evaluation_id, evaluation_task)
         end)
-        
-        new_state = %{state | 
-          active_evaluations: new_evaluations,
-          monitoring_tier: monitoring_tier
+
+        new_state = %{
+          state
+          | active_evaluations: new_evaluations,
+            monitoring_tier: monitoring_tier
         }
-        
+
         {:noreply, new_state}
     end
   end
@@ -134,29 +140,31 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
     case Map.get(state.active_evaluations, evaluation_id) do
       nil ->
         {:noreply, state}
-      
+
       evaluation_info ->
         GenServer.reply(evaluation_info.from, result)
-        
+
         # Update metrics
-        new_metrics = update_evaluation_metrics(
-          state.evaluation_metrics,
-          evaluation_info,
-          result
-        )
-        
+        new_metrics =
+          update_evaluation_metrics(
+            state.evaluation_metrics,
+            evaluation_info,
+            result
+          )
+
         # Update circuit breaker state
         new_circuit_state = update_circuit_breaker(state.circuit_breaker_state, result)
-        
+
         # Clean up evaluation
         new_evaluations = Map.delete(state.active_evaluations, evaluation_id)
-        
-        new_state = %{state |
-          active_evaluations: new_evaluations,
-          evaluation_metrics: new_metrics,
-          circuit_breaker_state: new_circuit_state
+
+        new_state = %{
+          state
+          | active_evaluations: new_evaluations,
+            evaluation_metrics: new_metrics,
+            circuit_breaker_state: new_circuit_state
         }
-        
+
         {:noreply, new_state}
     end
   end
@@ -164,13 +172,17 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
   # Private functions
 
   defp perform_concurrent_evaluation(solution_data, monitoring_tier, config) do
-    with {:ok, process_analysis} <- ProcessMonitor.analyze_processes(solution_data, monitoring_tier),
-         {:ok, race_analysis} <- RaceDetector.detect_race_conditions(solution_data, monitoring_tier),
-         {:ok, deadlock_analysis} <- DeadlockAnalyzer.analyze_deadlocks(solution_data, monitoring_tier),
-         {:ok, mailbox_analysis} <- MailboxMonitor.monitor_mailboxes(solution_data, monitoring_tier),
-         {:ok, supervisor_analysis} <- SupervisorTracker.track_supervision(solution_data, monitoring_tier),
+    with {:ok, process_analysis} <-
+           ProcessMonitor.analyze_processes(solution_data, monitoring_tier),
+         {:ok, race_analysis} <-
+           RaceDetector.detect_race_conditions(solution_data, monitoring_tier),
+         {:ok, deadlock_analysis} <-
+           DeadlockAnalyzer.analyze_deadlocks(solution_data, monitoring_tier),
+         {:ok, mailbox_analysis} <-
+           MailboxMonitor.monitor_mailboxes(solution_data, monitoring_tier),
+         {:ok, supervisor_analysis} <-
+           SupervisorTracker.track_supervision(solution_data, monitoring_tier),
          {:ok, fault_analysis} <- maybe_inject_faults(solution_data, monitoring_tier, config) do
-      
       # Aggregate concurrent system analysis
       concurrent_result = %{
         process_analysis: process_analysis,
@@ -180,13 +192,18 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
         supervisor_resilience: supervisor_analysis,
         fault_tolerance: fault_analysis,
         monitoring_tier: monitoring_tier,
-        overall_score: calculate_concurrent_score([
-          process_analysis, race_analysis, deadlock_analysis,
-          mailbox_analysis, supervisor_analysis, fault_analysis
-        ]),
+        overall_score:
+          calculate_concurrent_score([
+            process_analysis,
+            race_analysis,
+            deadlock_analysis,
+            mailbox_analysis,
+            supervisor_analysis,
+            fault_analysis
+          ]),
         timestamp: DateTime.utc_now()
       }
-      
+
       {:ok, concurrent_result}
     else
       {:error, reason} ->
@@ -214,10 +231,11 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
   defp should_inject_faults?(_, _), do: false
 
   defp calculate_concurrent_score(analyses) do
-    scores = analyses
-    |> Enum.map(fn analysis -> Map.get(analysis, :score, 50.0) end)
-    |> Enum.filter(fn score -> is_number(score) end)
-    
+    scores =
+      analyses
+      |> Enum.map(fn analysis -> Map.get(analysis, :score, 50.0) end)
+      |> Enum.filter(fn score -> is_number(score) end)
+
     if length(scores) > 0 do
       Enum.sum(scores) / length(scores)
     else
@@ -226,12 +244,16 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
   end
 
   defp monitor_evaluation_completion(evaluation_id, task) do
-    try do
-      result = Task.await(task, 120_000)
-      send(__MODULE__, {:evaluation_complete, evaluation_id, result})
-    catch
-      :exit, reason ->
-        send(__MODULE__, {:evaluation_complete, evaluation_id, {:error, {:timeout, reason}}})
+    case Task.yield(task, 120_000) do
+      {:ok, result} ->
+        send(__MODULE__, {:evaluation_complete, evaluation_id, result})
+
+      nil ->
+        Task.shutdown(task, :brutal_kill)
+        send(__MODULE__, {:evaluation_complete, evaluation_id, {:error, :timeout}})
+
+      {:exit, reason} ->
+        send(__MODULE__, {:evaluation_complete, evaluation_id, {:error, {:exit, reason}}})
     end
   end
 
@@ -285,30 +307,34 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
     evaluation_time = DateTime.diff(DateTime.utc_now(), evaluation_info.started_at, :millisecond)
     total = metrics.total_evaluations + 1
     tier = evaluation_info.monitoring_tier
-    
+
     # Update tier usage
     new_tier_usage = Map.update(metrics.monitoring_tier_usage, tier, 1, &(&1 + 1))
-    
+
     case result do
       {:ok, concurrent_result} ->
         # Count detected issues
         new_issues = count_detected_issues(concurrent_result)
         updated_issues = merge_issue_counts(metrics.concurrent_issues_detected, new_issues)
-        
-        %{metrics |
-          total_evaluations: total,
-          successful_evaluations: metrics.successful_evaluations + 1,
-          average_evaluation_time: (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total,
-          concurrent_issues_detected: updated_issues,
-          monitoring_tier_usage: new_tier_usage
+
+        %{
+          metrics
+          | total_evaluations: total,
+            successful_evaluations: metrics.successful_evaluations + 1,
+            average_evaluation_time:
+              (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total,
+            concurrent_issues_detected: updated_issues,
+            monitoring_tier_usage: new_tier_usage
         }
-      
+
       {:error, _reason} ->
-        %{metrics |
-          total_evaluations: total,
-          failed_evaluations: metrics.failed_evaluations + 1,
-          average_evaluation_time: (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total,
-          monitoring_tier_usage: new_tier_usage
+        %{
+          metrics
+          | total_evaluations: total,
+            failed_evaluations: metrics.failed_evaluations + 1,
+            average_evaluation_time:
+              (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total,
+            monitoring_tier_usage: new_tier_usage
         }
     end
   end
@@ -335,7 +361,7 @@ defmodule SweBench.ConcurrentEvaluation.Harness do
   end
 
   defp update_circuit_breaker(:closed, {:error, _reason}) do
-    # TODO: Implement sophisticated circuit breaker logic
+    # Open circuit breaker after failures
     :half_open
   end
 

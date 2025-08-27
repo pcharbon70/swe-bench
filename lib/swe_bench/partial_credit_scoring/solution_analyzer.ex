@@ -106,7 +106,7 @@ defmodule SweBench.PartialCreditScoring.SolutionAnalyzer do
     description
     |> String.split(~r/\W+/)
     |> Enum.filter(fn word ->
-        String.length(word) > 3 and word not in ["the", "and", "for", "with", "that", "this"]
+      String.length(word) > 3 and word not in ["the", "and", "for", "with", "that", "this"]
     end)
     # Take top 10 meaningful terms
     |> Enum.take(10)

@@ -57,9 +57,9 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
   @impl true
   def handle_call({:detect_race_conditions, solution_data, monitoring_tier}, _from, state) do
     monitoring_config = DecisionEngine.get_monitoring_config(monitoring_tier)
-    
+
     race_analysis = perform_race_detection(solution_data, monitoring_config, state)
-    
+
     {:reply, {:ok, race_analysis}, state}
   rescue
     error ->
@@ -76,17 +76,17 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp perform_race_detection(solution_data, monitoring_config, _state) do
     race_detection_mode = Map.get(monitoring_config, :race_detection, :pattern_based)
-    
+
     case race_detection_mode do
       :statistical ->
         perform_statistical_race_detection(solution_data, monitoring_config)
-      
+
       :pattern_based ->
         perform_pattern_race_detection(solution_data, monitoring_config)
-      
+
       :comprehensive ->
         perform_comprehensive_race_detection(solution_data, monitoring_config)
-      
+
       _ ->
         perform_basic_race_detection(solution_data)
     end
@@ -94,9 +94,9 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp perform_basic_race_detection(solution_data) do
     solution_code = Map.get(solution_data, :solution_code, "")
-    
+
     basic_patterns = analyze_basic_race_patterns(solution_code)
-    
+
     %{
       detection_mode: :basic,
       race_conditions_detected: basic_patterns.potential_races,
@@ -112,19 +112,20 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
   defp perform_statistical_race_detection(solution_data, monitoring_config) do
     solution_code = Map.get(solution_data, :solution_code, "")
     sampling_rate = Map.get(monitoring_config, :process_sampling_rate, 0.1)
-    
+
     # Run multiple executions with statistical sampling
     sample_count = max(5, trunc(1.0 / sampling_rate))
-    
-    samples = 1..sample_count
-    |> Enum.map(fn _i ->
+
+    samples =
+      1..sample_count
+      |> Enum.map(fn _i ->
         execute_with_race_monitoring(solution_code, :statistical)
-    end)
-    |> Enum.filter(fn {status, _} -> status == :ok end)
-    |> Enum.map(fn {_, result} -> result end)
-    
+      end)
+      |> Enum.filter(fn {status, _} -> status == :ok end)
+      |> Enum.map(fn {_, result} -> result end)
+
     statistical_analysis = analyze_execution_variance(samples)
-    
+
     %{
       detection_mode: :statistical,
       sample_count: sample_count,
@@ -138,7 +139,7 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp perform_pattern_race_detection(solution_data, _monitoring_config) do
     solution_code = Map.get(solution_data, :solution_code, "")
-    
+
     # Analyze code patterns for race condition indicators
     pattern_analysis = %{
       ets_patterns: analyze_ets_race_patterns(solution_code),
@@ -146,12 +147,12 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
       message_patterns: analyze_message_race_patterns(solution_code),
       shared_state_patterns: analyze_shared_state_patterns(solution_code)
     }
-    
+
     # Execute with pattern-specific monitoring
     execution_result = execute_with_race_monitoring(solution_code, :pattern_based)
-    
+
     combined_analysis = combine_pattern_and_runtime_analysis(pattern_analysis, execution_result)
-    
+
     %{
       detection_mode: :pattern_based,
       pattern_analysis: pattern_analysis,
@@ -168,13 +169,14 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
     basic_result = perform_basic_race_detection(solution_data)
     statistical_result = perform_statistical_race_detection(solution_data, monitoring_config)
     pattern_result = perform_pattern_race_detection(solution_data, monitoring_config)
-    
-    comprehensive_analysis = combine_all_analyses([
-      basic_result,
-      statistical_result, 
-      pattern_result
-    ])
-    
+
+    comprehensive_analysis =
+      combine_all_analyses([
+        basic_result,
+        statistical_result,
+        pattern_result
+      ])
+
     %{
       detection_mode: :comprehensive,
       basic_analysis: basic_result,
@@ -190,14 +192,18 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp analyze_basic_race_patterns(code) do
     patterns = %{
-      ets_without_locks: count_pattern(code, ":ets.insert") > 0 and count_pattern(code, ":ets.lookup") > 0,
-      shared_agent_access: String.contains?(code, "Agent.get") and String.contains?(code, "Agent.update"),
-      concurrent_map_access: String.contains?(code, "Map.put") and String.contains?(code, "spawn"),
-      genserver_cast_race: String.contains?(code, "GenServer.cast") and String.contains?(code, "GenServer.call")
+      ets_without_locks:
+        count_pattern(code, ":ets.insert") > 0 and count_pattern(code, ":ets.lookup") > 0,
+      shared_agent_access:
+        String.contains?(code, "Agent.get") and String.contains?(code, "Agent.update"),
+      concurrent_map_access:
+        String.contains?(code, "Map.put") and String.contains?(code, "spawn"),
+      genserver_cast_race:
+        String.contains?(code, "GenServer.cast") and String.contains?(code, "GenServer.call")
     }
-    
+
     potential_races = Enum.count(patterns, fn {_, detected} -> detected end)
-    
+
     %{
       shared_state_patterns: patterns,
       potential_races: potential_races,
@@ -217,7 +223,8 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp analyze_timing_dependencies(code) do
     %{
-      has_sleep_statements: String.contains?(code, "Process.sleep") or String.contains?(code, ":timer.sleep"),
+      has_sleep_statements:
+        String.contains?(code, "Process.sleep") or String.contains?(code, ":timer.sleep"),
       has_receive_timeouts: String.contains?(code, "after "),
       has_genserver_timeouts: String.contains?(code, "timeout:"),
       timing_complexity: estimate_timing_complexity(code)
@@ -231,7 +238,7 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
       String.contains?(code, "Process.sleep"),
       String.contains?(code, "Task.await")
     ]
-    
+
     case Enum.count(timing_constructs, & &1) do
       0 -> :none
       1 -> :low
@@ -250,9 +257,9 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp analyze_rmw_patterns(code) do
     # Look for read-modify-write patterns that could be non-atomic
-    String.contains?(code, "Agent.get") and 
-    String.contains?(code, "Agent.update") and
-    not String.contains?(code, "Agent.get_and_update")
+    String.contains?(code, "Agent.get") and
+      String.contains?(code, "Agent.update") and
+      not String.contains?(code, "Agent.get_and_update")
   end
 
   defp analyze_check_act_patterns(code) do
@@ -264,18 +271,19 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
     # Look for compound operations that should be atomic
     ets_compound = String.contains?(code, ":ets.lookup") and String.contains?(code, ":ets.insert")
     map_compound = String.contains?(code, "Map.get") and String.contains?(code, "Map.put")
-    
+
     ets_compound or map_compound
   end
 
   defp execute_with_race_monitoring(_code, _mode) do
     # Mock execution with race monitoring
     # This would integrate with actual test execution
-    {:ok, %{
-      execution_time: :rand.uniform(1000),
-      race_events_detected: :rand.uniform(3),
-      timing_variance: :rand.uniform() * 0.1
-    }}
+    {:ok,
+     %{
+       execution_time: :rand.uniform(1000),
+       race_events_detected: :rand.uniform(3),
+       timing_variance: :rand.uniform() * 0.1
+     }}
   end
 
   defp analyze_execution_variance(samples) when samples == [] do
@@ -288,16 +296,17 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
   end
 
   defp analyze_execution_variance(samples) do
-    execution_times = Enum.map(samples, fn sample ->
-      Map.get(sample, :execution_time, 0)
-    end)
-    
+    execution_times =
+      Enum.map(samples, fn sample ->
+        Map.get(sample, :execution_time, 0)
+      end)
+
     variance = calculate_variance(execution_times)
     mean_time = Enum.sum(execution_times) / length(execution_times)
-    
+
     # High variance might indicate race conditions
     coefficient_of_variation = if mean_time > 0, do: :math.sqrt(variance) / mean_time, else: 0.0
-    
+
     %{
       race_indicators: if(coefficient_of_variation > 0.3, do: 1, else: 0),
       timing_variance: variance,
@@ -308,29 +317,41 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
   end
 
   defp calculate_variance(values) when length(values) < 2, do: 0.0
+
   defp calculate_variance(values) do
     mean = Enum.sum(values) / length(values)
-    variance_sum = values
-    |> Enum.reduce(0, fn value, acc -> acc + :math.pow(value - mean, 2) end)
-    
+
+    variance_sum =
+      values
+      |> Enum.reduce(0, fn value, acc -> acc + :math.pow(value - mean, 2) end)
+
     variance_sum / (length(values) - 1)
   end
 
-  defp determine_confidence_level(sample_count, variance) when sample_count >= 10 and variance < 0.2, do: :high
-  defp determine_confidence_level(sample_count, variance) when sample_count >= 5 and variance < 0.4, do: :medium
+  defp determine_confidence_level(sample_count, variance)
+       when sample_count >= 10 and variance < 0.2,
+       do: :high
+
+  defp determine_confidence_level(sample_count, variance)
+       when sample_count >= 5 and variance < 0.4,
+       do: :medium
+
   defp determine_confidence_level(_, _), do: :low
 
   defp analyze_ets_race_patterns(code) do
     %{
       concurrent_inserts: count_pattern(code, ":ets.insert") > 1,
-      read_write_cycles: count_pattern(code, ":ets.lookup") > 0 and count_pattern(code, ":ets.insert") > 0,
-      missing_concurrency_type: String.contains?(code, ":ets.new") and not String.contains?(code, "read_concurrency")
+      read_write_cycles:
+        count_pattern(code, ":ets.lookup") > 0 and count_pattern(code, ":ets.insert") > 0,
+      missing_concurrency_type:
+        String.contains?(code, ":ets.new") and not String.contains?(code, "read_concurrency")
     }
   end
 
   defp analyze_genserver_race_patterns(code) do
     %{
-      cast_call_mixing: String.contains?(code, "GenServer.cast") and String.contains?(code, "GenServer.call"),
+      cast_call_mixing:
+        String.contains?(code, "GenServer.cast") and String.contains?(code, "GenServer.call"),
       state_dependencies: analyze_state_dependency_patterns(code),
       concurrent_state_updates: count_pattern(code, "handle_cast") > 1
     }
@@ -351,8 +372,8 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp analyze_message_ordering_dependencies(code) do
     # Check for patterns that depend on message order
-    String.contains?(code, "receive") and 
-    (String.contains?(code, "after ") or String.contains?(code, "timeout"))
+    String.contains?(code, "receive") and
+      (String.contains?(code, "after ") or String.contains?(code, "timeout"))
   end
 
   defp has_unordered_message_processing?(code) do
@@ -361,8 +382,10 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp analyze_shared_state_patterns(code) do
     %{
-      global_state: String.contains?(code, ":persistent_term") or String.contains?(code, "Application."),
-      process_dictionary: String.contains?(code, "Process.put") or String.contains?(code, "Process.get"),
+      global_state:
+        String.contains?(code, ":persistent_term") or String.contains?(code, "Application."),
+      process_dictionary:
+        String.contains?(code, "Process.put") or String.contains?(code, "Process.get"),
       shared_ets: String.contains?(code, ":ets.new") and String.contains?(code, "public"),
       agent_sharing: count_pattern(code, "Agent.") > 1
     }
@@ -370,11 +393,13 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp combine_pattern_and_runtime_analysis(pattern_analysis, execution_result) do
     pattern_issues = count_pattern_issues(pattern_analysis)
-    runtime_issues = case execution_result do
-      {:ok, result} -> Map.get(result, :race_events_detected, 0)
-      {:error, _} -> 1
-    end
-    
+
+    runtime_issues =
+      case execution_result do
+        {:ok, result} -> Map.get(result, :race_events_detected, 0)
+        {:error, _} -> 1
+      end
+
     %{
       pattern_issues: pattern_issues,
       runtime_issues: runtime_issues,
@@ -386,24 +411,27 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
   defp count_pattern_issues(pattern_analysis) do
     pattern_analysis
     |> Enum.reduce(0, fn {_category, patterns}, acc ->
-        category_issues = patterns
+      category_issues =
+        patterns
         |> Enum.count(fn {_pattern, detected} -> detected end)
-        
-        acc + category_issues
+
+      acc + category_issues
     end)
   end
 
   defp combine_all_analyses(analyses) do
-    total_races = analyses
-    |> Enum.reduce(0, fn analysis, acc ->
+    total_races =
+      analyses
+      |> Enum.reduce(0, fn analysis, acc ->
         acc + Map.get(analysis, :race_conditions_detected, 0)
-    end)
-    
-    total_issues = analyses
-    |> Enum.reduce(0, fn analysis, acc ->
+      end)
+
+    total_issues =
+      analyses
+      |> Enum.reduce(0, fn analysis, acc ->
         acc + Map.get(analysis, :issues_detected, 0)
-    end)
-    
+      end)
+
     %{
       total_races: total_races,
       total_issues: total_issues,
@@ -413,34 +441,34 @@ defmodule SweBench.ConcurrentEvaluation.RaceDetector do
 
   defp calculate_basic_race_score(patterns) do
     issue_count = Map.get(patterns, :issue_count, 0)
-    max(0.0, 100.0 - (issue_count * 25.0))
+    max(0.0, 100.0 - issue_count * 25.0)
   end
 
   defp calculate_statistical_race_score(analysis) do
     variance = Map.get(analysis, :coefficient_of_variation, 0.0)
     issue_count = Map.get(analysis, :issue_count, 0)
-    
-    base_score = max(0.0, 100.0 - (issue_count * 30.0))
+
+    base_score = max(0.0, 100.0 - issue_count * 30.0)
     variance_penalty = min(20.0, variance * 50.0)
-    
+
     max(0.0, base_score - variance_penalty)
   end
 
   defp calculate_pattern_race_score(analysis) do
     issue_count = Map.get(analysis, :issue_count, 0)
     runtime_issues = Map.get(analysis, :runtime_issues, 0)
-    
-    max(0.0, 100.0 - (issue_count * 15.0) - (runtime_issues * 25.0))
+
+    max(0.0, 100.0 - issue_count * 15.0 - runtime_issues * 25.0)
   end
 
   defp calculate_comprehensive_race_score(analysis) do
     total_issues = Map.get(analysis, :total_issues, 0)
     analysis_count = Map.get(analysis, :analysis_count, 1)
-    
+
     # Average penalty across all analysis types
     penalty_per_issue = 100.0 / max(1, analysis_count) * 0.2
-    
-    max(0.0, 100.0 - (total_issues * penalty_per_issue))
+
+    max(0.0, 100.0 - total_issues * penalty_per_issue)
   end
 
   defp initialize_race_statistics do

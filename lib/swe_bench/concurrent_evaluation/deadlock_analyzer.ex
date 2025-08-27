@@ -51,10 +51,10 @@ defmodule SweBench.ConcurrentEvaluation.DeadlockAnalyzer do
 
   defp perform_deadlock_analysis(solution_data, _monitoring_tier, _state) do
     solution_code = Map.get(solution_data, :solution_code, "")
-    
+
     # Basic deadlock pattern analysis
     deadlock_indicators = analyze_deadlock_patterns(solution_code)
-    
+
     %{
       circular_dependencies: deadlock_indicators.circular_deps,
       blocked_processes: deadlock_indicators.blocked_chains,
@@ -73,15 +73,17 @@ defmodule SweBench.ConcurrentEvaluation.DeadlockAnalyzer do
       infinite_receives: analyze_infinite_receives(code),
       timeout_problems: analyze_timeout_issues(code),
       resource_issues: analyze_resource_starvation(code),
-      total_issues: 0  # Will be calculated based on above
+      # Will be calculated based on above
+      total_issues: 0
     }
   end
 
   defp analyze_circular_dependencies(code) do
     # Look for patterns that might cause circular dependencies
-    has_nested_calls = String.contains?(code, "GenServer.call") and 
-                      String.contains?(code, "handle_call")
-    
+    has_nested_calls =
+      String.contains?(code, "GenServer.call") and
+        String.contains?(code, "handle_call")
+
     if has_nested_calls, do: 1, else: 0
   end
 
@@ -92,7 +94,7 @@ defmodule SweBench.ConcurrentEvaluation.DeadlockAnalyzer do
       String.contains?(code, "Task.await") and not String.contains?(code, "Task.await("),
       String.contains?(code, "receive") and not String.contains?(code, "after")
     ]
-    
+
     Enum.count(blocking_patterns, & &1)
   end
 
@@ -111,7 +113,7 @@ defmodule SweBench.ConcurrentEvaluation.DeadlockAnalyzer do
       String.contains?(code, "GenServer.call(") and not String.contains?(code, ", :infinity)"),
       String.contains?(code, "Task.await") and not String.contains?(code, "Task.await(")
     ]
-    
+
     Enum.count(timeout_risks, & &1)
   end
 
@@ -121,15 +123,16 @@ defmodule SweBench.ConcurrentEvaluation.DeadlockAnalyzer do
       String.contains?(code, "spawn") and not String.contains?(code, "spawn_link"),
       String.contains?(code, ":ets.new") and not String.contains?(code, ":ets.delete")
     ]
-    
+
     Enum.count(starvation_patterns, & &1)
   end
 
   defp calculate_deadlock_score(indicators) do
-    total_issues = indicators.circular_deps + indicators.blocked_chains + 
-                  indicators.infinite_receives + indicators.timeout_problems + 
-                  indicators.resource_issues
-    
-    max(0.0, 100.0 - (total_issues * 20.0))
+    total_issues =
+      indicators.circular_deps + indicators.blocked_chains +
+        indicators.infinite_receives + indicators.timeout_problems +
+        indicators.resource_issues
+
+    max(0.0, 100.0 - total_issues * 20.0)
   end
 end

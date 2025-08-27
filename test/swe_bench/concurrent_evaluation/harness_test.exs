@@ -19,10 +19,10 @@ defmodule SweBench.ConcurrentEvaluation.HarnessTest do
   describe "get_evaluation_metrics/0" do
     test "returns evaluation metrics when available" do
       start_supervised(Harness)
-      
+
       # Give process time to start
       Process.sleep(100)
-      
+
       metrics = Harness.get_evaluation_metrics()
       assert is_map(metrics)
       assert Map.has_key?(metrics, :total_evaluations)
@@ -34,10 +34,10 @@ defmodule SweBench.ConcurrentEvaluation.HarnessTest do
   describe "evaluate_concurrent_system/2" do
     test "handles basic concurrent evaluation" do
       start_supervised(Harness)
-      
+
       # Give processes time to start
       Process.sleep(100)
-      
+
       solution_data = %{
         solution_code: """
         defmodule TestModule do
@@ -46,16 +46,16 @@ defmodule SweBench.ConcurrentEvaluation.HarnessTest do
         """,
         compilation_successful: true
       }
-      
+
       # This should work without actual concurrent patterns
-      result = Harness.evaluate_concurrent_system(solution_data, [monitoring_tier: :light])
-      
+      result = Harness.evaluate_concurrent_system(solution_data, monitoring_tier: :light)
+
       # Should succeed even if no concurrent patterns detected
       case result do
         {:ok, analysis} ->
           assert is_map(analysis)
           assert Map.has_key?(analysis, :overall_score)
-          
+
         {:error, reason} ->
           # Acceptable if dependencies aren't fully mocked
           assert reason != nil

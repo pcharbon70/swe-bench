@@ -11,7 +11,7 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
   @light_monitoring %{
     process_sampling_rate: 0.1,
     metrics_interval: 5000,
-    deadlock_check_interval: 10000,
+    deadlock_check_interval: 10_000,
     race_detection: :statistical,
     fault_injection: false
   }
@@ -39,22 +39,23 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
     # Extract concurrency indicators from solution data
     concurrency_score = analyze_concurrency_complexity(solution_data)
     user_preference = Keyword.get(options, :monitoring_tier)
-    
+
     # Determine tier based on analysis and user preference
-    tier = case {concurrency_score, user_preference} do
-      {_, tier} when tier in [:light, :standard, :intensive] ->
-        tier
-      
-      {score, _} when score >= 80 ->
-        :intensive
-      
-      {score, _} when score >= 40 ->
-        :standard
-      
-      _ ->
-        :light
-    end
-    
+    tier =
+      case {concurrency_score, user_preference} do
+        {_, tier} when tier in [:light, :standard, :intensive] ->
+          tier
+
+        {score, _} when score >= 80 ->
+          :intensive
+
+        {score, _} when score >= 40 ->
+          :standard
+
+        _ ->
+          :light
+      end
+
     Logger.debug("Determined monitoring tier: #{tier} (complexity score: #{concurrency_score})")
     tier
   end
@@ -72,7 +73,7 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
   """
   def requires_concurrent_evaluation?(solution_data) do
     solution_code = Map.get(solution_data, :solution_code, "")
-    
+
     concurrency_indicators = [
       has_process_spawning?(solution_code),
       has_genserver_usage?(solution_code),
@@ -81,7 +82,7 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       has_supervision_trees?(solution_code),
       has_concurrent_libraries?(solution_code)
     ]
-    
+
     concurrent_indicator_count = Enum.count(concurrency_indicators, & &1)
     concurrent_indicator_count > 0
   end
@@ -90,7 +91,7 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
 
   defp analyze_concurrency_complexity(solution_data) do
     solution_code = Map.get(solution_data, :solution_code, "")
-    
+
     complexity_factors = %{
       process_spawning: score_process_spawning(solution_code),
       genserver_usage: score_genserver_usage(solution_code),
@@ -100,7 +101,7 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       concurrent_libraries: score_concurrent_libraries(solution_code),
       async_operations: score_async_operations(solution_code)
     }
-    
+
     # Calculate weighted complexity score
     weights = %{
       process_spawning: 0.20,
@@ -111,20 +112,21 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       concurrent_libraries: 0.05,
       async_operations: 0.05
     }
-    
-    weighted_score = complexity_factors
-    |> Enum.reduce(0.0, fn {factor, score}, acc ->
+
+    weighted_score =
+      complexity_factors
+      |> Enum.reduce(0.0, fn {factor, score}, acc ->
         weight = Map.get(weights, factor, 0.0)
-        acc + (score * weight)
-    end)
-    
+        acc + score * weight
+      end)
+
     min(100.0, weighted_score)
   end
 
   defp has_process_spawning?(code) do
-    String.contains?(code, "spawn") or 
-    String.contains?(code, "Task.") or
-    String.contains?(code, "Agent.")
+    String.contains?(code, "spawn") or
+      String.contains?(code, "Task.") or
+      String.contains?(code, "Agent.")
   end
 
   defp score_process_spawning(code) do
@@ -136,19 +138,19 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       {"Agent.start", 20},
       {"GenServer.start", 15}
     ]
-    
+
     spawn_patterns
     |> Enum.reduce(0, fn {pattern, score}, acc ->
-        if String.contains?(code, pattern), do: acc + score, else: acc
+      if String.contains?(code, pattern), do: acc + score, else: acc
     end)
     |> min(100)
   end
 
   defp has_genserver_usage?(code) do
     String.contains?(code, "GenServer") or
-    String.contains?(code, "use GenServer") or
-    String.contains?(code, "GenServer.call") or
-    String.contains?(code, "GenServer.cast")
+      String.contains?(code, "use GenServer") or
+      String.contains?(code, "GenServer.call") or
+      String.contains?(code, "GenServer.cast")
   end
 
   defp score_genserver_usage(code) do
@@ -160,10 +162,10 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       {"handle_cast", 20},
       {"handle_info", 15}
     ]
-    
+
     genserver_patterns
     |> Enum.reduce(0, fn {pattern, score}, acc ->
-        if String.contains?(code, pattern), do: acc + score, else: acc
+      if String.contains?(code, pattern), do: acc + score, else: acc
     end)
     |> min(100)
   end
@@ -180,18 +182,18 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       {":ets.delete", 20},
       {":ets.select", 25}
     ]
-    
+
     ets_patterns
     |> Enum.reduce(0, fn {pattern, score}, acc ->
-        if String.contains?(code, pattern), do: acc + score, else: acc
+      if String.contains?(code, pattern), do: acc + score, else: acc
     end)
     |> min(100)
   end
 
   defp has_message_passing?(code) do
     String.contains?(code, "send") or
-    String.contains?(code, "receive") or
-    String.contains?(code, "!")
+      String.contains?(code, "receive") or
+      String.contains?(code, "!")
   end
 
   defp score_message_passing(code) do
@@ -201,17 +203,17 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       {" ! ", 20},
       {"after ", 15}
     ]
-    
+
     message_patterns
     |> Enum.reduce(0, fn {pattern, score}, acc ->
-        if String.contains?(code, pattern), do: acc + score, else: acc
+      if String.contains?(code, pattern), do: acc + score, else: acc
     end)
     |> min(100)
   end
 
   defp has_supervision_trees?(code) do
     String.contains?(code, "Supervisor") or
-    String.contains?(code, "DynamicSupervisor")
+      String.contains?(code, "DynamicSupervisor")
   end
 
   defp score_supervision_trees(code) do
@@ -222,18 +224,18 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       {"child_spec", 20},
       {"restart:", 15}
     ]
-    
+
     supervision_patterns
     |> Enum.reduce(0, fn {pattern, score}, acc ->
-        if String.contains?(code, pattern), do: acc + score, else: acc
+      if String.contains?(code, pattern), do: acc + score, else: acc
     end)
     |> min(100)
   end
 
   defp has_concurrent_libraries?(code) do
     String.contains?(code, "Registry") or
-    String.contains?(code, "DynamicSupervisor") or
-    String.contains?(code, "Task.Supervisor")
+      String.contains?(code, "DynamicSupervisor") or
+      String.contains?(code, "Task.Supervisor")
   end
 
   defp score_concurrent_libraries(code) do
@@ -243,10 +245,10 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       {"DynamicSupervisor", 35},
       {"ConCache", 20}
     ]
-    
+
     library_patterns
     |> Enum.reduce(0, fn {pattern, score}, acc ->
-        if String.contains?(code, pattern), do: acc + score, else: acc
+      if String.contains?(code, pattern), do: acc + score, else: acc
     end)
     |> min(100)
   end
@@ -257,10 +259,10 @@ defmodule SweBench.ConcurrentEvaluation.DecisionEngine do
       {"await", 15},
       {"stream", 10}
     ]
-    
+
     async_patterns
     |> Enum.reduce(0, fn {pattern, score}, acc ->
-        if String.contains?(code, pattern), do: acc + score, else: acc
+      if String.contains?(code, pattern), do: acc + score, else: acc
     end)
     |> min(100)
   end
