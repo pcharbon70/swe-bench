@@ -1,6 +1,6 @@
-# Phase 5: Production Deployment & API
+# Phase 5: Production Deployment & Real-Time Interface
 
-This phase transforms SWE-bench-Elixir from a development framework into a production-ready service accessible to researchers and developers worldwide. The deployment includes a comprehensive web interface for result visualization, RESTful and GraphQL APIs for programmatic access, and robust infrastructure for handling concurrent evaluations at scale. Authentication, rate limiting, and monitoring ensure reliable service delivery while maintaining security and performance. By the end of this phase, the system will be ready for public use with documentation, SDKs, and integration examples enabling seamless adoption by the AI and Elixir communities.
+This phase transforms SWE-bench-Elixir from a development framework into a production-ready service accessible to researchers and developers worldwide. The deployment includes a comprehensive Phoenix LiveView web interface for result visualization, real-time event streaming for instant data flow, and robust infrastructure for handling concurrent evaluations at scale. Authentication, rate limiting, and monitoring ensure reliable service delivery while maintaining security and performance. By the end of this phase, the system will be ready for public use with comprehensive LiveView documentation and real-time interaction patterns enabling seamless adoption by the AI and Elixir communities.
 
 ## 5.1 Web Interface Development
 This section creates the Phoenix LiveView-based web interface that provides intuitive access to benchmarking capabilities, result visualization, and dataset exploration. The interface offers real-time evaluation monitoring, interactive result comparison, and detailed analytics dashboards. Special attention is given to user experience, accessibility, and responsive design for various device types.
@@ -45,90 +45,91 @@ This section creates the Phoenix LiveView-based web interface that provides intu
 
 **Implementation Status:** Not started - Phoenix LiveView web interface with evaluation submission, real-time progress tracking, result visualization dashboard, and dataset explorer. Features responsive design with Tailwind CSS, comprehensive analytics dashboards, searchable task instance browser, and accessibility compliance.
 
-## 5.2 REST API Implementation
-This section develops the comprehensive REST API that enables programmatic access to evaluation services, dataset retrieval, and result management. The API follows RESTful principles with proper resource modeling, HATEOAS compliance, and versioning support. OpenAPI documentation ensures clear API contracts and enables client SDK generation.
+## 5.2 Real-Time Event Streaming
+This section develops the comprehensive Phoenix.PubSub-based event streaming system that enables real-time information flow for evaluation services, dataset updates, and result distribution. The event streaming architecture provides instant updates through WebSocket connections, eliminating the need for polling and enabling responsive user experiences. All system information flows through dedicated PubSub channels with proper event sourcing and replay capabilities.
 
 ### Tasks:
-- [ ] 5.2.1 Design API architecture
-  - [ ] 5.2.1.1 Define resource models and relationships
-  - [ ] 5.2.1.2 Establish URL structure and naming
-  - [ ] 5.2.1.3 Plan API versioning strategy
-  - [ ] 5.2.1.4 Design pagination approach
-  - [ ] 5.2.1.5 Specify error response formats
+- [ ] 5.2.1 Design event streaming architecture
+  - [ ] 5.2.1.1 Define PubSub channel structure and naming
+  - [ ] 5.2.1.2 Establish event types and payload formats
+  - [ ] 5.2.1.3 Plan event ordering and replay strategies
+  - [ ] 5.2.1.4 Design channel subscription management
+  - [ ] 5.2.1.5 Specify event filtering and routing
 
-- [ ] 5.2.2 Implement evaluation endpoints
-  - [ ] 5.2.2.1 POST /evaluations - Submit evaluation
-  - [ ] 5.2.2.2 GET /evaluations/:id - Check status
-  - [ ] 5.2.2.3 GET /evaluations/:id/results - Retrieve results
-  - [ ] 5.2.2.4 DELETE /evaluations/:id - Cancel evaluation
-  - [ ] 5.2.2.5 GET /evaluations - List user evaluations
+- [ ] 5.2.2 Implement evaluation event streams
+  - [ ] 5.2.2.1 Stream evaluation submission events
+  - [ ] 5.2.2.2 Broadcast real-time progress updates
+  - [ ] 5.2.2.3 Stream live test execution results
+  - [ ] 5.2.2.4 Publish evaluation completion events
+  - [ ] 5.2.2.5 Stream error and cancellation events
 
-- [ ] 5.2.3 Build dataset access endpoints
-  - [ ] 5.2.3.1 GET /tasks - List task instances
-  - [ ] 5.2.3.2 GET /tasks/:id - Get task details
-  - [ ] 5.2.3.3 GET /repositories - List repositories
-  - [ ] 5.2.3.4 GET /datasets/:version - Download dataset
-  - [ ] 5.2.3.5 POST /datasets/filter - Create subset
+- [ ] 5.2.3 Build dataset event channels
+  - [ ] 5.2.3.1 Stream task instance updates
+  - [ ] 5.2.3.2 Broadcast repository status changes
+  - [ ] 5.2.3.3 Publish dataset version releases
+  - [ ] 5.2.3.4 Stream validation result updates
+  - [ ] 5.2.3.5 Broadcast system health events
 
-- [ ] 5.2.4 Create OpenAPI documentation
-  - [ ] 5.2.4.1 Generate OpenAPI 3.0 specification
-  - [ ] 5.2.4.2 Document all endpoints and parameters
-  - [ ] 5.2.4.3 Include example requests/responses
-  - [ ] 5.2.4.4 Add authentication documentation
-  - [ ] 5.2.4.5 Generate interactive API explorer
+- [ ] 5.2.4 Create WebSocket coordination
+  - [ ] 5.2.4.1 Implement WebSocket connection management
+  - [ ] 5.2.4.2 Add channel authentication and authorization
+  - [ ] 5.2.4.3 Build subscription lifecycle management
+  - [ ] 5.2.4.4 Implement connection recovery and reconnection
+  - [ ] 5.2.4.5 Add bandwidth optimization and compression
 
 ### Unit Tests:
-- [ ] 5.2.5 Test endpoint routing and parameters
-- [ ] 5.2.6 Test request validation and sanitization
-- [ ] 5.2.7 Test response serialization
-- [ ] 5.2.8 Test pagination and filtering
-- [ ] 5.2.9 Test error handling and status codes
-- [ ] 5.2.10 Test API versioning
-- [ ] 5.2.11 Test OpenAPI spec validity
+- [ ] 5.2.5 Test PubSub channel broadcasting
+- [ ] 5.2.6 Test event serialization and delivery
+- [ ] 5.2.7 Test WebSocket connection stability
+- [ ] 5.2.8 Test channel authentication
+- [ ] 5.2.9 Test event ordering and replay
+- [ ] 5.2.10 Test connection recovery mechanisms
+- [ ] 5.2.11 Test real-time performance under load
 
-**Implementation Status:** Not started - REST API implementation with comprehensive evaluation, dataset, repository, and statistics endpoints. Features RESTful resource modeling, advanced pagination and filtering, standardized error handling, and proper HTTP status codes. Enables full programmatic access to evaluation services and dataset management.
+**Implementation Status:** Not started - Phoenix.PubSub-based real-time event streaming with comprehensive evaluation lifecycle broadcasting, dataset update streaming, and WebSocket-based bidirectional communication. Features event sourcing, replay capabilities, connection recovery, and optimized real-time performance for responsive user experiences.
 
-## 5.3 GraphQL API Development
-
-This section implements a GraphQL API alongside REST, providing flexible query capabilities for complex data relationships. The GraphQL layer enables efficient data fetching with precise field selection, reducing over-fetching and enabling sophisticated client applications. Absinthe powers the implementation with subscription support for real-time updates.
+## 5.3 LiveView Component System
+This section implements a comprehensive LiveView component architecture that provides rich, interactive user interfaces with real-time data binding and updates. The component system enables modular UI development with reusable evaluation interfaces, result visualization components, and dataset exploration tools. All user interactions flow through LiveView events with instant server-side processing and real-time UI updates.
 
 ### Tasks:
-- [ ] 5.3.1 Configure Absinthe GraphQL
-  - [ ] 5.3.1.1 Set up Absinthe and Phoenix integration
-  - [ ] 5.3.1.2 Define GraphQL schema structure
-  - [ ] 5.3.1.3 Configure GraphQL playground
-  - [ ] 5.3.1.4 Implement DataLoader for N+1 prevention
-  - [ ] 5.3.1.5 Set up subscription infrastructure
+- [ ] 5.3.1 Build core LiveView infrastructure  
+  - [ ] 5.3.1.1 Create base LiveView layout and navigation
+  - [ ] 5.3.1.2 Implement component composition patterns
+  - [ ] 5.3.1.3 Configure real-time event handling
+  - [ ] 5.3.1.4 Add component state management
+  - [ ] 5.3.1.5 Build component communication patterns
 
-- [ ] 5.3.2 Implement schema types
-  - [ ] 5.3.2.1 Define Evaluation type and fields
-  - [ ] 5.3.2.2 Create Task and Repository types
-  - [ ] 5.3.2.3 Model Result and Score types
-  - [ ] 5.3.2.4 Add User and Authentication types
-  - [ ] 5.3.2.5 Include Metrics and Statistics types
+- [ ] 5.3.2 Implement evaluation interface components
+  - [ ] 5.3.2.1 Create evaluation submission form component
+  - [ ] 5.3.2.2 Build real-time progress tracker component
+  - [ ] 5.3.2.3 Implement live log streaming component
+  - [ ] 5.3.2.4 Add test execution results display component
+  - [ ] 5.3.2.5 Create result download interface component
 
-- [ ] 5.3.3 Build queries and mutations
-  - [ ] 5.3.3.1 Implement evaluation queries
-  - [ ] 5.3.3.2 Create submitEvaluation mutation
-  - [ ] 5.3.3.3 Add dataset query capabilities
-  - [ ] 5.3.3.4 Build user preference mutations
-  - [ ] 5.3.3.5 Implement batch operations
+- [ ] 5.3.3 Build visualization dashboard components
+  - [ ] 5.3.3.1 Create interactive score distribution charts
+  - [ ] 5.3.3.2 Implement repository performance matrix views
+  - [ ] 5.3.3.3 Build pattern matching analysis displays
+  - [ ] 5.3.3.4 Add OTP compliance metric visualizations
+  - [ ] 5.3.3.5 Create comparative analytics dashboard
 
-- [ ] 5.3.4 Create subscriptions
-  - [ ] 5.3.4.1 Add evaluation progress subscription
-  - [ ] 5.3.4.2 Implement result notification subscription
-  - [ ] 5.3.4.3 Create dataset update subscription
-  - [ ] 5.3.4.4 Build leaderboard change subscription
-  - [ ] 5.3.4.5 Add system status subscription
+- [ ] 5.3.4 Create dataset exploration components
+  - [ ] 5.3.4.1 Build real-time searchable task browser
+  - [ ] 5.3.4.2 Implement dynamic filtering and sorting
+  - [ ] 5.3.4.3 Create task detail view components  
+  - [ ] 5.3.4.4 Add validation history timeline
+  - [ ] 5.3.4.5 Build interactive dataset subset creator
 
 ### Unit Tests:
-- [ ] 5.3.5 Test GraphQL schema compilation
-- [ ] 5.3.6 Test query resolution and performance
-- [ ] 5.3.7 Test mutation execution
-- [ ] 5.3.8 Test subscription delivery
-- [ ] 5.3.9 Test DataLoader batching
-- [ ] 5.3.10 Test error handling
-- [ ] 5.3.11 Test authorization rules
+- [ ] 5.3.5 Test LiveView component rendering
+- [ ] 5.3.6 Test real-time event handling
+- [ ] 5.3.7 Test component state synchronization
+- [ ] 5.3.8 Test interactive user actions
+- [ ] 5.3.9 Test data binding and updates
+- [ ] 5.3.10 Test component communication
+- [ ] 5.3.11 Test performance under concurrent users
+
+**Implementation Status:** Not started - LiveView component system with modular evaluation interfaces, real-time data binding, interactive result visualization, and comprehensive dataset exploration. Features component-based architecture, instant server-side processing, WebSocket-based real-time updates, and responsive user experience without traditional API dependencies.
 
 ## 5.4 Authentication & Authorization System
 
@@ -142,12 +143,12 @@ This section implements comprehensive security infrastructure including user aut
   - [ ] 5.4.1.4 Add two-factor authentication
   - [ ] 5.4.1.5 Create session management
 
-- [ ] 5.4.2 Build API key system
-  - [ ] 5.4.2.1 Generate and store API keys
-  - [ ] 5.4.2.2 Implement key rotation mechanism
-  - [ ] 5.4.2.3 Add usage tracking per key
-  - [ ] 5.4.2.4 Create key permission scopes
-  - [ ] 5.4.2.5 Build key management interface
+- [ ] 5.4.2 Build session management system
+  - [ ] 5.4.2.1 Implement secure session storage
+  - [ ] 5.4.2.2 Add session timeout and renewal
+  - [ ] 5.4.2.3 Create user session tracking
+  - [ ] 5.4.2.4 Build session analytics and monitoring
+  - [ ] 5.4.2.5 Implement session management interface
 
 - [ ] 5.4.3 Create authorization framework
   - [ ] 5.4.3.1 Define user roles and permissions
@@ -156,19 +157,19 @@ This section implements comprehensive security infrastructure including user aut
   - [ ] 5.4.3.4 Create permission inheritance
   - [ ] 5.4.3.5 Build audit logging
 
-- [ ] 5.4.4 Implement rate limiting
-  - [ ] 5.4.4.1 Configure Hammer rate limiter
-  - [ ] 5.4.4.2 Set tier-based rate limits
-  - [ ] 5.4.4.3 Implement sliding window algorithm
-  - [ ] 5.4.4.4 Add rate limit headers
-  - [ ] 5.4.4.5 Create quota management system
+- [ ] 5.4.4 Implement usage limiting
+  - [ ] 5.4.4.1 Configure user evaluation limits
+  - [ ] 5.4.4.2 Set tier-based usage quotas
+  - [ ] 5.4.4.3 Implement sliding window evaluation tracking
+  - [ ] 5.4.4.4 Add real-time usage indicators
+  - [ ] 5.4.4.5 Create quota management interface
 
 ### Unit Tests:
 - [ ] 5.4.5 Test authentication flows
-- [ ] 5.4.6 Test API key validation
+- [ ] 5.4.6 Test session management and security
 - [ ] 5.4.7 Test authorization rules
-- [ ] 5.4.8 Test rate limiting accuracy
-- [ ] 5.4.9 Test session management
+- [ ] 5.4.8 Test usage limiting accuracy
+- [ ] 5.4.9 Test LiveView authentication integration
 - [ ] 5.4.10 Test OAuth integration
 - [ ] 5.4.11 Test audit logging
 
@@ -264,10 +265,10 @@ This section implements comprehensive monitoring, logging, and tracing infrastru
   - [ ] Verify real-time updates work correctly
   - [ ] Validate visualization accuracy
 
-- [ ] 5.7.2 API integration testing
-  - [ ] Test REST API end-to-end workflows
-  - [ ] Verify GraphQL query performance
-  - [ ] Validate API authentication flows
+- [ ] 5.7.2 Real-time integration testing
+  - [ ] Test LiveView real-time event flows
+  - [ ] Verify PubSub channel performance and delivery
+  - [ ] Validate WebSocket connection stability
 
 - [ ] 5.7.3 Security testing suite
   - [ ] Test authentication mechanisms
@@ -376,24 +377,24 @@ This section implements the production infrastructure optimizations that leverag
 - Community engagement
 
 **Key Outputs:**
-- Production web interface
-- REST and GraphQL APIs
+- Production web interface with LiveView components
+- Real-time event streaming infrastructure  
 - Authentication and authorization system
 - Kubernetes deployment configuration
 - CI/CD pipeline
 - Monitoring and alerting infrastructure
-- API documentation and SDKs
+- LiveView component documentation and guides
 - Production-ready service
 
 **Success Criteria:**
-- Web interface responsive and accessible
-- APIs handle 1000+ requests/minute
+- Web interface responsive and accessible with real-time updates
+- WebSocket connections handle 1000+ concurrent users
 - 99.9% uptime SLA achieved
-- Response time < 500ms p95
+- LiveView response time < 500ms p95
 - Zero security vulnerabilities
 - Comprehensive monitoring coverage
 - Automated deployment pipeline
-- Full API documentation published
+- Complete LiveView component documentation published
 - Production throughput ≥ 1000 tasks/hour
 - Container pool utilization > 75%
 - Auto-scaling responding within 30 seconds
