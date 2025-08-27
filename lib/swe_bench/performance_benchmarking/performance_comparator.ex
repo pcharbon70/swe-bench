@@ -23,7 +23,10 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
   Compares performance between original and generated implementations.
   """
   def compare_implementations(original_impl, generated_impl, comparison_spec) do
-    GenServer.call(__MODULE__, {:compare_implementations, original_impl, generated_impl, comparison_spec})
+    GenServer.call(
+      __MODULE__,
+      {:compare_implementations, original_impl, generated_impl, comparison_spec}
+    )
   end
 
   @doc """
@@ -58,7 +61,11 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
   end
 
   @impl true
-  def handle_call({:compare_implementations, original_impl, generated_impl, comparison_spec}, _from, state) do
+  def handle_call(
+        {:compare_implementations, original_impl, generated_impl, comparison_spec},
+        _from,
+        state
+      ) do
     comparison_id = generate_comparison_id()
     Logger.debug("Comparing implementations #{comparison_id}")
 
@@ -129,15 +136,20 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
     end
   end
 
-  defp benchmark_generated_implementation({:ok, {original_impl, original_label, original_results}}, generated_impl, comparison_spec) do
+  defp benchmark_generated_implementation(
+         {:ok, {original_impl, original_label, original_results}},
+         generated_impl,
+         comparison_spec
+       ) do
     Logger.debug("Benchmarking generated implementation")
 
     case benchmark_implementation(generated_impl, "generated", comparison_spec) do
       {:ok, {_gen_impl, gen_label, gen_results}} ->
-        {:ok, {
-          {original_impl, original_label, original_results},
-          {generated_impl, gen_label, gen_results}
-        }}
+        {:ok,
+         {
+           {original_impl, original_label, original_results},
+           {generated_impl, gen_label, gen_results}
+         }}
 
       {:error, reason} ->
         {:error, reason}
@@ -148,7 +160,9 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
     {:error, reason}
   end
 
-  defp calculate_performance_delta({:ok, {{_orig_impl, _orig_label, orig_results}, {_gen_impl, _gen_label, gen_results}}}) do
+  defp calculate_performance_delta(
+         {:ok, {{_orig_impl, _orig_label, orig_results}, {_gen_impl, _gen_label, gen_results}}}
+       ) do
     Logger.debug("Calculating performance delta")
 
     # Extract key performance metrics
@@ -177,7 +191,8 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
       execution_time_significant: abs(performance_delta.execution_time_ratio - 1.0) > 0.1,
       memory_significant: abs(performance_delta.memory_ratio - 1.0) > 0.1,
       confidence_level: calculate_confidence_level(orig_metrics, gen_metrics),
-      statistical_power: 0.80  # Placeholder for power analysis
+      # Placeholder for power analysis
+      statistical_power: 0.80
     }
 
     {:ok, {orig_metrics, gen_metrics, performance_delta, significance_assessment}}
@@ -187,7 +202,9 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
     {:error, reason}
   end
 
-  defp compile_comparison_result({:ok, {orig_metrics, gen_metrics, performance_delta, significance_assessment}}) do
+  defp compile_comparison_result(
+         {:ok, {orig_metrics, gen_metrics, performance_delta, significance_assessment}}
+       ) do
     comparison_result = %{
       original_performance: orig_metrics,
       generated_performance: gen_metrics,
@@ -205,13 +222,11 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
   end
 
   defp run_benchee_benchmark(benchmark_functions, config) do
-    try do
-      results = Benchee.run(benchmark_functions, config)
-      {:ok, results}
-    rescue
-      error ->
-        {:error, error}
-    end
+    results = Benchee.run(benchmark_functions, config)
+    {:ok, results}
+  rescue
+    error ->
+      {:error, error}
   end
 
   defp extract_key_metrics(benchee_results) do
@@ -244,7 +259,8 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
   end
 
   defp generate_comparison_summary(performance_delta, significance_assessment) do
-    case {performance_delta.performance_change, significance_assessment.execution_time_significant} do
+    case {performance_delta.performance_change,
+          significance_assessment.execution_time_significant} do
       {:significant_improvement, true} ->
         "Generated implementation shows significant performance improvement"
 
@@ -278,10 +294,11 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
   defp execute_baseline_benchmark(implementation, baseline_spec) do
     # Execute baseline benchmark for implementation
     # Placeholder for baseline execution
-    {:ok, %{
-      baseline_metrics: %{ips: 1000.0, memory: 1024},
-      established_at: DateTime.utc_now()
-    }}
+    {:ok,
+     %{
+       baseline_metrics: %{ips: 1000.0, memory: 1024},
+       established_at: DateTime.utc_now()
+     }}
   end
 
   defp generate_baseline_key(implementation, baseline_spec) do
@@ -292,16 +309,17 @@ defmodule SweBench.PerformanceBenchmarking.PerformanceComparator do
   defp update_comparison_statistics(current_stats, comparison_result) do
     new_total = current_stats.total_comparisons + 1
 
-    {new_improvements, new_regressions} = case comparison_result do
-      {:ok, %{performance_delta: %{performance_change: :significant_improvement}}} ->
-        {current_stats.performance_improvements + 1, current_stats.performance_regressions}
+    {new_improvements, new_regressions} =
+      case comparison_result do
+        {:ok, %{performance_delta: %{performance_change: :significant_improvement}}} ->
+          {current_stats.performance_improvements + 1, current_stats.performance_regressions}
 
-      {:ok, %{performance_delta: %{performance_change: :significant_regression}}} ->
-        {current_stats.performance_improvements, current_stats.performance_regressions + 1}
+        {:ok, %{performance_delta: %{performance_change: :significant_regression}}} ->
+          {current_stats.performance_improvements, current_stats.performance_regressions + 1}
 
-      _ ->
-        {current_stats.performance_improvements, current_stats.performance_regressions}
-    end
+        _ ->
+          {current_stats.performance_improvements, current_stats.performance_regressions}
+      end
 
     # Calculate new average delta (placeholder)
     new_avg_delta = current_stats.avg_performance_delta

@@ -9,6 +9,8 @@ defmodule SweBench.Distributed.ClusterSupervisor do
   use Supervisor
   require Logger
 
+  alias SweBench.Distributed.ContainerOrchestrator
+
   def start_link(opts \\ []) do
     Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
   end
@@ -83,7 +85,7 @@ defmodule SweBench.Distributed.ClusterSupervisor do
     end
 
     # Clean up distributed clusters
-    SweBench.Distributed.ContainerOrchestrator.destroy_all_clusters()
+    ContainerOrchestrator.destroy_all_clusters()
 
     Logger.info("Distributed infrastructure shutdown complete")
     :ok

@@ -9,6 +9,8 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
   use GenServer
   require Logger
 
+  alias SweBench.PerformanceBenchmarking.BencheeExecutor
+
   @scale_factors [1, 10, 100, 1000, 10_000]
   @concurrency_levels [1, 5, 10, 25, 50]
 
@@ -82,7 +84,8 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
 
   @impl true
   def handle_call({:test_complexity, implementation, input_generator, opts}, _from, state) do
-    timeout = Keyword.get(opts, :timeout, 180_000)  # 3 minutes default
+    # 3 minutes default
+    timeout = Keyword.get(opts, :timeout, 180_000)
 
     complexity_result =
       @scale_factors
@@ -107,12 +110,12 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
     Logger.debug("Testing input scaling performance")
 
     input_sizes = Map.get(scalability_spec, :input_sizes, @scale_factors)
-    
+
     scaling_results =
       input_sizes
       |> Enum.map(fn size ->
         test_input = generate_scaled_input(size, scalability_spec)
-        
+
         case benchmark_implementation_with_input(implementation, test_input) do
           {:ok, benchmark_result} ->
             {size, benchmark_result}
@@ -140,7 +143,10 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
             {concurrency, concurrent_result}
 
           {:error, reason} ->
-            Logger.warning("Concurrent test failed for #{concurrency} processes: #{inspect(reason)}")
+            Logger.warning(
+              "Concurrent test failed for #{concurrency} processes: #{inspect(reason)}"
+            )
+
             {concurrency, :failed}
         end
       end)
@@ -153,7 +159,9 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
     {:error, reason}
   end
 
-  defp analyze_algorithmic_complexity({:ok, {implementation, scaling_results, concurrent_results}}) do
+  defp analyze_algorithmic_complexity(
+         {:ok, {implementation, scaling_results, concurrent_results}}
+       ) do
     Logger.debug("Analyzing algorithmic complexity")
 
     complexity_analysis = %{
@@ -170,7 +178,9 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
     {:error, reason}
   end
 
-  defp detect_performance_bottlenecks({:ok, {implementation, scaling_results, concurrent_results, complexity_analysis}}) do
+  defp detect_performance_bottlenecks(
+         {:ok, {implementation, scaling_results, concurrent_results, complexity_analysis}}
+       ) do
     Logger.debug("Detecting performance bottlenecks")
 
     bottleneck_analysis = %{
@@ -180,16 +190,23 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
       optimization_opportunities: identify_optimization_opportunities(complexity_analysis)
     }
 
-    {:ok, {implementation, scaling_results, concurrent_results, complexity_analysis, bottleneck_analysis}}
+    {:ok,
+     {implementation, scaling_results, concurrent_results, complexity_analysis,
+      bottleneck_analysis}}
   end
 
   defp detect_performance_bottlenecks({:error, reason}) do
     {:error, reason}
   end
 
-  defp compile_scalability_assessment({:ok, {implementation, scaling_results, concurrent_results, complexity_analysis, bottleneck_analysis}}) do
+  defp compile_scalability_assessment(
+         {:ok,
+          {implementation, scaling_results, concurrent_results, complexity_analysis,
+           bottleneck_analysis}}
+       ) do
     scalability_assessment = %{
-      overall_scalability_score: calculate_overall_scalability_score(complexity_analysis, bottleneck_analysis),
+      overall_scalability_score:
+        calculate_overall_scalability_score(complexity_analysis, bottleneck_analysis),
       algorithmic_complexity: complexity_analysis.complexity_classification,
       scaling_efficiency: complexity_analysis.scaling_efficiency,
       concurrent_performance: concurrent_results,
@@ -207,7 +224,7 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
   defp generate_scaled_input(size, scalability_spec) do
     # Generate scaled test input based on size
     base_input = Map.get(scalability_spec, :base_input, [1, 2, 3])
-    
+
     case Map.get(scalability_spec, :input_type, :list) do
       :list -> Enum.take(Stream.cycle(base_input), size)
       :number -> size
@@ -228,7 +245,10 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
       "test" => fn -> implementation.(test_input) end
     }
 
-    case SweBench.PerformanceBenchmarking.BencheeExecutor.run_benchee_benchmark(benchmark_functions, benchmark_config) do
+    case BencheeExecutor.run_benchee_benchmark(
+           benchmark_functions,
+           benchmark_config
+         ) do
       {:ok, results} ->
         {:ok, extract_benchmark_summary(results)}
 
@@ -238,26 +258,13 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
   end
 
   defp test_concurrent_execution(implementation, concurrency, scalability_spec) do
-    # Test implementation under concurrent load
     test_input = Map.get(scalability_spec, :concurrent_input, [1, 2, 3])
-
-    tasks = 
-      1..concurrency
-      |> Enum.map(fn _i ->
-        Task.async(fn ->
-          :timer.tc(fn -> implementation.(test_input) end)
-        end)
-      end)
-
+    
+    tasks = create_concurrent_tasks(implementation, test_input, concurrency)
+    
     case Task.await_many(tasks, 30_000) do
       results when is_list(results) ->
-        concurrent_metrics = %{
-          concurrency_level: concurrency,
-          execution_times: Enum.map(results, &elem(&1, 0)),
-          avg_execution_time: Enum.sum(Enum.map(results, &elem(&1, 0))) / length(results),
-          throughput: concurrency * 1_000_000 / (Enum.sum(Enum.map(results, &elem(&1, 0))) / length(results))
-        }
-
+        concurrent_metrics = build_concurrent_metrics(results, concurrency)
         {:ok, concurrent_metrics}
 
       {:error, reason} ->
@@ -268,11 +275,35 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
       {:error, {:concurrent_test_failed, error}}
   end
 
+  defp create_concurrent_tasks(implementation, test_input, concurrency) do
+    1..concurrency
+    |> Enum.map(fn _i ->
+      Task.async(fn -> time_execution(implementation, test_input) end)
+    end)
+  end
+
+  defp time_execution(implementation, test_input) do
+    :timer.tc(fn -> implementation.(test_input) end)
+  end
+
+  defp build_concurrent_metrics(results, concurrency) do
+    execution_times = Enum.map(results, &elem(&1, 0))
+    avg_time = Enum.sum(execution_times) / length(results)
+    
+    %{
+      concurrency_level: concurrency,
+      execution_times: execution_times,
+      avg_execution_time: avg_time,
+      throughput: concurrency * 1_000_000 / avg_time
+    }
+  end
+
   defp benchmark_with_input_size(implementation, test_input, timeout) do
     # Benchmark with timeout protection
-    task = Task.async(fn ->
-      :timer.tc(fn -> implementation.(test_input) end)
-    end)
+    task =
+      Task.async(fn ->
+        :timer.tc(fn -> implementation.(test_input) end)
+      end)
 
     case Task.await(task, timeout) do
       {execution_time, _result} ->
@@ -290,14 +321,15 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
     # Analyze performance scaling curve to determine algorithmic complexity
     time_ratios = calculate_performance_ratios(scaling_data)
 
-    complexity = cond do
-      linear_pattern?(time_ratios) -> :linear
-      quadratic_pattern?(time_ratios) -> :quadratic
-      logarithmic_pattern?(time_ratios) -> :logarithmic
-      constant_pattern?(time_ratios) -> :constant
-      exponential_pattern?(time_ratios) -> :exponential
-      true -> :unknown
-    end
+    complexity =
+      cond do
+        linear_pattern?(time_ratios) -> :linear
+        quadratic_pattern?(time_ratios) -> :quadratic
+        logarithmic_pattern?(time_ratios) -> :logarithmic
+        constant_pattern?(time_ratios) -> :constant
+        exponential_pattern?(time_ratios) -> :exponential
+        true -> :unknown
+      end
 
     %{
       complexity_classification: complexity,

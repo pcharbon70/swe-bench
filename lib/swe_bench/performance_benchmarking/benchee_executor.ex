@@ -24,7 +24,11 @@ defmodule SweBench.PerformanceBenchmarking.BencheeExecutor do
   Executes performance evaluation for a task instance.
   """
   def execute_performance_evaluation(task_instance_id, benchmark_spec, opts \\ []) do
-    GenServer.call(__MODULE__, {:execute_benchmark, task_instance_id, benchmark_spec, opts}, 300_000)
+    GenServer.call(
+      __MODULE__,
+      {:execute_benchmark, task_instance_id, benchmark_spec, opts},
+      300_000
+    )
   end
 
   @doc """
@@ -77,7 +81,8 @@ defmodule SweBench.PerformanceBenchmarking.BencheeExecutor do
           completed_at: DateTime.utc_now()
         }
 
-        updated_statistics = update_benchmark_statistics(state.benchmark_statistics, performance_assessment)
+        updated_statistics =
+          update_benchmark_statistics(state.benchmark_statistics, performance_assessment)
 
         updated_state = %{
           state
@@ -146,10 +151,12 @@ defmodule SweBench.PerformanceBenchmarking.BencheeExecutor do
     benchmark_functions = create_benchmark_functions(benchmark_environment)
 
     # Execute Benchee with configuration
-    benchee_config = Map.merge(benchmark_config, %{
-      formatters: [SweBench.PerformanceBenchmarking.ResultFormatter],
-      print: %{benchmarking: false, fast_warning: false}  # Suppress output for automation
-    })
+    benchee_config =
+      Map.merge(benchmark_config, %{
+        formatters: [SweBench.PerformanceBenchmarking.ResultFormatter],
+        # Suppress output for automation
+        print: %{benchmarking: false, fast_warning: false}
+      })
 
     case run_benchee_safely(benchmark_functions, benchee_config) do
       {:ok, benchee_results} ->
@@ -223,7 +230,7 @@ defmodule SweBench.PerformanceBenchmarking.BencheeExecutor do
     # Generate test inputs based on task and benchmark specification
     # Placeholder for test input generation
     input_count = Map.get(benchmark_spec, :input_variations, 5)
-    
+
     1..input_count
     |> Enum.map(fn i ->
       %{input_size: i * 10, test_data: "test_data_#{i}"}
@@ -252,14 +259,12 @@ defmodule SweBench.PerformanceBenchmarking.BencheeExecutor do
   end
 
   defp run_benchee_safely(benchmark_functions, config) do
-    try do
-      benchee_results = Benchee.run(benchmark_functions, config)
-      {:ok, benchee_results}
-    rescue
-      error ->
-        Logger.error("Benchee execution failed: #{inspect(error)}")
-        {:error, error}
-    end
+    benchee_results = Benchee.run(benchmark_functions, config)
+    {:ok, benchee_results}
+  rescue
+    error ->
+      Logger.error("Benchee execution failed: #{inspect(error)}")
+      {:error, error}
   end
 
   defp extract_performance_metrics(benchee_results) do
@@ -328,8 +333,8 @@ defmodule SweBench.PerformanceBenchmarking.BencheeExecutor do
 
     new_avg_time =
       if new_total > 1 do
-        ((current_stats.avg_execution_time * (new_total - 1)) + 
-         performance_assessment.execution_performance.average_time_ms) / new_total
+        (current_stats.avg_execution_time * (new_total - 1) +
+           performance_assessment.execution_performance.average_time_ms) / new_total
       else
         performance_assessment.execution_performance.average_time_ms
       end

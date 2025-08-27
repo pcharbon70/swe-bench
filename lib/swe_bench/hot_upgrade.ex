@@ -6,7 +6,12 @@ defmodule SweBench.HotUpgrade do
   AI models on BEAM VM upgrade scenarios and zero-downtime deployment patterns.
   """
 
-  alias SweBench.HotUpgrade.{ReleaseManager, StateMigrationTester, UpgradeCoordinator}
+  alias SweBench.HotUpgrade.{
+    DowntimeValidator,
+    ReleaseManager,
+    StateMigrationTester,
+    UpgradeCoordinator
+  }
 
   @doc """
   Evaluates an upgrade scenario for a task instance.
@@ -48,7 +53,7 @@ defmodule SweBench.HotUpgrade do
   Validates zero-downtime capability for an upgrade scenario.
   """
   def validate_zero_downtime(cluster_id, upgrade_spec) do
-    SweBench.HotUpgrade.DowntimeValidator.validate_zero_downtime(cluster_id, upgrade_spec)
+    DowntimeValidator.validate_zero_downtime(cluster_id, upgrade_spec)
   end
 
   @doc """

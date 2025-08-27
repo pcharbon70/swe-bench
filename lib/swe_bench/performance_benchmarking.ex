@@ -6,7 +6,11 @@ defmodule SweBench.PerformanceBenchmarking do
   memory usage, and scalability characteristics for AI-generated solutions.
   """
 
-  alias SweBench.PerformanceBenchmarking.{BencheeExecutor, PerformanceComparator, ScalabilityTester}
+  alias SweBench.PerformanceBenchmarking.{
+    BencheeExecutor,
+    PerformanceComparator,
+    ScalabilityTester
+  }
 
   @doc """
   Evaluates performance for a task instance with comprehensive benchmarking.
@@ -88,18 +92,19 @@ defmodule SweBench.PerformanceBenchmarking do
 
   defp calculate_duration_estimate(benchmark_spec) do
     base_time = Map.get(benchmark_spec, :base_duration, 15)
-    
+
     multipliers = [
-      (if Map.get(benchmark_spec, :memory_profiling, false), do: 1.5, else: 1.0),
-      (if Map.get(benchmark_spec, :scalability_testing, false), do: 3.0, else: 1.0),
-      (if Map.get(benchmark_spec, :concurrent_testing, false), do: 2.0, else: 1.0)
+      if(Map.get(benchmark_spec, :memory_profiling, false), do: 1.5, else: 1.0),
+      if(Map.get(benchmark_spec, :scalability_testing, false), do: 3.0, else: 1.0),
+      if(Map.get(benchmark_spec, :concurrent_testing, false), do: 2.0, else: 1.0)
     ]
 
     round(base_time * Enum.reduce(multipliers, 1.0, &*/2))
   end
 
   defp calculate_memory_requirements(benchmark_spec) do
-    base_memory = 1.0  # 1GB base
+    # 1GB base
+    base_memory = 1.0
 
     if Map.get(benchmark_spec, :memory_profiling, false) do
       base_memory * 2

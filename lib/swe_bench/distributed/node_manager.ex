@@ -9,6 +9,8 @@ defmodule SweBench.Distributed.NodeManager do
   use GenServer
   require Logger
 
+  alias SweBench.Distributed.TestCoordinator
+
   defstruct [
     :cluster_config,
     :connected_nodes,
@@ -153,7 +155,7 @@ defmodule SweBench.Distributed.NodeManager do
       })
 
     # Notify distributed test coordinator
-    SweBench.Distributed.TestCoordinator.handle_node_event({:nodeup, node})
+    TestCoordinator.handle_node_event({:nodeup, node})
 
     updated_topology = determine_cluster_topology(Map.keys(updated_nodes))
 
@@ -178,7 +180,7 @@ defmodule SweBench.Distributed.NodeManager do
       end
 
     # Notify distributed test coordinator
-    SweBench.Distributed.TestCoordinator.handle_node_event({:nodedown, node})
+    TestCoordinator.handle_node_event({:nodedown, node})
 
     updated_topology = determine_cluster_topology(Map.keys(updated_nodes))
 
