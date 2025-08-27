@@ -27,21 +27,29 @@ This section creates the Phoenix LiveView-based web interface that provides intu
   - [ ] 5.1.3.4 Show pattern matching analysis with visual indicators
   - [ ] 5.1.3.5 Generate comparative analytics with trend graphs
 
-- [ ] 5.1.4 Create dataset explorer
-  - [ ] 5.1.4.1 Build searchable task instance browser
-  - [ ] 5.1.4.2 Implement filtering by repository/complexity
-  - [ ] 5.1.4.3 Display task details and patches
-  - [ ] 5.1.4.4 Show validation history
-  - [ ] 5.1.4.5 Enable dataset subset creation
+- [ ] 5.1.4 Create LLM provider/model result explorer
+  - [ ] 5.1.4.1 Build LLM provider selection interface with provider logos
+  - [ ] 5.1.4.2 Implement model-specific filtering (GPT-4, Claude, Gemini, etc.)
+  - [ ] 5.1.4.3 Display task results grouped by LLM provider and model
+  - [ ] 5.1.4.4 Show model performance comparison charts
+  - [ ] 5.1.4.5 Create model leaderboard with ranking system
+
+- [ ] 5.1.5 Create dataset explorer
+  - [ ] 5.1.5.1 Build searchable task instance browser
+  - [ ] 5.1.5.2 Implement filtering by repository/complexity/LLM model
+  - [ ] 5.1.5.3 Display task details and patches with model results
+  - [ ] 5.1.5.4 Show validation history across different models
+  - [ ] 5.1.5.5 Enable dataset subset creation by model performance
 
 ### Unit Tests:
-- [ ] 5.1.5 Test LiveView component interactions
-- [ ] 5.1.6 Test real-time update mechanisms
-- [ ] 5.1.7 Test chart rendering and data binding
-- [ ] 5.1.8 Test search and filtering functionality
-- [ ] 5.1.9 Test responsive design breakpoints
-- [ ] 5.1.10 Test accessibility compliance
-- [ ] 5.1.11 Test browser compatibility
+- [ ] 5.1.6 Test LiveView component interactions
+- [ ] 5.1.7 Test real-time update mechanisms
+- [ ] 5.1.8 Test chart rendering and data binding
+- [ ] 5.1.9 Test LLM provider/model filtering functionality
+- [ ] 5.1.10 Test search and filtering functionality
+- [ ] 5.1.11 Test responsive design breakpoints
+- [ ] 5.1.12 Test accessibility compliance
+- [ ] 5.1.13 Test browser compatibility
 
 **Implementation Status:** Not started - Phoenix LiveView web interface with evaluation submission, real-time progress tracking, result visualization dashboard, and dataset explorer. Features responsive design with Tailwind CSS, comprehensive analytics dashboards, searchable task instance browser, and accessibility compliance.
 
@@ -113,21 +121,29 @@ This section implements a comprehensive LiveView component architecture that pro
   - [ ] 5.3.3.4 Add public OTP compliance metric visualizations with trend analysis
   - [ ] 5.3.3.5 Create public comparative analytics dashboard with interactive charts
 
-- [ ] 5.3.4 Create dataset exploration components
-  - [ ] 5.3.4.1 Build real-time searchable task browser
-  - [ ] 5.3.4.2 Implement dynamic filtering and sorting
-  - [ ] 5.3.4.3 Create task detail view components  
-  - [ ] 5.3.4.4 Add validation history timeline
-  - [ ] 5.3.4.5 Build interactive dataset subset creator
+- [ ] 5.3.4 Create LLM model comparison components
+  - [ ] 5.3.4.1 Build model performance comparison matrix with heat maps
+  - [ ] 5.3.4.2 Implement head-to-head model comparison charts  
+  - [ ] 5.3.4.3 Create model capability radar charts (distributed, concurrent, etc.)
+  - [ ] 5.3.4.4 Add model trend analysis over time
+  - [ ] 5.3.4.5 Build provider ecosystem analysis dashboard
+
+- [ ] 5.3.5 Create dataset exploration components
+  - [ ] 5.3.5.1 Build real-time searchable task browser with model filtering
+  - [ ] 5.3.5.2 Implement dynamic filtering by repository/complexity/model
+  - [ ] 5.3.5.3 Create task detail view components with multi-model results
+  - [ ] 5.3.5.4 Add validation history timeline across models
+  - [ ] 5.3.5.5 Build interactive dataset subset creator by model performance
 
 ### Unit Tests:
-- [ ] 5.3.5 Test LiveView component rendering
-- [ ] 5.3.6 Test real-time event handling
-- [ ] 5.3.7 Test component state synchronization
-- [ ] 5.3.8 Test interactive user actions
-- [ ] 5.3.9 Test data binding and updates
-- [ ] 5.3.10 Test component communication
-- [ ] 5.3.11 Test performance under concurrent users
+- [ ] 5.3.6 Test LiveView component rendering
+- [ ] 5.3.7 Test real-time event handling
+- [ ] 5.3.8 Test component state synchronization
+- [ ] 5.3.9 Test LLM model comparison and filtering
+- [ ] 5.3.10 Test interactive user actions
+- [ ] 5.3.11 Test data binding and updates
+- [ ] 5.3.12 Test component communication
+- [ ] 5.3.13 Test performance under concurrent users
 
 **Implementation Status:** Not started - LiveView component system with modular evaluation interfaces, real-time data binding, interactive result visualization, and comprehensive dataset exploration. Features component-based architecture, instant server-side processing, WebSocket-based real-time updates, and responsive user experience without traditional API dependencies.
 
