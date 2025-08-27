@@ -1,7 +1,7 @@
 defmodule SweBench.PartialCreditScoring.FunctionalProgrammingScorer do
   @moduledoc """
   Scores functional programming adherence and pattern usage.
-  
+
   Evaluates usage of immutability, recursion, pattern matching, and other
   functional programming principles using existing analysis infrastructure.
   """
@@ -34,36 +34,33 @@ defmodule SweBench.PartialCreditScoring.FunctionalProgrammingScorer do
 
   @impl true
   def handle_call({:score, solution_data, _options}, _from, state) do
-    try do
-      score_result = evaluate_functional_programming(solution_data, state.config)
-      {:reply, {:ok, score_result}, state}
-    rescue
-      error ->
-        Logger.error("FP scoring failed: #{inspect(error)}")
-        {:reply, {:error, error}, state}
-    end
+    score_result = evaluate_functional_programming(solution_data, state.config)
+    {:reply, {:ok, score_result}, state}
+  rescue
+    error ->
+      Logger.error("FP scoring failed: #{inspect(error)}")
+      {:reply, {:error, error}, state}
   end
 
   # Private functions
 
   defp evaluate_functional_programming(solution_data, config) do
     fp_threshold = get_in(config, [:dimensions, :functional_programming, :threshold]) || 85
-    
+
     # Extract functional programming metrics
     immutability_score = Map.get(solution_data, :immutability_score, 50.0)
     recursion_score = Map.get(solution_data, :recursion_score, 50.0)
     pattern_matching_score = Map.get(solution_data, :pattern_matching_score, 50.0)
     pipeline_score = Map.get(solution_data, :pipeline_score, 50.0)
     purity_score = Map.get(solution_data, :purity_score, 50.0)
-    
+
     # Calculate composite functional programming score
-    composite_score = (
+    composite_score =
       immutability_score * 0.25 +
-      recursion_score * 0.20 +
-      pattern_matching_score * 0.25 +
-      pipeline_score * 0.15 +
-      purity_score * 0.15
-    )
+        recursion_score * 0.20 +
+        pattern_matching_score * 0.25 +
+        pipeline_score * 0.15 +
+        purity_score * 0.15
 
     %{
       score: composite_score,

@@ -1,7 +1,7 @@
 defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
   @moduledoc """
   Categorizes and analyzes errors for comprehensive feedback.
-  
+
   Provides hierarchical error classification and severity analysis
   to enable targeted improvement suggestions.
   """
@@ -34,37 +34,40 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
 
   @impl true
   def handle_call({:categorize_errors, errors, _options}, _from, state) do
-    try do
-      categorized = perform_error_categorization(errors, state.config)
-      {:reply, {:ok, categorized}, state}
-    rescue
-      error ->
-        Logger.error("Error categorization failed: #{inspect(error)}")
-        {:reply, {:error, error}, state}
-    end
+    categorized = perform_error_categorization(errors, state.config)
+    {:reply, {:ok, categorized}, state}
+  rescue
+    error ->
+      Logger.error("Error categorization failed: #{inspect(error)}")
+      {:reply, {:error, error}, state}
   end
 
   # Private functions
 
   defp perform_error_categorization(errors, config) do
     error_categories = Map.get(config, :error_categories, %{})
-    
-    categorized = Enum.reduce(errors, %{}, fn error, acc ->
-      category = determine_error_category(error)
-      subcategory = determine_error_subcategory(error, category)
-      severity = determine_error_severity(error)
-      
-      category_data = Map.get(acc, category, [])
-      updated_data = [%{
-        error: error,
-        subcategory: subcategory,
-        severity: severity,
-        message: extract_error_message(error),
-        location: extract_error_location(error)
-      } | category_data]
-      
-      Map.put(acc, category, updated_data)
-    end)
+
+    categorized =
+      Enum.reduce(errors, %{}, fn error, acc ->
+        category = determine_error_category(error)
+        subcategory = determine_error_subcategory(error, category)
+        severity = determine_error_severity(error)
+
+        category_data = Map.get(acc, category, [])
+
+        updated_data = [
+          %{
+            error: error,
+            subcategory: subcategory,
+            severity: severity,
+            message: extract_error_message(error),
+            location: extract_error_location(error)
+          }
+          | category_data
+        ]
+
+        Map.put(acc, category, updated_data)
+      end)
 
     %{
       categorized_errors: categorized,
@@ -75,7 +78,7 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
 
   defp determine_error_category(error) when is_map(error) do
     error_type = Map.get(error, :type, :unknown)
-    
+
     case error_type do
       type when type in [:syntax_error, :parse_error, :compilation_error] -> :compilation
       type when type in [:test_failure, :assertion_error, :timeout] -> :test
@@ -99,19 +102,28 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
 
   defp determine_error_subcategory(error, :compilation) do
     message = extract_error_message(error)
-    
+
     cond do
-      String.contains?(message, "syntax") -> :syntax_error
-      String.contains?(message, "type") -> :type_error
-      String.contains?(message, "dependency") or String.contains?(message, "module") -> :missing_dependency
-      String.contains?(message, "macro") -> :macro_error
-      true -> :general_compilation_error
+      String.contains?(message, "syntax") ->
+        :syntax_error
+
+      String.contains?(message, "type") ->
+        :type_error
+
+      String.contains?(message, "dependency") or String.contains?(message, "module") ->
+        :missing_dependency
+
+      String.contains?(message, "macro") ->
+        :macro_error
+
+      true ->
+        :general_compilation_error
     end
   end
 
   defp determine_error_subcategory(error, :test) do
     message = extract_error_message(error)
-    
+
     cond do
       String.contains?(message, "assertion") -> :assertion_failure
       String.contains?(message, "timeout") -> :timeout
@@ -123,7 +135,7 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
 
   defp determine_error_subcategory(error, :runtime) do
     message = extract_error_message(error)
-    
+
     cond do
       String.contains?(message, "exception") -> :exception
       String.contains?(message, "crash") -> :crash
@@ -135,7 +147,7 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
 
   defp determine_error_subcategory(error, :logic) do
     message = extract_error_message(error)
-    
+
     cond do
       String.contains?(message, "output") -> :incorrect_output
       String.contains?(message, "edge") -> :edge_case_failure
@@ -149,7 +161,7 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
 
   defp determine_error_severity(error) do
     message = extract_error_message(error)
-    
+
     cond do
       String.contains?(message, "critical") or String.contains?(message, "fatal") -> :critical
       String.contains?(message, "error") -> :major
@@ -176,20 +188,23 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
   defp extract_error_location(_error), do: %{file: nil, line: nil, column: nil}
 
   defp generate_error_summary(categorized) do
-    total_errors = categorized
-    |> Enum.reduce(0, fn {_category, errors}, acc -> acc + length(errors) end)
+    total_errors =
+      categorized
+      |> Enum.reduce(0, fn {_category, errors}, acc -> acc + length(errors) end)
 
-    category_counts = categorized
-    |> Enum.map(fn {category, errors} -> {category, length(errors)} end)
-    |> Enum.into(%{})
+    category_counts =
+      categorized
+      |> Enum.map(fn {category, errors} -> {category, length(errors)} end)
+      |> Enum.into(%{})
 
-    severity_counts = categorized
-    |> Enum.reduce(%{critical: 0, major: 0, minor: 0}, fn {_category, errors}, acc ->
+    severity_counts =
+      categorized
+      |> Enum.reduce(%{critical: 0, major: 0, minor: 0}, fn {_category, errors}, acc ->
         Enum.reduce(errors, acc, fn error, inner_acc ->
           severity = Map.get(error, :severity, :minor)
           Map.update(inner_acc, severity, 1, &(&1 + 1))
         end)
-    end)
+      end)
 
     %{
       total_errors: total_errors,
@@ -203,16 +218,16 @@ defmodule SweBench.PartialCreditScoring.ErrorCategorizer do
       case category do
         :compilation ->
           ["Review syntax and type definitions" | acc]
-        
+
         :test ->
           ["Examine test logic and expected outcomes" | acc]
-        
+
         :runtime ->
           ["Add error handling and input validation" | acc]
-        
+
         :logic ->
           ["Verify algorithm correctness and edge cases" | acc]
-        
+
         _ ->
           acc
       end

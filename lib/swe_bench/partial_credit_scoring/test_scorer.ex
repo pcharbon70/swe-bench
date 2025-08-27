@@ -1,7 +1,7 @@
 defmodule SweBench.PartialCreditScoring.TestScorer do
   @moduledoc """
   Scores partial test passage and analyzes test failures.
-  
+
   Evaluates how many tests pass and categorizes test failures for detailed
   feedback. Provides 50% threshold scoring based on test achievement.
   """
@@ -34,31 +34,30 @@ defmodule SweBench.PartialCreditScoring.TestScorer do
 
   @impl true
   def handle_call({:score, solution_data, _options}, _from, state) do
-    try do
-      score_result = evaluate_tests(solution_data, state.config)
-      {:reply, {:ok, score_result}, state}
-    rescue
-      error ->
-        Logger.error("Test scoring failed: #{inspect(error)}")
-        {:reply, {:error, error}, state}
-    end
+    score_result = evaluate_tests(solution_data, state.config)
+    {:reply, {:ok, score_result}, state}
+  rescue
+    error ->
+      Logger.error("Test scoring failed: #{inspect(error)}")
+      {:reply, {:error, error}, state}
   end
 
   # Private functions
 
   defp evaluate_tests(solution_data, config) do
     test_threshold = get_in(config, [:dimensions, :partial_tests, :threshold]) || 50
-    
+
     # Extract test results from solution data
     total_tests = Map.get(solution_data, :total_tests, 0)
     passed_tests = Map.get(solution_data, :passed_tests, 0)
     failed_tests = Map.get(solution_data, :failed_tests, [])
-    
-    score = if total_tests > 0 do
-      (passed_tests / total_tests) * 100.0
-    else
-      0.0
-    end
+
+    score =
+      if total_tests > 0 do
+        passed_tests / total_tests * 100.0
+      else
+        0.0
+      end
 
     %{
       score: score,

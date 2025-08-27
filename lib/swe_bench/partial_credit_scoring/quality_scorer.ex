@@ -1,7 +1,7 @@
 defmodule SweBench.PartialCreditScoring.QualityScorer do
   @moduledoc """
   Scores code quality using existing static analysis infrastructure.
-  
+
   Integrates with existing Credo and Dialyzer analysis to provide quality
   scoring. Provides 75% threshold scoring based on quality achievements.
   """
@@ -34,28 +34,26 @@ defmodule SweBench.PartialCreditScoring.QualityScorer do
 
   @impl true
   def handle_call({:score, solution_data, _options}, _from, state) do
-    try do
-      score_result = evaluate_quality(solution_data, state.config)
-      {:reply, {:ok, score_result}, state}
-    rescue
-      error ->
-        Logger.error("Quality scoring failed: #{inspect(error)}")
-        {:reply, {:error, error}, state}
-    end
+    score_result = evaluate_quality(solution_data, state.config)
+    {:reply, {:ok, score_result}, state}
+  rescue
+    error ->
+      Logger.error("Quality scoring failed: #{inspect(error)}")
+      {:reply, {:error, error}, state}
   end
 
   # Private functions
 
   defp evaluate_quality(solution_data, config) do
     quality_threshold = get_in(config, [:dimensions, :code_quality, :threshold]) || 75
-    
+
     # Extract quality metrics from solution data
     credo_score = Map.get(solution_data, :credo_score, 50.0)
     dialyzer_issues = Map.get(solution_data, :dialyzer_issues, [])
     pattern_analysis_score = Map.get(solution_data, :pattern_analysis_score, 50.0)
-    
+
     # Calculate composite quality score
-    base_score = (credo_score * 0.4 + pattern_analysis_score * 0.4)
+    base_score = credo_score * 0.4 + pattern_analysis_score * 0.4
     dialyzer_penalty = length(dialyzer_issues) * 5.0
     final_score = max(0.0, base_score - dialyzer_penalty + 20.0)
 
@@ -76,7 +74,7 @@ defmodule SweBench.PartialCreditScoring.QualityScorer do
   defp categorize_quality_issues(solution_data) do
     credo_issues = Map.get(solution_data, :credo_issues, [])
     dialyzer_issues = Map.get(solution_data, :dialyzer_issues, [])
-    
+
     %{
       credo: Enum.map(credo_issues, &categorize_credo_issue/1),
       dialyzer: Enum.map(dialyzer_issues, &categorize_dialyzer_issue/1)
@@ -117,7 +115,7 @@ defmodule SweBench.PartialCreditScoring.QualityScorer do
 
   defp determine_dialyzer_severity(issue) do
     message = Map.get(issue, :message, "")
-    
+
     cond do
       String.contains?(message, "no_return") -> :critical
       String.contains?(message, "contract") -> :major

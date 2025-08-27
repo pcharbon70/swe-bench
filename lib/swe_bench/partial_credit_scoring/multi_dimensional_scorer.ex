@@ -11,11 +11,11 @@ defmodule SweBench.PartialCreditScoring.MultiDimensionalScorer do
 
   alias SweBench.PartialCreditScoring.{
     CompilationScorer,
-    TestScorer,
-    QualityScorer,
-    PerformanceScorer,
     FunctionalProgrammingScorer,
-    ScoreAggregator
+    PerformanceScorer,
+    QualityScorer,
+    ScoreAggregator,
+    TestScorer
   }
 
   defstruct [
@@ -82,35 +82,37 @@ defmodule SweBench.PartialCreditScoring.MultiDimensionalScorer do
     timeout = Keyword.get(options, :timeout, state.config[:timeout] || 30_000)
 
     # Start parallel scoring across all dimensions
-    scoring_task = Task.async_stream(
-      [
-        {:compilation, CompilationScorer},
-        {:partial_tests, TestScorer},
-        {:code_quality, QualityScorer},
-        {:performance, PerformanceScorer},
-        {:functional_programming, FunctionalProgrammingScorer}
-      ],
-      fn {dimension, scorer_module} ->
-        try do
-          result = GenServer.call(scorer_module, {:score, solution_data}, timeout)
-          {dimension, result}
-        rescue
-          error ->
-            Logger.warning("Scoring failed for #{dimension}: #{inspect(error)}")
-            {dimension, {:error, error}}
-        end
-      end,
-      timeout: timeout + 5_000,
-      max_concurrency: 5
-    )
+    scoring_task =
+      Task.async_stream(
+        [
+          {:compilation, CompilationScorer},
+          {:partial_tests, TestScorer},
+          {:code_quality, QualityScorer},
+          {:performance, PerformanceScorer},
+          {:functional_programming, FunctionalProgrammingScorer}
+        ],
+        fn {dimension, scorer_module} ->
+          try do
+            result = GenServer.call(scorer_module, {:score, solution_data}, timeout)
+            {dimension, result}
+          rescue
+            error ->
+              Logger.warning("Scoring failed for #{dimension}: #{inspect(error)}")
+              {dimension, {:error, error}}
+          end
+        end,
+        timeout: timeout + 5_000,
+        max_concurrency: 5
+      )
 
     # Store task for monitoring
-    new_state = put_in(state.scoring_tasks[task_id], %{
-      from: from,
-      task: scoring_task,
-      solution_data: solution_data,
-      started_at: DateTime.utc_now()
-    })
+    new_state =
+      put_in(state.scoring_tasks[task_id], %{
+        from: from,
+        task: scoring_task,
+        solution_data: solution_data,
+        started_at: DateTime.utc_now()
+      })
 
     # Process results asynchronously
     spawn_link(fn -> process_scoring_results(task_id, scoring_task) end)
@@ -144,16 +146,18 @@ defmodule SweBench.PartialCreditScoring.MultiDimensionalScorer do
         GenServer.reply(task_info.from, result)
 
         # Update metrics
-        new_metrics = update_evaluation_metrics(
-          state.evaluation_metrics,
-          task_info.started_at,
-          result
-        )
+        new_metrics =
+          update_evaluation_metrics(
+            state.evaluation_metrics,
+            task_info.started_at,
+            result
+          )
 
         # Clean up task
-        new_state = state
-        |> put_in([:scoring_tasks], Map.delete(state.scoring_tasks, task_id))
-        |> put_in([:evaluation_metrics], new_metrics)
+        new_state =
+          state
+          |> put_in([:scoring_tasks], Map.delete(state.scoring_tasks, task_id))
+          |> put_in([:evaluation_metrics], new_metrics)
 
         {:noreply, new_state}
     end
@@ -172,9 +176,10 @@ defmodule SweBench.PartialCreditScoring.MultiDimensionalScorer do
         new_metrics = update_error_metrics(state.evaluation_metrics, error)
 
         # Clean up task
-        new_state = state
-        |> put_in([:scoring_tasks], Map.delete(state.scoring_tasks, task_id))
-        |> put_in([:evaluation_metrics], new_metrics)
+        new_state =
+          state
+          |> put_in([:scoring_tasks], Map.delete(state.scoring_tasks, task_id))
+          |> put_in([:evaluation_metrics], new_metrics)
 
         {:noreply, new_state}
     end
@@ -183,24 +188,23 @@ defmodule SweBench.PartialCreditScoring.MultiDimensionalScorer do
   # Private functions
 
   defp process_scoring_results(task_id, scoring_task) do
-    try do
-      dimension_results = Enum.reduce(scoring_task, %{}, fn 
+    dimension_results =
+      Enum.reduce(scoring_task, %{}, fn
         {:ok, {dimension, result}}, acc -> Map.put(acc, dimension, result)
         {:exit, {dimension, _reason}}, acc -> Map.put(acc, dimension, {:error, :timeout})
       end)
 
-      # Aggregate scores
-      case ScoreAggregator.aggregate_scores(dimension_results) do
-        {:ok, aggregated_result} ->
-          send(__MODULE__, {:scoring_complete, task_id, {:ok, aggregated_result}})
+    # Aggregate scores
+    case ScoreAggregator.aggregate_scores(dimension_results) do
+      {:ok, aggregated_result} ->
+        send(__MODULE__, {:scoring_complete, task_id, {:ok, aggregated_result}})
 
-        {:error, reason} ->
-          send(__MODULE__, {:scoring_failed, task_id, reason})
-      end
-    rescue
-      error ->
-        send(__MODULE__, {:scoring_failed, task_id, error})
+      {:error, reason} ->
+        send(__MODULE__, {:scoring_failed, task_id, reason})
     end
+  rescue
+    error ->
+      send(__MODULE__, {:scoring_failed, task_id, error})
   end
 
   defp generate_task_id do
@@ -230,27 +234,30 @@ defmodule SweBench.PartialCreditScoring.MultiDimensionalScorer do
 
     case result do
       {:ok, _aggregated_result} ->
-        %{metrics |
-          total_evaluations: total,
-          successful_evaluations: metrics.successful_evaluations + 1,
-          average_evaluation_time: 
-            (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total
+        %{
+          metrics
+          | total_evaluations: total,
+            successful_evaluations: metrics.successful_evaluations + 1,
+            average_evaluation_time:
+              (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total
         }
 
       {:error, _reason} ->
-        %{metrics |
-          total_evaluations: total,
-          failed_evaluations: metrics.failed_evaluations + 1,
-          average_evaluation_time: 
-            (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total
+        %{
+          metrics
+          | total_evaluations: total,
+            failed_evaluations: metrics.failed_evaluations + 1,
+            average_evaluation_time:
+              (metrics.average_evaluation_time * (total - 1) + evaluation_time) / total
         }
     end
   end
 
   defp update_error_metrics(metrics, _error) do
-    %{metrics |
-      total_evaluations: metrics.total_evaluations + 1,
-      failed_evaluations: metrics.failed_evaluations + 1
+    %{
+      metrics
+      | total_evaluations: metrics.total_evaluations + 1,
+        failed_evaluations: metrics.failed_evaluations + 1
     }
   end
 end

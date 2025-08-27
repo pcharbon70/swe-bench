@@ -53,30 +53,31 @@ defmodule SweBench.PartialCreditScoring.ScoreAggregator do
 
   @impl true
   def handle_call({:aggregate_scores, dimension_results}, _from, state) do
-    try do
-      aggregated_result = perform_aggregation(dimension_results, state.config)
-      
-      # Update consistency tracking
-      new_consistency_tracker = update_consistency_tracking(
+    aggregated_result = perform_aggregation(dimension_results, state.config)
+
+    # Update consistency tracking
+    new_consistency_tracker =
+      update_consistency_tracking(
         state.consistency_tracker,
         aggregated_result
       )
 
-      # Update history (keep last 100 entries)
-      new_history = [aggregated_result | state.aggregation_history]
+    # Update history (keep last 100 entries)
+    new_history =
+      [aggregated_result | state.aggregation_history]
       |> Enum.take(100)
 
-      new_state = %{state |
-        aggregation_history: new_history,
+    new_state = %{
+      state
+      | aggregation_history: new_history,
         consistency_tracker: new_consistency_tracker
-      }
+    }
 
-      {:reply, {:ok, aggregated_result}, new_state}
-    rescue
-      error ->
-        Logger.error("Score aggregation failed: #{inspect(error)}")
-        {:reply, {:error, error}, state}
-    end
+    {:reply, {:ok, aggregated_result}, new_state}
+  rescue
+    error ->
+      Logger.error("Score aggregation failed: #{inspect(error)}")
+      {:reply, {:error, error}, state}
   end
 
   @impl true
@@ -139,7 +140,7 @@ defmodule SweBench.PartialCreditScoring.ScoreAggregator do
   defp process_dimension_score(score_data, dimension_config) when is_map(score_data) do
     raw_score = Map.get(score_data, :score, 0.0)
     threshold = Map.get(dimension_config || %{}, :threshold, 0)
-    
+
     %{
       score: normalize_score(raw_score),
       raw_score: raw_score,
@@ -152,7 +153,7 @@ defmodule SweBench.PartialCreditScoring.ScoreAggregator do
 
   defp process_dimension_score(score_data, dimension_config) when is_number(score_data) do
     threshold = Map.get(dimension_config || %{}, :threshold, 0)
-    
+
     %{
       score: normalize_score(score_data),
       raw_score: score_data,
@@ -168,17 +169,19 @@ defmodule SweBench.PartialCreditScoring.ScoreAggregator do
   defp normalize_score(score), do: score / 1.0
 
   defp calculate_weighted_score(processed_results, dimension_config) do
-    total_weight = dimension_config
-    |> Enum.reduce(0.0, fn {_dim, config}, acc -> 
-        acc + (Map.get(config, :weight, 0.0))
-    end)
+    total_weight =
+      dimension_config
+      |> Enum.reduce(0.0, fn {_dim, config}, acc ->
+        acc + Map.get(config, :weight, 0.0)
+      end)
 
     if total_weight > 0 do
-      weighted_sum = Enum.reduce(processed_results, 0.0, fn {dimension, result}, acc ->
-        weight = get_in(dimension_config, [dimension, :weight]) || 0.0
-        score = Map.get(result, :score, 0.0)
-        acc + (score * weight)
-      end)
+      weighted_sum =
+        Enum.reduce(processed_results, 0.0, fn {dimension, result}, acc ->
+          weight = get_in(dimension_config, [dimension, :weight]) || 0.0
+          score = Map.get(result, :score, 0.0)
+          acc + score * weight
+        end)
 
       weighted_sum / total_weight * 100
     else
@@ -211,28 +214,31 @@ defmodule SweBench.PartialCreditScoring.ScoreAggregator do
   defp generate_improvement_suggestions(processed_results, config) do
     if config[:improvement_suggestions] do
       processed_results
-      |> Enum.reduce([], fn {dimension, result}, acc ->
-          case Map.get(result, :status) do
-            :failed ->
-              ["Fix #{dimension} errors: #{inspect(Map.get(result, :error))}" | acc]
-
-            :success ->
-              if not Map.get(result, :threshold_met, false) do
-                threshold = Map.get(result, :threshold, 0)
-                score = Map.get(result, :score, 0)
-                improvement = threshold - score
-                ["Improve #{dimension} by #{improvement}% to meet threshold" | acc]
-              else
-                acc
-              end
-
-            _ ->
-              acc
-          end
-      end)
+      |> Enum.map(fn {dimension, result} -> generate_dimension_suggestion(dimension, result) end)
+      |> Enum.filter(& &1)
       |> Enum.reverse()
     else
       []
+    end
+  end
+
+  defp generate_dimension_suggestion(dimension, result) do
+    case Map.get(result, :status) do
+      :failed ->
+        "Fix #{dimension} errors: #{inspect(Map.get(result, :error))}"
+
+      :success ->
+        if Map.get(result, :threshold_met, false) do
+          nil
+        else
+          threshold = Map.get(result, :threshold, 0)
+          score = Map.get(result, :score, 0)
+          improvement = threshold - score
+          "Improve #{dimension} by #{improvement}% to meet threshold"
+        end
+
+      _ ->
+        nil
     end
   end
 
@@ -253,33 +259,38 @@ defmodule SweBench.PartialCreditScoring.ScoreAggregator do
     new_history = [overall_score | tracker.score_variance_history] |> Enum.take(20)
     total = tracker.total_aggregations + 1
 
-    new_metrics = if length(new_history) >= 2 do
-      variance = calculate_variance(new_history)
-      std_dev = :math.sqrt(variance)
-      consistency_rating = determine_consistency_rating(std_dev)
+    new_metrics =
+      if length(new_history) >= 2 do
+        variance = calculate_variance(new_history)
+        std_dev = :math.sqrt(variance)
+        consistency_rating = determine_consistency_rating(std_dev)
 
-      %{
-        variance: variance,
-        standard_deviation: std_dev,
-        consistency_rating: consistency_rating
-      }
-    else
-      tracker.consistency_metrics
-    end
+        %{
+          variance: variance,
+          standard_deviation: std_dev,
+          consistency_rating: consistency_rating
+        }
+      else
+        tracker.consistency_metrics
+      end
 
-    %{tracker |
-      total_aggregations: total,
-      score_variance_history: new_history,
-      consistency_metrics: new_metrics
+    %{
+      tracker
+      | total_aggregations: total,
+        score_variance_history: new_history,
+        consistency_metrics: new_metrics
     }
   end
 
   defp calculate_variance(scores) when length(scores) < 2, do: 0.0
+
   defp calculate_variance(scores) do
     mean = Enum.sum(scores) / length(scores)
-    variance_sum = scores
-    |> Enum.reduce(0, fn score, acc -> acc + :math.pow(score - mean, 2) end)
-    
+
+    variance_sum =
+      scores
+      |> Enum.reduce(0, fn score, acc -> acc + :math.pow(score - mean, 2) end)
+
     variance_sum / (length(scores) - 1)
   end
 

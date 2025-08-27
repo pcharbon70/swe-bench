@@ -10,16 +10,16 @@ defmodule SweBench.PartialCreditScoring.ScoringSupervisor do
   use Supervisor
 
   alias SweBench.PartialCreditScoring.{
-    MultiDimensionalScorer,
     CompilationScorer,
-    TestScorer,
-    QualityScorer,
-    PerformanceScorer,
-    FunctionalProgrammingScorer,
     ErrorCategorizer,
-    SolutionAnalyzer,
+    FunctionalProgrammingScorer,
+    ImprovementSuggester,
+    MultiDimensionalScorer,
+    PerformanceScorer,
+    QualityScorer,
     ScoreAggregator,
-    ImprovementSuggester
+    SolutionAnalyzer,
+    TestScorer
   }
 
   @doc """
