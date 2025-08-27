@@ -9,6 +9,8 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
   use GenServer
   require Logger
 
+  alias SweBench.PerformanceBenchmarking.BencheeExecutor
+
   @scale_factors [1, 10, 100, 1000, 10_000]
   @concurrency_levels [1, 5, 10, 25, 50]
 
@@ -243,7 +245,7 @@ defmodule SweBench.PerformanceBenchmarking.ScalabilityTester do
       "test" => fn -> implementation.(test_input) end
     }
 
-    case SweBench.PerformanceBenchmarking.BencheeExecutor.run_benchee_benchmark(
+    case BencheeExecutor.run_benchee_benchmark(
            benchmark_functions,
            benchmark_config
          ) do

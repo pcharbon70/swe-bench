@@ -7,7 +7,13 @@ defmodule SweBench.Distributed do
   and distributed process communication.
   """
 
-  alias SweBench.Distributed.{NodeManager, TestCoordinator}
+  alias SweBench.Distributed.{
+    ContainerOrchestrator,
+    MetricsCollector,
+    NodeManager,
+    PartitionDetector,
+    TestCoordinator
+  }
 
   @doc """
   Creates a multi-node cluster for distributed testing.
@@ -21,7 +27,7 @@ defmodule SweBench.Distributed do
       {:ok, %{cluster_id: "abc123", nodes: ["node1", "node2", "node3"]}}
   """
   def create_cluster(cluster_spec, opts \\ []) do
-    SweBench.Distributed.ContainerOrchestrator.create_distributed_cluster(cluster_spec, opts)
+    ContainerOrchestrator.create_distributed_cluster(cluster_spec, opts)
   end
 
   @doc """
@@ -42,27 +48,27 @@ defmodule SweBench.Distributed do
   Simulates network partition for testing.
   """
   def simulate_network_partition(cluster_id, partition_spec) do
-    SweBench.Distributed.PartitionDetector.simulate_partition(cluster_id, partition_spec)
+    PartitionDetector.simulate_partition(cluster_id, partition_spec)
   end
 
   @doc """
   Gets distributed performance metrics.
   """
   def get_distributed_metrics(cluster_id \\ nil) do
-    SweBench.Distributed.MetricsCollector.get_cluster_metrics(cluster_id)
+    MetricsCollector.get_cluster_metrics(cluster_id)
   end
 
   @doc """
   Lists active distributed clusters.
   """
   def list_active_clusters do
-    SweBench.Distributed.ContainerOrchestrator.list_active_clusters()
+    ContainerOrchestrator.list_active_clusters()
   end
 
   @doc """
   Destroys a distributed cluster and cleans up resources.
   """
   def destroy_cluster(cluster_id) do
-    SweBench.Distributed.ContainerOrchestrator.destroy_cluster(cluster_id)
+    ContainerOrchestrator.destroy_cluster(cluster_id)
   end
 end

@@ -9,6 +9,7 @@ defmodule SweBench.Distributed.TestCoordinator do
   use GenServer
   require Logger
 
+  alias SweBench.Distributed.NodeManager
   alias SweBench.TestRunner.Orchestrator
 
   defstruct [
@@ -134,7 +135,7 @@ defmodule SweBench.Distributed.TestCoordinator do
     Logger.debug("Assigning test phases to cluster nodes")
 
     # Get available nodes from cluster
-    case SweBench.Distributed.NodeManager.get_cluster_status(cluster_id) do
+    case NodeManager.get_cluster_status(cluster_id) do
       cluster_status when is_map(cluster_status) ->
         available_nodes = cluster_status.connected_nodes
 
