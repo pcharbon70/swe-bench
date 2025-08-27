@@ -23,11 +23,12 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
 
     case Enum.find(validation_checks, fn {_check, result} -> result != :ok end) do
       nil ->
-        {:ok, %{
-          validation_passed: true,
-          checks_completed: length(validation_checks),
-          validated_at: DateTime.utc_now()
-        }}
+        {:ok,
+         %{
+           validation_passed: true,
+           checks_completed: length(validation_checks),
+           validated_at: DateTime.utc_now()
+         }}
 
       {failed_check, error} ->
         {:error, {failed_check, error}}
@@ -48,16 +49,18 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
 
     case Enum.all?(quality_checks, fn result -> result == :ok end) do
       true ->
-        {:ok, %{
-          task_validation_passed: true,
-          total_instances: length(task_instances),
-          quality_score: calculate_quality_score(task_instances)
-        }}
+        {:ok,
+         %{
+           task_validation_passed: true,
+           total_instances: length(task_instances),
+           quality_score: calculate_quality_score(task_instances)
+         }}
 
       false ->
-        failed_checks = quality_checks
-        |> Enum.with_index()
-        |> Enum.filter(fn {result, _index} -> result != :ok end)
+        failed_checks =
+          quality_checks
+          |> Enum.with_index()
+          |> Enum.filter(fn {result, _index} -> result != :ok end)
 
         {:error, {:quality_validation_failed, failed_checks}}
     end
@@ -125,7 +128,8 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
 
   defp validate_instance_count(task_instances, target_count) do
     actual_count = length(task_instances)
-    tolerance = max(1, div(target_count, 10))  # 10% tolerance
+    # 10% tolerance
+    tolerance = max(1, div(target_count, 10))
 
     if abs(actual_count - target_count) <= tolerance do
       :ok
@@ -135,10 +139,11 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
   end
 
   defp validate_complexity_distribution(task_instances) do
-    complexity_counts = task_instances
-    |> Enum.group_by(fn instance -> Map.get(instance, :complexity, :medium) end)
-    |> Enum.map(fn {complexity, instances} -> {complexity, length(instances)} end)
-    |> Enum.into(%{})
+    complexity_counts =
+      task_instances
+      |> Enum.group_by(fn instance -> Map.get(instance, :complexity, :medium) end)
+      |> Enum.map(fn {complexity, instances} -> {complexity, length(instances)} end)
+      |> Enum.into(%{})
 
     # Check if we have reasonable distribution
     total = length(task_instances)
@@ -159,9 +164,11 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
 
   defp validate_scenario_coverage(task_instances, repository_spec) do
     expected_scenarios = Map.get(repository_spec, :testing_scenarios, [])
-    actual_scenarios = task_instances
-    |> Enum.map(fn instance -> Map.get(instance, :scenario) end)
-    |> Enum.uniq()
+
+    actual_scenarios =
+      task_instances
+      |> Enum.map(fn instance -> Map.get(instance, :scenario) end)
+      |> Enum.uniq()
 
     missing_scenarios = expected_scenarios -- actual_scenarios
 
@@ -177,12 +184,13 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
       0.0
     else
       # Basic quality scoring based on completeness
-      complete_instances = task_instances
-      |> Enum.count(fn instance ->
+      complete_instances =
+        task_instances
+        |> Enum.count(fn instance ->
           Map.has_key?(instance, :description) and
-          Map.has_key?(instance, :test_requirements) and
-          Map.has_key?(instance, :complexity)
-      end)
+            Map.has_key?(instance, :test_requirements) and
+            Map.has_key?(instance, :complexity)
+        end)
 
       complete_instances / length(task_instances) * 100.0
     end
@@ -190,11 +198,12 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
 
   defp validate_resource_conflicts(repositories) do
     # Check for memory/CPU conflicts
-    total_memory = repositories
-    |> Enum.reduce(0, fn repo, acc ->
+    total_memory =
+      repositories
+      |> Enum.reduce(0, fn repo, acc ->
         memory_gb = extract_memory_requirement(repo)
         acc + memory_gb
-    end)
+      end)
 
     # Warn if total exceeds reasonable limits (32GB)
     if total_memory > 32 do
@@ -218,14 +227,21 @@ defmodule SweBench.RepositorySetup.ValidationFramework do
 
   defp extract_memory_requirement(repository) do
     case get_in(repository, [:resource_requirements, :memory_limit]) do
-      nil -> 2  # Default 2GB
+      # Default 2GB
+      nil ->
+        2
+
       memory_str when is_binary(memory_str) ->
         case Regex.run(~r/(\d+)GB/, memory_str) do
           [_, number] -> String.to_integer(number)
           _ -> 2
         end
-      memory_num when is_number(memory_num) -> memory_num
-      _ -> 2
+
+      memory_num when is_number(memory_num) ->
+        memory_num
+
+      _ ->
+        2
     end
   end
 end

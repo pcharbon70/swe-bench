@@ -69,7 +69,7 @@ defmodule SweBench.RepositorySetup.Configs.SwooshConfig do
   @impl true
   def resource_requirements do
     %{
-      memory_limit: "2GB", 
+      memory_limit: "2GB",
       cpu_limit: "1",
       disk_space: "5GB",
       timeout_multiplier: 1.0,
@@ -82,10 +82,14 @@ defmodule SweBench.RepositorySetup.Configs.SwooshConfig do
     %{
       target_instances: 12,
       complexity_distribution: %{
-        low: 0.25,     # 25% - Basic email sending
-        medium: 0.50,  # 50% - Template and adapter features
-        high: 0.20,    # 20% - Advanced delivery tracking
-        expert: 0.05   # 5% - Complex multi-adapter scenarios
+        # 25% - Basic email sending
+        low: 0.25,
+        # 50% - Template and adapter features
+        medium: 0.50,
+        # 20% - Advanced delivery tracking
+        high: 0.20,
+        # 5% - Complex multi-adapter scenarios
+        expert: 0.05
       },
       scenario_distribution: @email_test_scenarios
     }
@@ -113,21 +117,22 @@ defmodule SweBench.RepositorySetup.Configs.SwooshConfig do
       html_body: "<h1>Test</h1>",
       text_body: "Test"
     }
-    
+
     validation_steps = [
       {:send_email, test_email},
       {:check_delivery, :mailhog_api},
       {:validate_content, test_email}
     ]
-    
+
     validation_steps
     |> Enum.reduce_while({:ok, []}, fn {step, data}, {:ok, results} ->
-        case execute_email_validation_step(container_id, step, data) do
-          {:ok, result} -> 
-            {:cont, {:ok, [{step, result} | results]}}
-          {:error, reason} -> 
-            {:halt, {:error, {step, reason}}}
-        end
+      case execute_email_validation_step(container_id, step, data) do
+        {:ok, result} ->
+          {:cont, {:ok, [{step, result} | results]}}
+
+        {:error, reason} ->
+          {:halt, {:error, {step, reason}}}
+      end
     end)
   end
 

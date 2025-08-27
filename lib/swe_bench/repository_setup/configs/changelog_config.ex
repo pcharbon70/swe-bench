@@ -92,10 +92,14 @@ defmodule SweBench.RepositorySetup.Configs.ChangelogConfig do
     %{
       target_instances: 15,
       complexity_distribution: %{
-        low: 0.20,     # 20% - Basic CMS operations
-        medium: 0.40,  # 40% - File processing
-        high: 0.30,    # 30% - Media pipeline
-        expert: 0.10   # 10% - Advanced CDN integration
+        # 20% - Basic CMS operations
+        low: 0.20,
+        # 40% - File processing
+        medium: 0.40,
+        # 30% - Media pipeline
+        high: 0.30,
+        # 10% - Advanced CDN integration
+        expert: 0.10
       },
       scenario_distribution: @cms_test_scenarios
     }
@@ -140,15 +144,16 @@ defmodule SweBench.RepositorySetup.Configs.ChangelogConfig do
       {:image_resize, "convert input.png -resize 800x600 output.png"},
       {:podcast_feed, "mix changelog.feed.generate"}
     ]
-    
+
     validation_tasks
     |> Enum.reduce_while({:ok, []}, fn {task_type, command}, {:ok, results} ->
-        case execute_media_command(container_id, command) do
-          {:ok, result} -> 
-            {:cont, {:ok, [{task_type, result} | results]}}
-          {:error, reason} -> 
-            {:halt, {:error, {task_type, reason}}}
-        end
+      case execute_media_command(container_id, command) do
+        {:ok, result} ->
+          {:cont, {:ok, [{task_type, result} | results]}}
+
+        {:error, reason} ->
+          {:halt, {:error, {task_type, reason}}}
+      end
     end)
   end
 
@@ -176,17 +181,17 @@ defmodule SweBench.RepositorySetup.Configs.ChangelogConfig do
   defp execute_media_command(_container_id, command) do
     # Mock media command execution - would integrate with actual container
     Logger.debug("Executing media command: #{command}")
-    
+
     cond do
       String.contains?(command, "ffmpeg") ->
         {:ok, "Audio conversion successful"}
-      
+
       String.contains?(command, "convert") ->
         {:ok, "Image processing successful"}
-      
+
       String.contains?(command, "feed.generate") ->
         {:ok, "Podcast feed generated successfully"}
-      
+
       true ->
         {:ok, "Command executed"}
     end

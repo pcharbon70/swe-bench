@@ -51,10 +51,11 @@ defmodule SweBench.RepositorySetup.ResourceAllocationManager do
     user_overrides = Enum.into(options, %{})
 
     # Merge configurations with priority: user_options > repository_spec > tier_defaults
-    final_allocation = base_config
-    |> Map.merge(repository_overrides)
-    |> Map.merge(user_overrides)
-    |> add_allocation_metadata(repository_spec)
+    final_allocation =
+      base_config
+      |> Map.merge(repository_overrides)
+      |> Map.merge(user_overrides)
+      |> add_allocation_metadata(repository_spec)
 
     Logger.info("Allocated resources for #{repository_spec.name}: #{inspect(final_allocation)}")
     final_allocation
@@ -84,23 +85,26 @@ defmodule SweBench.RepositorySetup.ResourceAllocationManager do
   Returns the total resource requirements for all allocated repositories.
   """
   def calculate_total_resources(allocations) when is_list(allocations) do
-    total_memory = allocations
-    |> Enum.reduce(0, fn allocation, acc ->
+    total_memory =
+      allocations
+      |> Enum.reduce(0, fn allocation, acc ->
         memory_gb = parse_memory_limit(Map.get(allocation, :memory_limit, "0GB"))
         acc + memory_gb
-    end)
+      end)
 
-    total_cpu = allocations
-    |> Enum.reduce(0, fn allocation, acc ->
+    total_cpu =
+      allocations
+      |> Enum.reduce(0, fn allocation, acc ->
         cpu_count = parse_cpu_limit(Map.get(allocation, :cpu_limit, "0"))
         acc + cpu_count
-    end)
+      end)
 
-    total_disk = allocations
-    |> Enum.reduce(0, fn allocation, acc ->
+    total_disk =
+      allocations
+      |> Enum.reduce(0, fn allocation, acc ->
         disk_gb = parse_disk_space(Map.get(allocation, :disk_space, "0GB"))
         acc + disk_gb
-    end)
+      end)
 
     %{
       total_memory_gb: total_memory,
@@ -143,11 +147,21 @@ defmodule SweBench.RepositorySetup.ResourceAllocationManager do
 
   defp parse_memory_limit(memory_str) do
     case String.downcase(memory_str) do
-      "1gb" -> 1
-      "2gb" -> 2
-      "4gb" -> 4
-      "6gb" -> 6
-      "8gb" -> 8
+      "1gb" ->
+        1
+
+      "2gb" ->
+        2
+
+      "4gb" ->
+        4
+
+      "6gb" ->
+        6
+
+      "8gb" ->
+        8
+
       _ ->
         # Try to parse number + gb
         case Regex.run(~r/(\d+)gb/, String.downcase(memory_str)) do
@@ -169,54 +183,69 @@ defmodule SweBench.RepositorySetup.ResourceAllocationManager do
 
   defp parse_disk_space(disk_str) do
     case String.downcase(disk_str) do
-      "5gb" -> 5
-      "10gb" -> 10
-      "15gb" -> 15
-      "20gb" -> 20
+      "5gb" ->
+        5
+
+      "10gb" ->
+        10
+
+      "15gb" ->
+        15
+
+      "20gb" ->
+        20
+
       _ ->
         case Regex.run(~r/(\d+)gb/, String.downcase(disk_str)) do
           [_, number] -> String.to_integer(number)
-          _ -> 5  # Default 5GB
+          # Default 5GB
+          _ -> 5
         end
     end
   end
 
   defp estimate_infrastructure_cost(memory_gb, cpu_cores) do
     # Rough AWS pricing estimate (for planning purposes)
-    memory_cost = memory_gb * 0.10  # $0.10 per GB/month
-    cpu_cost = cpu_cores * 15.0     # $15 per core/month
+    # $0.10 per GB/month
+    memory_cost = memory_gb * 0.10
+    # $15 per core/month
+    cpu_cost = cpu_cores * 15.0
 
     memory_cost + cpu_cost
   end
 
   defp analyze_resource_efficiency(allocations) do
     # Analyze allocations for optimization opportunities
-    high_memory_repos = allocations
-    |> Enum.filter(fn allocation ->
+    high_memory_repos =
+      allocations
+      |> Enum.filter(fn allocation ->
         memory_gb = parse_memory_limit(Map.get(allocation, :memory_limit, "0GB"))
         memory_gb > 6
-    end)
+      end)
 
     suggestions = []
 
-    suggestions = if length(high_memory_repos) > 2 do
-      ["Consider memory pooling for high-memory repositories" | suggestions]
-    else
-      suggestions
-    end
+    suggestions =
+      if length(high_memory_repos) > 2 do
+        ["Consider memory pooling for high-memory repositories" | suggestions]
+      else
+        suggestions
+      end
 
-    suggestions = if length(allocations) > 20 do
-      ["Consider repository sharding for better resource distribution" | suggestions]
-    else
-      suggestions
-    end
+    suggestions =
+      if length(allocations) > 20 do
+        ["Consider repository sharding for better resource distribution" | suggestions]
+      else
+        suggestions
+      end
 
     suggestions
   end
 
   defp calculate_potential_savings(optimization_suggestions) do
     # Estimate potential cost savings from optimizations
-    base_savings = length(optimization_suggestions) * 50.0  # $50 per optimization
+    # $50 per optimization
+    base_savings = length(optimization_suggestions) * 50.0
 
     %{
       estimated_monthly_savings: base_savings,

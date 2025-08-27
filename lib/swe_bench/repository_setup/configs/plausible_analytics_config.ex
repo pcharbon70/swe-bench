@@ -88,10 +88,14 @@ defmodule SweBench.RepositorySetup.Configs.PlausibleAnalyticsConfig do
     %{
       target_instances: 20,
       complexity_distribution: %{
-        low: 0.15,     # 15% - Basic analytics queries
-        medium: 0.35,  # 35% - Dashboard functionality
-        high: 0.35,    # 35% - Real-time processing
-        expert: 0.15   # 15% - Large-scale optimization
+        # 15% - Basic analytics queries
+        low: 0.15,
+        # 35% - Dashboard functionality
+        medium: 0.35,
+        # 35% - Real-time processing
+        high: 0.35,
+        # 15% - Large-scale optimization
+        expert: 0.15
       },
       scenario_distribution: @analytics_pipeline_tests
     }
@@ -114,7 +118,7 @@ defmodule SweBench.RepositorySetup.Configs.PlausibleAnalyticsConfig do
   def generate_analytics_test_data do
     %{
       page_views: generate_page_view_data(),
-      events: generate_event_data(), 
+      events: generate_event_data(),
       sessions: generate_session_data(),
       goals: generate_goal_data()
     }
@@ -126,18 +130,18 @@ defmodule SweBench.RepositorySetup.Configs.PlausibleAnalyticsConfig do
   def validate_clickhouse_integration(container_id) do
     validation_queries = [
       "SELECT 1",
-      "SHOW DATABASES", 
+      "SHOW DATABASES",
       "CREATE TABLE IF NOT EXISTS test_events (id UInt64, timestamp DateTime) ENGINE = MergeTree ORDER BY id",
       "INSERT INTO test_events VALUES (1, now())",
       "SELECT COUNT(*) FROM test_events"
     ]
-    
+
     validation_queries
     |> Enum.reduce_while({:ok, []}, fn query, {:ok, results} ->
-        case execute_clickhouse_query(container_id, query) do
-          {:ok, result} -> {:cont, {:ok, [result | results]}}
-          {:error, reason} -> {:halt, {:error, reason}}
-        end
+      case execute_clickhouse_query(container_id, query) do
+        {:ok, result} -> {:cont, {:ok, [result | results]}}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
     end)
   end
 
@@ -165,65 +169,65 @@ defmodule SweBench.RepositorySetup.Configs.PlausibleAnalyticsConfig do
   defp generate_page_view_data do
     1..1000
     |> Enum.map(fn i ->
-        %{
-          id: i,
-          hostname: "example-#{rem(i, 10)}.com",
-          pathname: "/page-#{rem(i, 50)}",
-          timestamp: DateTime.add(DateTime.utc_now(), -i * 60, :second),
-          referrer: if(rem(i, 3) == 0, do: "https://google.com", else: nil),
-          user_agent: "Mozilla/5.0 TestBot/#{rem(i, 5)}"
-        }
+      %{
+        id: i,
+        hostname: "example-#{rem(i, 10)}.com",
+        pathname: "/page-#{rem(i, 50)}",
+        timestamp: DateTime.add(DateTime.utc_now(), -i * 60, :second),
+        referrer: if(rem(i, 3) == 0, do: "https://google.com", else: nil),
+        user_agent: "Mozilla/5.0 TestBot/#{rem(i, 5)}"
+      }
     end)
   end
 
   defp generate_event_data do
     1..500
     |> Enum.map(fn i ->
-        %{
-          id: i,
-          name: "event_#{rem(i, 20)}",
-          hostname: "example-#{rem(i, 10)}.com", 
-          timestamp: DateTime.add(DateTime.utc_now(), -i * 120, :second),
-          meta: %{
-            key: "value_#{i}",
-            source: "test_#{rem(i, 5)}"
-          }
+      %{
+        id: i,
+        name: "event_#{rem(i, 20)}",
+        hostname: "example-#{rem(i, 10)}.com",
+        timestamp: DateTime.add(DateTime.utc_now(), -i * 120, :second),
+        meta: %{
+          key: "value_#{i}",
+          source: "test_#{rem(i, 5)}"
         }
+      }
     end)
   end
 
   defp generate_session_data do
     1..200
     |> Enum.map(fn i ->
-        %{
-          session_id: "session_#{i}",
-          hostname: "example-#{rem(i, 10)}.com",
-          start_time: DateTime.add(DateTime.utc_now(), -i * 300, :second),
-          duration_seconds: 30 + :rand.uniform(600),
-          page_views: 1 + :rand.uniform(10),
-          referrer: if(rem(i, 4) == 0, do: "https://twitter.com", else: nil)
-        }
+      %{
+        session_id: "session_#{i}",
+        hostname: "example-#{rem(i, 10)}.com",
+        start_time: DateTime.add(DateTime.utc_now(), -i * 300, :second),
+        duration_seconds: 30 + :rand.uniform(600),
+        page_views: 1 + :rand.uniform(10),
+        referrer: if(rem(i, 4) == 0, do: "https://twitter.com", else: nil)
+      }
     end)
   end
 
   defp generate_goal_data do
     1..50
     |> Enum.map(fn i ->
-        %{
-          goal_id: i,
-          name: "goal_#{i}",
-          hostname: "example-#{rem(i, 10)}.com",
-          event_name: "signup",
-          conversions: :rand.uniform(100),
-          conversion_rate: :rand.uniform() * 0.1
-        }
+      %{
+        goal_id: i,
+        name: "goal_#{i}",
+        hostname: "example-#{rem(i, 10)}.com",
+        event_name: "signup",
+        conversions: :rand.uniform(100),
+        conversion_rate: :rand.uniform() * 0.1
+      }
     end)
   end
 
   defp execute_clickhouse_query(_container_id, query) do
     # Mock ClickHouse query execution - would integrate with actual container
     Logger.debug("Executing ClickHouse query: #{query}")
-    
+
     cond do
       query == "SELECT 1" -> {:ok, "1"}
       query == "SHOW DATABASES" -> {:ok, ["default", "system", "plausible_test"]}

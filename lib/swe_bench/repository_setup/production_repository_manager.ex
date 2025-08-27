@@ -77,7 +77,11 @@ defmodule SweBench.RepositorySetup.ProductionRepositoryManager do
   Configures a production repository for evaluation.
   """
   def configure_production_repository(repository_name, options \\ []) do
-    GenServer.call(__MODULE__, {:configure_production_repository, repository_name, options}, 300_000)
+    GenServer.call(
+      __MODULE__,
+      {:configure_production_repository, repository_name, options},
+      300_000
+    )
   end
 
   @doc """
@@ -129,7 +133,9 @@ defmodule SweBench.RepositorySetup.ProductionRepositoryManager do
 
         case configuration_result do
           {:ok, config_data} ->
-            new_repositories = Map.put(state.production_repositories, repository_name, config_data)
+            new_repositories =
+              Map.put(state.production_repositories, repository_name, config_data)
+
             new_state = %{state | production_repositories: new_repositories}
             {:reply, {:ok, config_data}, new_state}
 
@@ -178,19 +184,21 @@ defmodule SweBench.RepositorySetup.ProductionRepositoryManager do
     Logger.info("Configuring production repository: #{repository_spec.name}")
 
     # Allocate resources based on repository requirements
-    resource_allocation = ResourceAllocationManager.allocate_production_resources(
-      repository_spec,
-      options
-    )
+    resource_allocation =
+      ResourceAllocationManager.allocate_production_resources(
+        repository_spec,
+        options
+      )
 
     # Set up specialized environment based on repository type
     environment_config = setup_production_environment(repository_spec, resource_allocation)
 
     # Validate configuration
-    validation_result = ValidationFramework.validate_production_configuration(
-      repository_spec,
-      environment_config
-    )
+    validation_result =
+      ValidationFramework.validate_production_configuration(
+        repository_spec,
+        environment_config
+      )
 
     case validation_result do
       {:ok, _validation_data} ->
@@ -328,19 +336,21 @@ defmodule SweBench.RepositorySetup.ProductionRepositoryManager do
     Logger.info("Generating #{target_count} task instances for #{repository_spec.name}")
 
     # Generate tasks based on testing scenarios
-    task_instances = repository_spec.testing_scenarios
-    |> Enum.flat_map(fn scenario ->
+    task_instances =
+      repository_spec.testing_scenarios
+      |> Enum.flat_map(fn scenario ->
         generate_tasks_for_scenario(repository_spec, scenario, target_count)
-    end)
-    |> Enum.take(target_count)
+      end)
+      |> Enum.take(target_count)
 
     if length(task_instances) >= target_count do
-      {:ok, %{
-        repository: repository_spec.name,
-        task_instances: task_instances,
-        total_generated: length(task_instances),
-        scenarios_covered: repository_spec.testing_scenarios
-      }}
+      {:ok,
+       %{
+         repository: repository_spec.name,
+         task_instances: task_instances,
+         total_generated: length(task_instances),
+         scenarios_covered: repository_spec.testing_scenarios
+       }}
     else
       {:error, :insufficient_task_generation}
     end
@@ -351,15 +361,15 @@ defmodule SweBench.RepositorySetup.ProductionRepositoryManager do
 
     1..scenario_target
     |> Enum.map(fn i ->
-        %{
-          id: "#{repository_spec.name}_#{scenario}_#{i}",
-          repository: repository_spec.name,
-          scenario: scenario,
-          complexity: determine_scenario_complexity(scenario),
-          description: generate_scenario_description(repository_spec.name, scenario),
-          test_requirements: generate_scenario_test_requirements(scenario),
-          created_at: DateTime.utc_now()
-        }
+      %{
+        id: "#{repository_spec.name}_#{scenario}_#{i}",
+        repository: repository_spec.name,
+        scenario: scenario,
+        complexity: determine_scenario_complexity(scenario),
+        description: generate_scenario_description(repository_spec.name, scenario),
+        test_requirements: generate_scenario_test_requirements(scenario),
+        created_at: DateTime.utc_now()
+      }
     end)
   end
 
