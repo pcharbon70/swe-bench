@@ -21,10 +21,10 @@ defmodule SweBench.Integration.PerformanceValidator do
   """
   def validate_production_performance(simulation_data) do
     Logger.info("Validating production performance")
-    
+
     performance_metrics = extract_performance_metrics(simulation_data)
     validation_results = validate_against_targets(performance_metrics)
-    
+
     %{
       performance_metrics: performance_metrics,
       validation_results: validation_results,
@@ -48,15 +48,18 @@ defmodule SweBench.Integration.PerformanceValidator do
   defp validate_against_targets(metrics) do
     @performance_targets
     |> Enum.map(fn {target_name, target_value} ->
-        actual_value = get_metric_value(metrics, target_name)
-        validation_result = validate_single_target(target_name, actual_value, target_value)
-        {target_name, validation_result}
+      actual_value = get_metric_value(metrics, target_name)
+      validation_result = validate_single_target(target_name, actual_value, target_value)
+      {target_name, validation_result}
     end)
     |> Enum.into(%{})
   end
 
   defp get_metric_value(metrics, :throughput_tasks_per_hour), do: Map.get(metrics, :throughput, 0)
-  defp get_metric_value(metrics, :response_time_p95_ms), do: Map.get(metrics, :response_time_p95, 0)
+
+  defp get_metric_value(metrics, :response_time_p95_ms),
+    do: Map.get(metrics, :response_time_p95, 0)
+
   defp get_metric_value(metrics, :memory_usage_gb_max), do: Map.get(metrics, :memory_usage, 0)
   defp get_metric_value(metrics, :cpu_usage_percent_max), do: Map.get(metrics, :cpu_usage, 0)
   defp get_metric_value(metrics, :error_rate_percent_max), do: Map.get(metrics, :error_rate, 0)
@@ -71,8 +74,14 @@ defmodule SweBench.Integration.PerformanceValidator do
           target: target_value,
           variance_percent: (actual_value - target_value) / target_value * 100.0
         }
-      
-      name when name in [:response_time_p95_ms, :memory_usage_gb_max, :cpu_usage_percent_max, :error_rate_percent_max] ->
+
+      name
+      when name in [
+             :response_time_p95_ms,
+             :memory_usage_gb_max,
+             :cpu_usage_percent_max,
+             :error_rate_percent_max
+           ] ->
         # Lower is better
         %{
           passed: actual_value <= target_value,
@@ -80,7 +89,7 @@ defmodule SweBench.Integration.PerformanceValidator do
           target: target_value,
           variance_percent: (actual_value - target_value) / target_value * 100.0
         }
-      
+
       _ ->
         %{passed: true, actual: actual_value, target: target_value, variance_percent: 0.0}
     end
@@ -88,9 +97,11 @@ defmodule SweBench.Integration.PerformanceValidator do
 
   defp calculate_performance_score(validation_results) do
     total_targets = map_size(validation_results)
-    passed_targets = validation_results
-    |> Enum.count(fn {_name, result} -> Map.get(result, :passed, false) end)
-    
+
+    passed_targets =
+      validation_results
+      |> Enum.count(fn {_name, result} -> Map.get(result, :passed, false) end)
+
     if total_targets > 0 do
       passed_targets / total_targets * 100.0
     else

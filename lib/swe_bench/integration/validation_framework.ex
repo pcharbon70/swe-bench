@@ -9,12 +9,18 @@ defmodule SweBench.Integration.ValidationFramework do
   require Logger
 
   @validation_dimensions [
-    :functional_correctness,    # All features work when combined
-    :performance_consistency,   # Maintains performance targets
-    :resource_efficiency,      # Optimal resource utilization
-    :data_consistency,         # Consistent results across systems
-    :error_recovery,           # Proper fault tolerance
-    :production_readiness      # Deployment readiness validation
+    # All features work when combined
+    :functional_correctness,
+    # Maintains performance targets
+    :performance_consistency,
+    # Optimal resource utilization
+    :resource_efficiency,
+    # Consistent results across systems
+    :data_consistency,
+    # Proper fault tolerance
+    :error_recovery,
+    # Deployment readiness validation
+    :production_readiness
   ]
 
   @doc """
@@ -22,17 +28,19 @@ defmodule SweBench.Integration.ValidationFramework do
   """
   def validate_multi_system_integration(coordination_data) do
     Logger.info("Validating multi-system integration")
-    
-    validation_results = @validation_dimensions
-    |> Enum.map(fn dimension ->
+
+    validation_results =
+      @validation_dimensions
+      |> Enum.map(fn dimension ->
         result = validate_dimension(dimension, coordination_data)
         {dimension, result}
-    end)
-    |> Enum.into(%{})
-    
-    overall_success = validation_results
-    |> Enum.all?(fn {_dimension, result} -> Map.get(result, :passed, false) end)
-    
+      end)
+      |> Enum.into(%{})
+
+    overall_success =
+      validation_results
+      |> Enum.all?(fn {_dimension, result} -> Map.get(result, :passed, false) end)
+
     %{
       validation_results: validation_results,
       overall_success: overall_success,
@@ -46,25 +54,27 @@ defmodule SweBench.Integration.ValidationFramework do
   """
   def validate_integration(test_results, validation_spec) do
     Logger.info("Validating integration test results")
-    
+
     validation_checks = [
       validate_functional_requirements(test_results, validation_spec),
       validate_performance_requirements(test_results, validation_spec),
       validate_quality_requirements(test_results, validation_spec)
     ]
-    
+
     case Enum.all?(validation_checks, fn result -> elem(result, 0) == :ok end) do
       true ->
-        {:ok, %{
-          validation_passed: true,
-          validation_checks: validation_checks,
-          validation_score: 100.0
-        }}
-      
+        {:ok,
+         %{
+           validation_passed: true,
+           validation_checks: validation_checks,
+           validation_score: 100.0
+         }}
+
       false ->
-        failed_checks = validation_checks
-        |> Enum.filter(fn result -> elem(result, 0) == :error end)
-        
+        failed_checks =
+          validation_checks
+          |> Enum.filter(fn result -> elem(result, 0) == :error end)
+
         {:error, {:validation_failed, failed_checks}}
     end
   end
@@ -93,12 +103,13 @@ defmodule SweBench.Integration.ValidationFramework do
       assess_resource_readiness(system_metrics),
       assess_monitoring_readiness(system_metrics)
     ]
-    
-    readiness_score = readiness_dimensions
-    |> Enum.map(fn dimension -> Map.get(dimension, :score, 0.0) end)
-    |> Enum.sum()
-    |> Kernel./(length(readiness_dimensions))
-    
+
+    readiness_score =
+      readiness_dimensions
+      |> Enum.map(fn dimension -> Map.get(dimension, :score, 0.0) end)
+      |> Enum.sum()
+      |> Kernel./(length(readiness_dimensions))
+
     %{
       production_ready: readiness_score >= 85.0,
       readiness_score: readiness_score,
@@ -111,7 +122,7 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp validate_dimension(:functional_correctness, coordination_data) do
     systems_working = Map.get(coordination_data, :integration_successful, false)
-    
+
     %{
       dimension: :functional_correctness,
       passed: systems_working,
@@ -126,9 +137,9 @@ defmodule SweBench.Integration.ValidationFramework do
   defp validate_dimension(:performance_consistency, coordination_data) do
     performance_metrics = Map.get(coordination_data, :integration_metrics, %{})
     cpu_usage = Map.get(performance_metrics, :cpu_usage, 0)
-    
+
     performance_acceptable = cpu_usage < 80.0
-    
+
     %{
       dimension: :performance_consistency,
       passed: performance_acceptable,
@@ -143,9 +154,9 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp validate_dimension(:resource_efficiency, coordination_data) do
     memory_usage = get_in(coordination_data, [:integration_metrics, :memory_usage]) || 15
-    
-    efficiency_score = max(0.0, 100.0 - (memory_usage / 32.0 * 100.0))
-    
+
+    efficiency_score = max(0.0, 100.0 - memory_usage / 32.0 * 100.0)
+
     %{
       dimension: :resource_efficiency,
       passed: efficiency_score >= 70.0,
@@ -168,9 +179,10 @@ defmodule SweBench.Integration.ValidationFramework do
   end
 
   defp calculate_validation_score(validation_results) do
-    scores = validation_results
-    |> Enum.map(fn {_dimension, result} -> Map.get(result, :score, 0.0) end)
-    
+    scores =
+      validation_results
+      |> Enum.map(fn {_dimension, result} -> Map.get(result, :score, 0.0) end)
+
     if scores != [] do
       Enum.sum(scores) / length(scores)
     else
@@ -180,7 +192,7 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp validate_functional_requirements(test_results, validation_spec) do
     required_systems = Map.get(validation_spec, :required_systems, @validation_dimensions)
-    
+
     if Enum.all?(required_systems, fn system -> system_functional?(test_results, system) end) do
       {:ok, :functional_requirements_met}
     else
@@ -191,13 +203,14 @@ defmodule SweBench.Integration.ValidationFramework do
   defp validate_performance_requirements(test_results, validation_spec) do
     performance_targets = Map.get(validation_spec, :performance_targets, %{})
     actual_performance = Map.get(test_results, :performance_metrics, %{})
-    
-    targets_met = performance_targets
-    |> Enum.all?(fn {metric, target} ->
+
+    targets_met =
+      performance_targets
+      |> Enum.all?(fn {metric, target} ->
         actual_value = Map.get(actual_performance, metric, 0)
         actual_value >= target
-    end)
-    
+      end)
+
     if targets_met do
       {:ok, :performance_requirements_met}
     else
@@ -207,10 +220,10 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp validate_quality_requirements(test_results, validation_spec) do
     _quality_targets = Map.get(validation_spec, :quality_targets, %{})
-    
+
     # Mock quality validation
     quality_met = Map.get(test_results, :quality_score, 85.0) >= 80.0
-    
+
     if quality_met do
       {:ok, :quality_requirements_met}
     else
@@ -234,8 +247,10 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp generate_performance_analysis do
     %{
-      throughput_tasks_per_hour: 90 + :rand.uniform(20),  # 90-110 tasks/hour
-      average_response_time_ms: 2000 + :rand.uniform(3000), # 2-5 second response
+      # 90-110 tasks/hour
+      throughput_tasks_per_hour: 90 + :rand.uniform(20),
+      # 2-5 second response
+      average_response_time_ms: 2000 + :rand.uniform(3000),
       resource_utilization: %{
         memory_percent: 65.0 + :rand.uniform() * 15.0,
         cpu_percent: 55.0 + :rand.uniform() * 20.0
@@ -245,8 +260,10 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp generate_stability_assessment do
     %{
-      uptime_hours: 20.0 + :rand.uniform() * 4.0,  # 20-24 hours
-      error_rate_percent: :rand.uniform() * 0.5,    # 0-0.5% errors
+      # 20-24 hours
+      uptime_hours: 20.0 + :rand.uniform() * 4.0,
+      # 0-0.5% errors
+      error_rate_percent: :rand.uniform() * 0.5,
       degradation_detected: false,
       recovery_successful: true
     }
@@ -263,7 +280,7 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp assess_stability_readiness(system_metrics) do
     uptime = Map.get(system_metrics, :uptime_hours, 0)
-    
+
     %{
       aspect: :stability,
       score: min(100.0, uptime / 24.0 * 100.0),
@@ -274,7 +291,7 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp assess_performance_readiness(system_metrics) do
     throughput = Map.get(system_metrics, :throughput, 0)
-    
+
     %{
       aspect: :performance,
       score: min(100.0, throughput / 100.0 * 100.0),
@@ -285,7 +302,7 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp assess_resource_readiness(system_metrics) do
     memory_usage = Map.get(system_metrics, :memory_usage_percent, 50.0)
-    
+
     %{
       aspect: :resource_efficiency,
       score: max(0.0, 100.0 - memory_usage),
@@ -296,7 +313,7 @@ defmodule SweBench.Integration.ValidationFramework do
 
   defp assess_monitoring_readiness(system_metrics) do
     monitoring_coverage = Map.get(system_metrics, :monitoring_coverage, 90.0)
-    
+
     %{
       aspect: :monitoring,
       score: monitoring_coverage,
@@ -309,13 +326,13 @@ defmodule SweBench.Integration.ValidationFramework do
     readiness_dimensions
     |> Enum.filter(fn dimension -> not Map.get(dimension, :ready, false) end)
     |> Enum.map(fn dimension ->
-        case dimension.aspect do
-          :stability -> "Increase system stability testing duration"
-          :performance -> "Optimize system performance and throughput"
-          :resource_efficiency -> "Improve resource allocation and optimization"
-          :monitoring -> "Enhance monitoring coverage and alerting"
-          _ -> "Review #{dimension.aspect} readiness requirements"
-        end
+      case dimension.aspect do
+        :stability -> "Increase system stability testing duration"
+        :performance -> "Optimize system performance and throughput"
+        :resource_efficiency -> "Improve resource allocation and optimization"
+        :monitoring -> "Enhance monitoring coverage and alerting"
+        _ -> "Review #{dimension.aspect} readiness requirements"
+      end
     end)
   end
 end

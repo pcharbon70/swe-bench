@@ -13,20 +13,21 @@ defmodule SweBench.Integration.ProductionSimulator do
   """
   def simulate_production_load(test_spec, config \\ %{}) do
     Logger.info("Starting production load simulation")
-    
+
     simulation_config = build_simulation_config(test_spec, config)
-    
+
     simulation_result = execute_production_simulation(simulation_config)
-    
+
     case simulation_result do
       {:ok, simulation_data} ->
-        {:ok, %{
-          simulation_successful: true,
-          simulation_config: simulation_config,
-          simulation_data: simulation_data,
-          production_metrics: extract_production_metrics(simulation_data)
-        }}
-      
+        {:ok,
+         %{
+           simulation_successful: true,
+           simulation_config: simulation_config,
+           simulation_data: simulation_data,
+           production_metrics: extract_production_metrics(simulation_data)
+         }}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -47,7 +48,7 @@ defmodule SweBench.Integration.ProductionSimulator do
       load_profile: :realistic,
       chaos_testing_enabled: false
     }
-    
+
     Map.merge(default_config, config)
     |> Map.merge(extract_simulation_params(test_spec))
   end
@@ -61,16 +62,23 @@ defmodule SweBench.Integration.ProductionSimulator do
   end
 
   defp execute_production_simulation(simulation_config) do
-    Logger.info("Executing production simulation with #{simulation_config.repository_count} repositories")
-    
+    Logger.info(
+      "Executing production simulation with #{simulation_config.repository_count} repositories"
+    )
+
     # Simulate realistic production metrics
     simulation_data = %{
       tasks_completed: simulation_config.task_instance_count,
-      tasks_per_hour: 95 + :rand.uniform(15),  # 95-110 tasks/hour
-      response_time_ms: 3_000 + :rand.uniform(4_000),  # 3-7 second response
-      memory_usage_gb: 20 + :rand.uniform(8),  # 20-28GB usage
-      cpu_usage_percent: 60 + :rand.uniform(15),  # 60-75% CPU
-      error_rate_percent: :rand.uniform() * 0.8,  # 0-0.8% errors
+      # 95-110 tasks/hour
+      tasks_per_hour: 95 + :rand.uniform(15),
+      # 3-7 second response
+      response_time_ms: 3_000 + :rand.uniform(4_000),
+      # 20-28GB usage
+      memory_usage_gb: 20 + :rand.uniform(8),
+      # 60-75% CPU
+      cpu_usage_percent: 60 + :rand.uniform(15),
+      # 0-0.8% errors
+      error_rate_percent: :rand.uniform() * 0.8,
       simulation_duration_minutes: simulation_config.simulation_duration_minutes,
       repository_coverage: %{
         total_repositories: simulation_config.repository_count,
@@ -79,12 +87,15 @@ defmodule SweBench.Integration.ProductionSimulator do
         specialized_frameworks_tested: 5
       },
       system_stability: %{
-        uptime_percent: 99.5 + :rand.uniform() * 0.4,  # 99.5-99.9% uptime
-        recovery_incidents: :rand.uniform(3),  # 0-2 recovery incidents
-        performance_degradation: :rand.uniform() * 5.0  # 0-5% degradation
+        # 99.5-99.9% uptime
+        uptime_percent: 99.5 + :rand.uniform() * 0.4,
+        # 0-2 recovery incidents
+        recovery_incidents: :rand.uniform(3),
+        # 0-5% degradation
+        performance_degradation: :rand.uniform() * 5.0
       }
     }
-    
+
     {:ok, simulation_data}
   end
 
@@ -96,7 +107,8 @@ defmodule SweBench.Integration.ProductionSimulator do
       production_readiness_indicators: %{
         meets_throughput_target: simulation_data.tasks_per_hour >= 100,
         meets_response_time_target: simulation_data.response_time_ms <= 10_000,
-        meets_resource_targets: simulation_data.memory_usage_gb <= 32 and simulation_data.cpu_usage_percent <= 80,
+        meets_resource_targets:
+          simulation_data.memory_usage_gb <= 32 and simulation_data.cpu_usage_percent <= 80,
         meets_stability_targets: simulation_data.system_stability.uptime_percent >= 99.0
       }
     }
@@ -105,24 +117,25 @@ defmodule SweBench.Integration.ProductionSimulator do
   defp calculate_stability_score(simulation_data) do
     uptime = simulation_data.system_stability.uptime_percent
     incidents = simulation_data.system_stability.recovery_incidents
-    
+
     base_score = uptime
-    incident_penalty = incidents * 5.0  # 5 points per incident
-    
+    # 5 points per incident
+    incident_penalty = incidents * 5.0
+
     max(0.0, base_score - incident_penalty)
   end
 
   defp calculate_performance_score(simulation_data) do
     throughput_score = min(100.0, simulation_data.tasks_per_hour / 100.0 * 100.0)
-    response_time_score = max(0.0, 100.0 - (simulation_data.response_time_ms / 10_000.0 * 100.0))
-    
+    response_time_score = max(0.0, 100.0 - simulation_data.response_time_ms / 10_000.0 * 100.0)
+
     (throughput_score + response_time_score) / 2.0
   end
 
   defp calculate_resource_efficiency_score(simulation_data) do
     memory_efficiency = max(0.0, (32.0 - simulation_data.memory_usage_gb) / 32.0 * 100.0)
     cpu_efficiency = max(0.0, 100.0 - simulation_data.cpu_usage_percent)
-    
+
     (memory_efficiency + cpu_efficiency) / 2.0
   end
 end

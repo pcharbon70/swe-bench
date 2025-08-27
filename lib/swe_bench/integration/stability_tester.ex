@@ -13,24 +13,25 @@ defmodule SweBench.Integration.StabilityTester do
   """
   def run_stability_test(test_spec, config \\ %{}) do
     Logger.info("Starting comprehensive stability test")
-    
+
     stability_config = build_stability_config(test_spec, config)
-    
+
     # For demonstration, run a shorter simulation instead of 24 hours
     simulation_duration = Map.get(stability_config, :simulation_duration_minutes, 5)
-    
+
     stability_result = execute_stability_simulation(stability_config, simulation_duration)
-    
+
     case stability_result do
       {:ok, stability_data} ->
-        {:ok, %{
-          stability_test_successful: true,
-          duration_hours: simulation_duration / 60.0,
-          stability_metrics: stability_data,
-          degradation_detected: detect_performance_degradation(stability_data),
-          recommendations: generate_stability_recommendations(stability_data)
-        }}
-      
+        {:ok,
+         %{
+           stability_test_successful: true,
+           duration_hours: simulation_duration / 60.0,
+           stability_metrics: stability_data,
+           degradation_detected: detect_performance_degradation(stability_data),
+           recommendations: generate_stability_recommendations(stability_data)
+         }}
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -45,7 +46,8 @@ defmodule SweBench.Integration.StabilityTester do
   defp build_stability_config(test_spec, config) do
     default_config = %{
       test_duration_hours: 24,
-      simulation_duration_minutes: 5,  # Shortened for demonstration
+      # Shortened for demonstration
+      simulation_duration_minutes: 5,
       monitoring_interval_seconds: 30,
       performance_baseline: %{
         throughput: 100,
@@ -55,7 +57,7 @@ defmodule SweBench.Integration.StabilityTester do
       },
       degradation_threshold_percent: 10.0
     }
-    
+
     Map.merge(default_config, config)
     |> Map.merge(extract_test_params(test_spec))
   end
@@ -70,29 +72,32 @@ defmodule SweBench.Integration.StabilityTester do
 
   defp execute_stability_simulation(config, duration_minutes) do
     Logger.info("Executing #{duration_minutes}-minute stability simulation")
-    
+
     # Simulate stability metrics over time
-    monitoring_intervals = max(1, div(duration_minutes, 2))  # Monitor every 2 minutes
-    
-    stability_samples = 1..monitoring_intervals
-    |> Enum.map(fn interval ->
+    # Monitor every 2 minutes
+    monitoring_intervals = max(1, div(duration_minutes, 2))
+
+    stability_samples =
+      1..monitoring_intervals
+      |> Enum.map(fn interval ->
         simulate_interval_metrics(interval, config)
-    end)
-    
+      end)
+
     stability_analysis = analyze_stability_samples(stability_samples, config)
-    
-    {:ok, %{
-      monitoring_intervals: monitoring_intervals,
-      stability_samples: stability_samples,
-      stability_analysis: stability_analysis,
-      final_metrics: List.last(stability_samples)
-    }}
+
+    {:ok,
+     %{
+       monitoring_intervals: monitoring_intervals,
+       stability_samples: stability_samples,
+       stability_analysis: stability_analysis,
+       final_metrics: List.last(stability_samples)
+     }}
   end
 
   defp simulate_interval_metrics(interval, config) do
     baseline = config.performance_baseline
     degradation_factor = calculate_degradation_factor(interval, config)
-    
+
     %{
       interval: interval,
       timestamp: DateTime.utc_now(),
@@ -100,14 +105,15 @@ defmodule SweBench.Integration.StabilityTester do
       response_time: apply_degradation(baseline.response_time, degradation_factor, :increase),
       memory_usage: apply_degradation(baseline.memory_usage, degradation_factor, :increase),
       cpu_usage: apply_degradation(baseline.cpu_usage, degradation_factor),
-      error_count: :rand.uniform(3),  # 0-2 errors per interval
+      # 0-2 errors per interval
+      error_count: :rand.uniform(3),
       system_health: assess_interval_system_health(interval)
     }
   end
 
   defp calculate_degradation_factor(interval, config) do
     base_degradation = Map.get(config, :expected_degradation_percent, 2.0)
-    
+
     # Slight increase over time to simulate realistic degradation
     time_factor = interval / 100.0
     base_degradation + time_factor
@@ -115,7 +121,7 @@ defmodule SweBench.Integration.StabilityTester do
 
   defp apply_degradation(baseline_value, degradation_percent, direction \\ :decrease) do
     degradation_amount = baseline_value * (degradation_percent / 100.0)
-    
+
     case direction do
       :decrease -> baseline_value - degradation_amount + :rand.uniform() * degradation_amount
       :increase -> baseline_value + degradation_amount + :rand.uniform() * degradation_amount
@@ -125,13 +131,15 @@ defmodule SweBench.Integration.StabilityTester do
   defp assess_interval_system_health(interval) do
     # Mock system health assessment
     base_health = 95.0
-    variability = :rand.uniform() * 5.0  # 0-5% variability
-    
-    health_score = base_health + variability - (interval * 0.1)  # Slight decline over time
-    
+    # 0-5% variability
+    variability = :rand.uniform() * 5.0
+
+    # Slight decline over time
+    health_score = base_health + variability - interval * 0.1
+
     cond do
       health_score >= 95.0 -> :excellent
-      health_score >= 85.0 -> :good  
+      health_score >= 85.0 -> :good
       health_score >= 75.0 -> :fair
       true -> :poor
     end
@@ -142,7 +150,7 @@ defmodule SweBench.Integration.StabilityTester do
       %{stability_analysis: :no_data}
     else
       baseline = config.performance_baseline
-      
+
       %{
         sample_count: length(samples),
         throughput_trend: analyze_metric_trend(samples, :throughput),
@@ -158,14 +166,14 @@ defmodule SweBench.Integration.StabilityTester do
 
   defp analyze_metric_trend(samples, metric_key) do
     values = Enum.map(samples, fn sample -> Map.get(sample, metric_key, 0) end)
-    
+
     if length(values) >= 2 do
       first_half = Enum.take(values, div(length(values), 2))
       second_half = Enum.drop(values, div(length(values), 2))
-      
+
       first_avg = Enum.sum(first_half) / length(first_half)
       second_avg = Enum.sum(second_half) / length(second_half)
-      
+
       cond do
         second_avg > first_avg * 1.05 -> :increasing
         second_avg < first_avg * 0.95 -> :decreasing
@@ -177,9 +185,10 @@ defmodule SweBench.Integration.StabilityTester do
   end
 
   defp analyze_error_trend(samples) do
-    total_errors = samples
-    |> Enum.reduce(0, fn sample, acc -> acc + Map.get(sample, :error_count, 0) end)
-    
+    total_errors =
+      samples
+      |> Enum.reduce(0, fn sample, acc -> acc + Map.get(sample, :error_count, 0) end)
+
     %{
       total_errors: total_errors,
       error_rate: total_errors / length(samples),
@@ -188,15 +197,16 @@ defmodule SweBench.Integration.StabilityTester do
   end
 
   defp assess_overall_stability(samples, _baseline) do
-    stability_indicators = samples
-    |> Enum.map(fn sample ->
+    stability_indicators =
+      samples
+      |> Enum.map(fn sample ->
         health = Map.get(sample, :system_health, :good)
         health in [:excellent, :good]
-    end)
-    
+      end)
+
     stable_intervals = Enum.count(stability_indicators, & &1)
     stability_percentage = stable_intervals / length(samples) * 100.0
-    
+
     %{
       stable_intervals: stable_intervals,
       total_intervals: length(samples),
@@ -218,9 +228,9 @@ defmodule SweBench.Integration.StabilityTester do
       stability_data.memory_trend == :increasing,
       Map.get(stability_data.error_trend, :error_trend) == :concerning
     ]
-    
+
     degradation_count = Enum.count(degradation_indicators, & &1)
-    
+
     %{
       degradation_detected: degradation_count >= 2,
       degradation_indicators: degradation_count,
@@ -230,12 +240,14 @@ defmodule SweBench.Integration.StabilityTester do
 
   defp detect_significant_degradation(samples, baseline, config) do
     threshold = Map.get(config, :degradation_threshold_percent, 10.0)
-    
+
     if samples != [] do
       final_sample = List.last(samples)
-      
-      throughput_degradation = (baseline.throughput - Map.get(final_sample, :throughput, 0)) / baseline.throughput * 100.0
-      
+
+      throughput_degradation =
+        (baseline.throughput - Map.get(final_sample, :throughput, 0)) / baseline.throughput *
+          100.0
+
       throughput_degradation > threshold
     else
       false
@@ -249,20 +261,22 @@ defmodule SweBench.Integration.StabilityTester do
 
   defp generate_stability_recommendations(stability_data) do
     recommendations = []
-    
+
     # Add recommendations based on stability analysis
-    recommendations = if Map.get(stability_data, :degradation_detected, false) do
-      ["Address performance degradation issues", "Review resource allocation" | recommendations]
-    else
-      recommendations
-    end
-    
-    recommendations = if get_in(stability_data, [:error_trend, :error_trend]) == :concerning do
-      ["Investigate error sources", "Improve error handling" | recommendations]
-    else
-      recommendations  
-    end
-    
+    recommendations =
+      if Map.get(stability_data, :degradation_detected, false) do
+        ["Address performance degradation issues", "Review resource allocation" | recommendations]
+      else
+        recommendations
+      end
+
+    recommendations =
+      if get_in(stability_data, [:error_trend, :error_trend]) == :concerning do
+        ["Investigate error sources", "Improve error handling" | recommendations]
+      else
+        recommendations
+      end
+
     if recommendations == [] do
       ["System stability is excellent", "Continue monitoring for optimal performance"]
     else
