@@ -24,13 +24,20 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   ]
 
   @test_suites [
-    :web_interface_testing,      # 5.7.1
-    :real_time_integration,      # 5.7.2  
-    :security_testing,           # 5.7.3
-    :infrastructure_resilience,  # 5.7.4
-    :performance_testing,        # 5.7.5
-    :monitoring_validation,      # 5.7.6
-    :end_to_end_simulation      # 5.7.7
+    # 5.7.1
+    :web_interface_testing,
+    # 5.7.2
+    :real_time_integration,
+    # 5.7.3
+    :security_testing,
+    # 5.7.4
+    :infrastructure_resilience,
+    # 5.7.5
+    :performance_testing,
+    # 5.7.6
+    :monitoring_validation,
+    # 5.7.7
+    :end_to_end_simulation
   ]
 
   @doc """
@@ -44,14 +51,16 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   Runs the complete Phase 5 integration test suite.
   """
   def run_full_test_suite(options \\ %{}) do
-    GenServer.call(__MODULE__, {:run_full_test_suite, options}, 600_000)  # 10 minute timeout
+    # 10 minute timeout
+    GenServer.call(__MODULE__, {:run_full_test_suite, options}, 600_000)
   end
 
   @doc """
   Runs a specific test suite.
   """
   def run_test_suite(suite_name, options \\ %{}) do
-    GenServer.call(__MODULE__, {:run_test_suite, suite_name, options}, 300_000)  # 5 minute timeout
+    # 5 minute timeout
+    GenServer.call(__MODULE__, {:run_test_suite, suite_name, options}, 300_000)
   end
 
   @doc """
@@ -71,7 +80,7 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   @impl true
   def init(config) do
     test_config = build_test_config(config)
-    
+
     state = %__MODULE__{
       config: test_config,
       test_suite_status: initialize_test_status(),
@@ -86,26 +95,23 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   @impl true
   def handle_call({:run_full_test_suite, options}, _from, state) do
     Logger.info("Starting full Phase 5 integration test suite")
-    
+
     # Setup test environment
     case EnvironmentManager.setup_test_environment(options) do
       {:ok, test_env} ->
         # Run all test suites sequentially
         test_results = run_all_test_suites(test_env, state.config)
-        
+
         # Cleanup test environment
         EnvironmentManager.cleanup_test_environment(test_env)
-        
+
         # Generate comprehensive report
         test_report = generate_test_report(test_results)
-        
-        new_state = %{state |
-          test_results: test_results,
-          test_environment: nil
-        }
-        
+
+        new_state = %{state | test_results: test_results, test_environment: nil}
+
         {:reply, {:ok, test_report}, new_state}
-      
+
       {:error, reason} ->
         {:reply, {:error, {:environment_setup_failed, reason}}, state}
     end
@@ -118,15 +124,15 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   @impl true
   def handle_call({:run_test_suite, suite_name, options}, _from, state) do
     Logger.info("Running integration test suite: #{suite_name}")
-    
+
     case run_single_test_suite(suite_name, options, state) do
       {:ok, suite_results} ->
         # Update test results
         new_results = Map.put(state.test_results, suite_name, suite_results)
         new_state = %{state | test_results: new_results}
-        
+
         {:reply, {:ok, suite_results}, new_state}
-      
+
       {:error, reason} ->
         {:reply, {:error, reason}, state}
     end
@@ -139,7 +145,7 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
       environment_ready: state.test_environment != nil,
       results_available: map_size(state.test_results) > 0
     }
-    
+
     {:reply, status, state}
   end
 
@@ -174,51 +180,52 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   defp run_all_test_suites(test_env, config) do
     @test_suites
     |> Enum.reduce(%{}, fn suite_name, results ->
-        Logger.info("Running test suite: #{suite_name}")
-        
-        suite_result = case suite_name do
+      Logger.info("Running test suite: #{suite_name}")
+
+      suite_result =
+        case suite_name do
           :web_interface_testing ->
             test_web_interface_integration(test_env, config)
-          
+
           :real_time_integration ->
             test_real_time_integration(test_env, config)
-          
+
           :security_testing ->
             test_security_integration(test_env, config)
-          
+
           :infrastructure_resilience ->
             test_infrastructure_resilience(test_env, config)
-          
+
           :performance_testing ->
             test_performance_integration(test_env, config)
-          
+
           :monitoring_validation ->
             test_monitoring_validation(test_env, config)
-          
+
           :end_to_end_simulation ->
             test_end_to_end_simulation(test_env, config)
-          
+
           _ ->
             {:error, :unknown_test_suite}
         end
-        
-        Map.put(results, suite_name, suite_result)
+
+      Map.put(results, suite_name, suite_result)
     end)
   end
 
   defp run_single_test_suite(suite_name, options, state) do
     # Setup environment if needed
     case state.test_environment do
-      nil -> 
+      nil ->
         case EnvironmentManager.setup_test_environment(options) do
           {:ok, test_env} ->
             run_suite_with_env(suite_name, test_env, state.config)
-          
-          {:error, reason} -> 
+
+          {:error, reason} ->
             {:error, {:environment_setup_failed, reason}}
         end
-      
-      existing_env -> 
+
+      existing_env ->
         run_suite_with_env(suite_name, existing_env, state.config)
     end
   end
@@ -226,7 +233,7 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   defp run_suite_with_env(suite_name, test_env, config) do
     case suite_name do
       :web_interface_testing -> test_web_interface_integration(test_env, config)
-      :real_time_integration -> test_real_time_integration(test_env, config)  
+      :real_time_integration -> test_real_time_integration(test_env, config)
       :security_testing -> test_security_integration(test_env, config)
       _ -> {:error, :test_suite_not_implemented}
     end
@@ -234,7 +241,7 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
 
   defp test_web_interface_integration(test_env, config) do
     Logger.info("Testing web interface integration")
-    
+
     # Test 5.7.1: Complete web interface testing
     test_results = %{
       user_journey_test: test_user_journey_flow(test_env),
@@ -242,11 +249,12 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
       visualization_accuracy_test: test_visualization_accuracy(test_env),
       dual_filtering_test: test_dual_filtering_functionality(test_env)
     }
-    
-    overall_success = test_results
-    |> Map.values()
-    |> Enum.all?(fn result -> elem(result, 0) == :ok end)
-    
+
+    overall_success =
+      test_results
+      |> Map.values()
+      |> Enum.all?(fn result -> elem(result, 0) == :ok end)
+
     if overall_success do
       {:ok, Map.put(test_results, :overall_status, :passed)}
     else
@@ -256,7 +264,7 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
 
   defp test_real_time_integration(test_env, config) do
     Logger.info("Testing real-time integration")
-    
+
     # Test 5.7.2: Real-time integration testing
     test_results = %{
       pubsub_performance_test: test_pubsub_channel_performance(test_env),
@@ -264,11 +272,12 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
       event_delivery_test: test_event_delivery_reliability(test_env),
       connection_recovery_test: test_connection_recovery(test_env)
     }
-    
-    overall_success = test_results
-    |> Map.values()
-    |> Enum.all?(fn result -> elem(result, 0) == :ok end)
-    
+
+    overall_success =
+      test_results
+      |> Map.values()
+      |> Enum.all?(fn result -> elem(result, 0) == :ok end)
+
     if overall_success do
       {:ok, Map.put(test_results, :overall_status, :passed)}
     else
@@ -278,7 +287,7 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
 
   defp test_security_integration(test_env, config) do
     Logger.info("Testing security integration")
-    
+
     # Test 5.7.3: Security testing suite
     test_results = %{
       authentication_test: test_authentication_mechanisms(test_env),
@@ -286,11 +295,12 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
       session_management_test: test_session_security(test_env),
       audit_logging_test: test_audit_logging_functionality(test_env)
     }
-    
-    overall_success = test_results
-    |> Map.values()
-    |> Enum.all?(fn result -> elem(result, 0) == :ok end)
-    
+
+    overall_success =
+      test_results
+      |> Map.values()
+      |> Enum.all?(fn result -> elem(result, 0) == :ok end)
+
     if overall_success do
       {:ok, Map.put(test_results, :overall_status, :passed)}
     else
@@ -300,28 +310,28 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
 
   defp test_infrastructure_resilience(test_env, config) do
     Logger.info("Testing infrastructure resilience")
-    
+
     # Mock infrastructure resilience testing
     {:ok, %{infrastructure_resilience: :tested, status: :passed}}
   end
 
   defp test_performance_integration(test_env, config) do
     Logger.info("Testing performance integration")
-    
+
     # Mock performance testing
     {:ok, %{performance_validation: :tested, status: :passed}}
   end
 
   defp test_monitoring_validation(test_env, config) do
     Logger.info("Testing monitoring validation")
-    
+
     # Mock monitoring validation
     {:ok, %{monitoring_accuracy: :tested, status: :passed}}
   end
 
   defp test_end_to_end_simulation(test_env, config) do
     Logger.info("Testing end-to-end production simulation")
-    
+
     # Mock end-to-end testing
     {:ok, %{production_simulation: :tested, status: :passed}}
   end
@@ -390,9 +400,11 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
 
   defp generate_test_report(test_results) do
     total_suites = length(@test_suites)
-    passed_suites = test_results
-    |> Enum.count(fn {_suite, result} -> elem(result, 0) == :ok end)
-    
+
+    passed_suites =
+      test_results
+      |> Enum.count(fn {_suite, result} -> elem(result, 0) == :ok end)
+
     %{
       test_summary: %{
         total_suites: total_suites,
@@ -408,15 +420,16 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
 
   defp assess_production_readiness(test_results) do
     critical_tests = [:web_interface_testing, :real_time_integration, :security_testing]
-    
-    critical_passed = critical_tests
-    |> Enum.all?(fn test ->
+
+    critical_passed =
+      critical_tests
+      |> Enum.all?(fn test ->
         case Map.get(test_results, test) do
           {:ok, _} -> true
           _ -> false
         end
-    end)
-    
+      end)
+
     %{
       ready_for_production: critical_passed,
       critical_tests_passed: critical_passed,
@@ -425,18 +438,19 @@ defmodule SweBench.IntegrationTesting.TestOrchestrator do
   end
 
   defp generate_recommendations(test_results) do
-    failed_tests = test_results
-    |> Enum.filter(fn {_suite, result} -> elem(result, 0) == :error end)
-    |> Enum.map(fn {suite, _} -> suite end)
-    
+    failed_tests =
+      test_results
+      |> Enum.filter(fn {_suite, result} -> elem(result, 0) == :error end)
+      |> Enum.map(fn {suite, _} -> suite end)
+
     case failed_tests do
       [] ->
         ["All integration tests passed - system ready for production deployment"]
-      
+
       failures ->
         failures
         |> Enum.map(fn failed_suite ->
-            "Address issues in #{failed_suite} before production deployment"
+          "Address issues in #{failed_suite} before production deployment"
         end)
     end
   end
