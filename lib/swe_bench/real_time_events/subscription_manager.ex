@@ -56,7 +56,7 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
   @impl true
   def init(config) do
     subscription_config = build_subscription_config(config)
-    
+
     state = %__MODULE__{
       config: subscription_config,
       active_subscriptions: %{},
@@ -83,29 +83,34 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
           last_activity: DateTime.utc_now(),
           status: :active
         }
-        
+
         # Register with PubSub channels
         subscription_results = register_with_channels(validated_channels, user_id)
-        
+
         case subscription_results do
           {:ok, channel_subscriptions} ->
-            new_subscriptions = Map.put(state.active_subscriptions, user_id, 
-              Map.put(subscription_data, :channel_subscriptions, channel_subscriptions))
-            
+            new_subscriptions =
+              Map.put(
+                state.active_subscriptions,
+                user_id,
+                Map.put(subscription_data, :channel_subscriptions, channel_subscriptions)
+              )
+
             # Update metrics
             new_metrics = update_connection_metrics(state.connection_metrics, :subscription_added)
-            
-            new_state = %{state | 
-              active_subscriptions: new_subscriptions,
-              connection_metrics: new_metrics
+
+            new_state = %{
+              state
+              | active_subscriptions: new_subscriptions,
+                connection_metrics: new_metrics
             }
-            
+
             {:reply, {:ok, :subscription_registered}, new_state}
-          
+
           {:error, reason} ->
             {:reply, {:error, reason}, state}
         end
-      
+
       {:error, reason} ->
         {:reply, {:error, reason}, state}
     end
@@ -116,25 +121,27 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
     case Map.get(state.active_subscriptions, user_id) do
       nil ->
         {:reply, {:error, :subscription_not_found}, state}
-      
+
       subscription_data ->
         # Get missed events since last_event_id
-        missed_events = if last_event_id do
-          get_events_since(last_event_id, subscription_data.channels)
-        else
-          []
-        end
-        
+        missed_events =
+          if last_event_id do
+            get_events_since(last_event_id, subscription_data.channels)
+          else
+            []
+          end
+
         # Update subscription status
-        updated_subscription = %{subscription_data |
-          status: :active,
-          last_activity: DateTime.utc_now()
+        updated_subscription = %{
+          subscription_data
+          | status: :active,
+            last_activity: DateTime.utc_now()
         }
-        
+
         new_subscriptions = Map.put(state.active_subscriptions, user_id, updated_subscription)
-        
+
         new_state = %{state | active_subscriptions: new_subscriptions}
-        
+
         {:reply, {:ok, missed_events}, new_state}
     end
   end
@@ -156,34 +163,37 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
     case Map.get(state.active_subscriptions, user_id) do
       nil ->
         {:noreply, state}
-      
+
       subscription_data ->
         # Unregister from specified channels or all
-        channels_to_unregister = case channel_names do
-          :all -> subscription_data.channels
-          specific_channels -> specific_channels
-        end
-        
+        channels_to_unregister =
+          case channel_names do
+            :all -> subscription_data.channels
+            specific_channels -> specific_channels
+          end
+
         # Unsubscribe from PubSub
         unregister_from_channels(channels_to_unregister, user_id)
-        
+
         # Update subscription registry
-        new_subscriptions = if channel_names == :all do
-          Map.delete(state.active_subscriptions, user_id)
-        else
-          remaining_channels = subscription_data.channels -- channels_to_unregister
-          updated_subscription = Map.put(subscription_data, :channels, remaining_channels)
-          Map.put(state.active_subscriptions, user_id, updated_subscription)
-        end
-        
+        new_subscriptions =
+          if channel_names == :all do
+            Map.delete(state.active_subscriptions, user_id)
+          else
+            remaining_channels = subscription_data.channels -- channels_to_unregister
+            updated_subscription = Map.put(subscription_data, :channels, remaining_channels)
+            Map.put(state.active_subscriptions, user_id, updated_subscription)
+          end
+
         # Update metrics
         new_metrics = update_connection_metrics(state.connection_metrics, :subscription_removed)
-        
-        new_state = %{state |
-          active_subscriptions: new_subscriptions,
-          connection_metrics: new_metrics
+
+        new_state = %{
+          state
+          | active_subscriptions: new_subscriptions,
+            connection_metrics: new_metrics
         }
-        
+
         {:noreply, new_state}
     end
   end
@@ -192,16 +202,17 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
   def handle_info(:connection_monitoring, state) do
     # Monitor connection health and cleanup stale connections
     updated_subscriptions = cleanup_stale_connections(state.active_subscriptions, state.config)
-    
+
     # Update bandwidth monitoring
     updated_bandwidth_monitor = update_bandwidth_monitoring(state.bandwidth_monitor)
-    
+
     # Schedule next monitoring
     schedule_connection_monitoring()
-    
-    new_state = %{state |
-      active_subscriptions: updated_subscriptions,
-      bandwidth_monitor: updated_bandwidth_monitor
+
+    new_state = %{
+      state
+      | active_subscriptions: updated_subscriptions,
+        bandwidth_monitor: updated_bandwidth_monitor
     }
 
     {:noreply, new_state}
@@ -237,20 +248,22 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
   defp validate_subscription_request(user_id, channel_names, connection_info, state) do
     # Validate user subscription limits
     current_subscriptions = Map.get(state.active_subscriptions, user_id)
-    current_channel_count = if current_subscriptions do
-      length(current_subscriptions.channels)
-    else
-      0
-    end
-    
+
+    current_channel_count =
+      if current_subscriptions do
+        length(current_subscriptions.channels)
+      else
+        0
+      end
+
     max_channels = state.config.max_subscriptions_per_user
     requested_channels = if is_list(channel_names), do: length(channel_names), else: 1
-    
+
     if current_channel_count + requested_channels <= max_channels do
       # Validate channels exist and are accessible
       channel_list = if is_list(channel_names), do: channel_names, else: [channel_names]
       validated_channels = validate_channel_access(channel_list, connection_info)
-      
+
       {:ok, validated_channels}
     else
       {:error, :subscription_limit_exceeded}
@@ -264,17 +277,19 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
   end
 
   defp register_with_channels(channel_names, user_id) do
-    subscription_results = channel_names
-    |> Enum.map(fn channel_name ->
+    subscription_results =
+      channel_names
+      |> Enum.map(fn channel_name ->
         case EventCoordinator.subscribe_to_channel(channel_name, self(), %{user_id: user_id}) do
           {:ok, :subscribed} -> {channel_name, :ok}
           {:error, reason} -> {channel_name, {:error, reason}}
         end
-    end)
-    
-    failed_subscriptions = subscription_results
-    |> Enum.filter(fn {_channel, result} -> elem(result, 0) == :error end)
-    
+      end)
+
+    failed_subscriptions =
+      subscription_results
+      |> Enum.filter(fn {_channel, result} -> elem(result, 0) == :error end)
+
     if failed_subscriptions == [] do
       {:ok, subscription_results}
     else
@@ -297,10 +312,10 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
   defp cleanup_stale_connections(subscriptions, config) do
     timeout_minutes = config.connection_timeout_minutes
     cutoff_time = DateTime.add(DateTime.utc_now(), -timeout_minutes * 60, :second)
-    
+
     subscriptions
     |> Enum.filter(fn {_user_id, subscription} ->
-        DateTime.compare(subscription.last_activity, cutoff_time) == :gt
+      DateTime.compare(subscription.last_activity, cutoff_time) == :gt
     end)
     |> Enum.into(%{})
   end
@@ -308,28 +323,33 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
   defp update_bandwidth_monitoring(bandwidth_monitor) do
     # Update bandwidth usage statistics
     current_time = DateTime.utc_now()
-    
+
     Map.put(bandwidth_monitor, :last_updated, current_time)
   end
 
   defp calculate_bandwidth_usage(_bandwidth_monitor) do
     # Calculate current bandwidth usage
     %{
-      bytes_per_second: :rand.uniform(1024 * 100),  # 0-100KB/s
-      events_per_second: :rand.uniform(50),          # 0-50 events/s
-      peak_usage_bytes: :rand.uniform(1024 * 500),   # 0-500KB peak
-      compression_ratio: 0.7 + :rand.uniform() * 0.2 # 70-90% compression
+      # 0-100KB/s
+      bytes_per_second: :rand.uniform(1024 * 100),
+      # 0-50 events/s
+      events_per_second: :rand.uniform(50),
+      # 0-500KB peak
+      peak_usage_bytes: :rand.uniform(1024 * 500),
+      # 70-90% compression
+      compression_ratio: 0.7 + :rand.uniform() * 0.2
     }
   end
 
   defp generate_subscription_breakdown(subscriptions) do
-    channel_counts = subscriptions
-    |> Enum.reduce(%{}, fn {_user_id, subscription}, acc ->
+    channel_counts =
+      subscriptions
+      |> Enum.reduce(%{}, fn {_user_id, subscription}, acc ->
         Enum.reduce(subscription.channels, acc, fn channel, inner_acc ->
           Map.update(inner_acc, channel, 1, &(&1 + 1))
         end)
-    end)
-    
+      end)
+
     %{
       subscriptions_per_channel: channel_counts,
       total_unique_users: map_size(subscriptions),
@@ -337,36 +357,42 @@ defmodule SweBench.RealTimeEvents.SubscriptionManager do
     }
   end
 
-  defp calculate_average_channels_per_user(subscriptions) when map_size(subscriptions) == 0, do: 0.0
+  defp calculate_average_channels_per_user(subscriptions) when map_size(subscriptions) == 0,
+    do: 0.0
+
   defp calculate_average_channels_per_user(subscriptions) do
-    total_channels = subscriptions
-    |> Enum.reduce(0, fn {_user_id, subscription}, acc ->
+    total_channels =
+      subscriptions
+      |> Enum.reduce(0, fn {_user_id, subscription}, acc ->
         acc + length(subscription.channels)
-    end)
-    
+      end)
+
     total_channels / map_size(subscriptions)
   end
 
   defp update_connection_metrics(metrics, event_type) do
     case event_type do
       :subscription_added ->
-        %{metrics |
-          total_connections_created: metrics.total_connections_created + 1,
-          active_connections: metrics.active_connections + 1
+        %{
+          metrics
+          | total_connections_created: metrics.total_connections_created + 1,
+            active_connections: metrics.active_connections + 1
         }
-      
+
       :subscription_removed ->
-        %{metrics |
-          total_connections_dropped: metrics.total_connections_dropped + 1,
-          active_connections: max(0, metrics.active_connections - 1)
+        %{
+          metrics
+          | total_connections_dropped: metrics.total_connections_dropped + 1,
+            active_connections: max(0, metrics.active_connections - 1)
         }
-      
+
       _ ->
         metrics
     end
   end
 
   defp schedule_connection_monitoring do
-    Process.send_after(self(), :connection_monitoring, 30_000)  # 30 seconds
+    # 30 seconds
+    Process.send_after(self(), :connection_monitoring, 30_000)
   end
 end

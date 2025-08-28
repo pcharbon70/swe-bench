@@ -88,9 +88,10 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
   @impl true
   def handle_info({:evaluation_progress, evaluation_id, progress_data}, socket) do
     # Update real-time progress for specific evaluation
-    socket = update(socket, :active_evaluations, fn evaluations ->
-      update_evaluation_progress(evaluations, evaluation_id, progress_data)
-    end)
+    socket =
+      update(socket, :active_evaluations, fn evaluations ->
+        update_evaluation_progress(evaluations, evaluation_id, progress_data)
+      end)
 
     {:noreply, socket}
   end

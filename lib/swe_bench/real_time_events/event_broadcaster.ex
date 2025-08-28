@@ -21,10 +21,10 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       status: :queued
     }
 
-    EventCoordinator.broadcast_event(:evaluation_submitted, payload, [
+    EventCoordinator.broadcast_event(:evaluation_submitted, payload,
       source: :evaluation_system,
       correlation_id: evaluation_data.id
-    ])
+    )
   end
 
   @doc """
@@ -41,10 +41,10 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       tests_total: progress_data.tests_total || 0
     }
 
-    EventCoordinator.broadcast_event(:progress_update, payload, [
+    EventCoordinator.broadcast_event(:progress_update, payload,
       source: :evaluation_engine,
       correlation_id: evaluation_id
-    ])
+    )
   end
 
   @doc """
@@ -70,10 +70,10 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       }
     }
 
-    EventCoordinator.broadcast_event(:evaluation_completed, payload, [
+    EventCoordinator.broadcast_event(:evaluation_completed, payload,
       source: :evaluation_system,
       correlation_id: evaluation_id
-    ])
+    )
   end
 
   @doc """
@@ -89,10 +89,10 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       test_output: test_data.output
     }
 
-    EventCoordinator.broadcast_event(:test_executed, payload, [
+    EventCoordinator.broadcast_event(:test_executed, payload,
       source: :test_runner,
       correlation_id: evaluation_id
-    ])
+    )
   end
 
   @doc """
@@ -107,9 +107,7 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       last_updated: task_instance.updated_at
     }
 
-    EventCoordinator.broadcast_event(:task_instance_added, payload, [
-      source: :dataset_manager
-    ])
+    EventCoordinator.broadcast_event(:task_instance_added, payload, source: :dataset_manager)
   end
 
   @doc """
@@ -125,9 +123,7 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       updated_at: DateTime.utc_now()
     }
 
-    EventCoordinator.broadcast_event(:repository_updated, payload, [
-      source: :repository_manager
-    ])
+    EventCoordinator.broadcast_event(:repository_updated, payload, source: :repository_manager)
   end
 
   @doc """
@@ -143,9 +139,7 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       timestamp: DateTime.utc_now()
     }
 
-    EventCoordinator.broadcast_event(:health_check, payload, [
-      source: :system_monitor
-    ])
+    EventCoordinator.broadcast_event(:health_check, payload, source: :system_monitor)
   end
 
   @doc """
@@ -161,9 +155,7 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       released_at: DateTime.utc_now()
     }
 
-    EventCoordinator.broadcast_event(:dataset_version_released, payload, [
-      source: :dataset_manager
-    ])
+    EventCoordinator.broadcast_event(:dataset_version_released, payload, source: :dataset_manager)
   end
 
   @doc """
@@ -179,10 +171,10 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       occurred_at: DateTime.utc_now()
     }
 
-    EventCoordinator.broadcast_event(:evaluation_error, payload, [
+    EventCoordinator.broadcast_event(:evaluation_error, payload,
       source: :evaluation_system,
       correlation_id: evaluation_id
-    ])
+    )
   end
 
   @doc """
@@ -198,8 +190,6 @@ defmodule SweBench.RealTimeEvents.EventBroadcaster do
       impact_level: notice_data.impact_level
     }
 
-    EventCoordinator.broadcast_event(:maintenance_notice, payload, [
-      source: :system_admin
-    ])
+    EventCoordinator.broadcast_event(:maintenance_notice, payload, source: :system_admin)
   end
 end

@@ -293,26 +293,26 @@ defmodule SweBench.RealTimeEvents.EventCoordinator do
       # Evaluation submission events
       evaluation_submitted: ["evaluations:submissions"],
       evaluation_queued: ["evaluations:submissions"],
-      
+
       # Evaluation progress events
       progress_update: ["evaluations:progress"],
       stage_completed: ["evaluations:progress"],
       test_executed: ["evaluations:progress"],
-      
+
       # Evaluation result events
       evaluation_completed: ["evaluations:results"],
       results_available: ["evaluations:results"],
-      
+
       # Admin events
       admin_action: ["evaluations:admin"],
       system_logs: ["evaluations:admin"],
-      
+
       # Dataset events
       task_instance_added: ["datasets:updates"],
       repository_updated: ["datasets:updates"],
       dataset_released: ["datasets:releases"],
       statistics_updated: ["datasets:releases"],
-      
+
       # System events
       health_check: ["system:health"],
       performance_alert: ["system:health"],

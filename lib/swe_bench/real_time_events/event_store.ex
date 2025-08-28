@@ -54,7 +54,7 @@ defmodule SweBench.RealTimeEvents.EventStore do
   @impl true
   def init(config) do
     store_config = build_store_config(config)
-    
+
     state = %__MODULE__{
       config: store_config,
       event_buffer: [],
@@ -73,26 +73,28 @@ defmodule SweBench.RealTimeEvents.EventStore do
   def handle_cast({:store_event, event}, state) do
     # Add event to buffer with index
     indexed_event = add_event_index(event)
-    
+
     # Update buffer (keep last N events in memory)
-    new_buffer = [indexed_event | state.event_buffer]
-    |> Enum.take(state.config.memory_buffer_size)
-    
+    new_buffer =
+      [indexed_event | state.event_buffer]
+      |> Enum.take(state.config.memory_buffer_size)
+
     # Update index for fast lookups
     new_index = update_event_index(state.event_index, indexed_event)
-    
+
     # Update storage statistics
     new_stats = update_storage_stats(state.storage_stats, indexed_event)
-    
+
     # Persist to storage if configured
     if state.config.persistent_storage_enabled do
       persist_event(indexed_event)
     end
 
-    new_state = %{state |
-      event_buffer: new_buffer,
-      event_index: new_index,
-      storage_stats: new_stats
+    new_state = %{
+      state
+      | event_buffer: new_buffer,
+        event_index: new_index,
+        storage_stats: new_stats
     }
 
     {:noreply, new_state}
@@ -100,23 +102,27 @@ defmodule SweBench.RealTimeEvents.EventStore do
 
   @impl true
   def handle_call({:get_recent_events, channel_name, count}, _from, state) do
-    recent_events = state.event_buffer
-    |> Enum.filter(fn event ->
+    recent_events =
+      state.event_buffer
+      |> Enum.filter(fn event ->
         matches_channel?(event, channel_name)
-    end)
-    |> Enum.take(count)
-    |> Enum.reverse()  # Return in chronological order
+      end)
+      |> Enum.take(count)
+      # Return in chronological order
+      |> Enum.reverse()
 
     {:reply, recent_events, state}
   end
 
   @impl true
   def handle_call({:get_evaluation_events, evaluation_id}, _from, state) do
-    evaluation_events = state.event_buffer
-    |> Enum.filter(fn event ->
+    evaluation_events =
+      state.event_buffer
+      |> Enum.filter(fn event ->
         get_in(event, [:metadata, :correlation_id]) == evaluation_id
-    end)
-    |> Enum.reverse()  # Chronological order
+      end)
+      # Chronological order
+      |> Enum.reverse()
 
     {:reply, evaluation_events, state}
   end
@@ -130,22 +136,20 @@ defmodule SweBench.RealTimeEvents.EventStore do
   def handle_info(:cleanup_old_events, state) do
     # Clean up old events from memory buffer
     cutoff_time = DateTime.add(DateTime.utc_now(), -state.config.retention_hours * 3600, :second)
-    
-    cleaned_buffer = state.event_buffer
-    |> Enum.filter(fn event ->
+
+    cleaned_buffer =
+      state.event_buffer
+      |> Enum.filter(fn event ->
         event_time = get_in(event, [:metadata, :timestamp])
         DateTime.compare(event_time, cutoff_time) == :gt
-    end)
+      end)
 
     cleaned_index = rebuild_event_index(cleaned_buffer)
-    
+
     # Schedule next cleanup
     schedule_cleanup()
-    
-    new_state = %{state |
-      event_buffer: cleaned_buffer,
-      event_index: cleaned_index
-    }
+
+    new_state = %{state | event_buffer: cleaned_buffer, event_index: cleaned_index}
 
     Logger.debug("Cleaned up old events, buffer size: #{length(cleaned_buffer)}")
     {:noreply, new_state}
@@ -162,7 +166,8 @@ defmodule SweBench.RealTimeEvents.EventStore do
     %{
       memory_buffer_size: 1000,
       retention_hours: 24,
-      persistent_storage_enabled: false,  # Would integrate with database
+      # Would integrate with database
+      persistent_storage_enabled: false,
       cleanup_interval_minutes: 60,
       compression_enabled: false
     }
@@ -186,23 +191,28 @@ defmodule SweBench.RealTimeEvents.EventStore do
   defp update_event_index(index, event) do
     event_type = Map.get(event, :type)
     correlation_id = get_in(event, [:metadata, :correlation_id])
-    
+
     # Index by event type
     type_index = Map.get(index, :by_type, %{})
-    updated_type_index = Map.update(type_index, event_type, [event], fn events ->
-      [event | events] |> Enum.take(100)  # Keep latest 100 per type
-    end)
-    
-    # Index by correlation ID if present
-    correlation_index = if correlation_id do
-      Map.get(index, :by_correlation, %{})
-      |> Map.update(correlation_id, [event], fn events ->
-          [event | events] |> Enum.take(50)  # Keep latest 50 per correlation
+
+    updated_type_index =
+      Map.update(type_index, event_type, [event], fn events ->
+        # Keep latest 100 per type
+        [event | events] |> Enum.take(100)
       end)
-    else
-      Map.get(index, :by_correlation, %{})
-    end
-    
+
+    # Index by correlation ID if present
+    correlation_index =
+      if correlation_id do
+        Map.get(index, :by_correlation, %{})
+        |> Map.update(correlation_id, [event], fn events ->
+          # Keep latest 50 per correlation
+          [event | events] |> Enum.take(50)
+        end)
+      else
+        Map.get(index, :by_correlation, %{})
+      end
+
     %{
       by_type: updated_type_index,
       by_correlation: correlation_index
@@ -212,12 +222,13 @@ defmodule SweBench.RealTimeEvents.EventStore do
   defp update_storage_stats(stats, event) do
     event_type = Map.get(event, :type)
     event_size = estimate_event_size(event)
-    
-    %{stats |
-      total_events_stored: stats.total_events_stored + 1,
-      events_by_type: Map.update(stats.events_by_type, event_type, 1, &(&1 + 1)),
-      average_event_size_bytes: calculate_average_size(stats, event_size),
-      newest_event_timestamp: get_in(event, [:metadata, :timestamp])
+
+    %{
+      stats
+      | total_events_stored: stats.total_events_stored + 1,
+        events_by_type: Map.update(stats.events_by_type, event_type, 1, &(&1 + 1)),
+        average_event_size_bytes: calculate_average_size(stats, event_size),
+        newest_event_timestamp: get_in(event, [:metadata, :timestamp])
     }
   end
 
@@ -237,16 +248,33 @@ defmodule SweBench.RealTimeEvents.EventStore do
   defp matches_channel?(event, channel_name) do
     # Determine if event belongs to specific channel
     event_type = Map.get(event, :type)
-    
+
     case {channel_name, event_type} do
-      {"evaluations:submissions", type} when type in [:evaluation_submitted, :evaluation_queued] -> true
-      {"evaluations:progress", type} when type in [:progress_update, :stage_completed, :test_executed] -> true
-      {"evaluations:results", type} when type in [:evaluation_completed, :results_available] -> true
-      {"datasets:updates", type} when type in [:task_instance_added, :repository_updated] -> true
-      {"datasets:releases", type} when type in [:dataset_version_released] -> true
-      {"system:health", type} when type in [:health_check, :performance_alert] -> true
-      {"system:public", type} when type in [:system_status, :maintenance_notice] -> true
-      _ -> false
+      {"evaluations:submissions", type}
+      when type in [:evaluation_submitted, :evaluation_queued] ->
+        true
+
+      {"evaluations:progress", type}
+      when type in [:progress_update, :stage_completed, :test_executed] ->
+        true
+
+      {"evaluations:results", type} when type in [:evaluation_completed, :results_available] ->
+        true
+
+      {"datasets:updates", type} when type in [:task_instance_added, :repository_updated] ->
+        true
+
+      {"datasets:releases", type} when type in [:dataset_version_released] ->
+        true
+
+      {"system:health", type} when type in [:health_check, :performance_alert] ->
+        true
+
+      {"system:public", type} when type in [:system_status, :maintenance_notice] ->
+        true
+
+      _ ->
+        false
     end
   end
 
@@ -263,6 +291,7 @@ defmodule SweBench.RealTimeEvents.EventStore do
   end
 
   defp schedule_cleanup do
-    Process.send_after(self(), :cleanup_old_events, 3_600_000)  # 1 hour
+    # 1 hour
+    Process.send_after(self(), :cleanup_old_events, 3_600_000)
   end
 end

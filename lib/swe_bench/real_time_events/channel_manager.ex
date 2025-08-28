@@ -13,12 +13,12 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
   """
   def create_channel(channel_name, config \\ %{}) do
     channel_config = build_channel_config(config)
-    
+
     Logger.info("Creating event channel: #{channel_name}")
-    
+
     # Register channel configuration
     :ets.insert(:event_channels, {channel_name, channel_config})
-    
+
     {:ok, channel_config}
   end
 
@@ -33,7 +33,7 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
         else
           {:ok, :access_granted}
         end
-      
+
       [] ->
         {:error, :channel_not_found}
     end
@@ -51,7 +51,7 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
         else
           {:filtered, :no_delivery}
         end
-      
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -65,15 +65,16 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
       {:ok, config} ->
         health_data = %{
           channel_name: channel_name,
-          status: :healthy,  # Would perform actual health checks
+          # Would perform actual health checks
+          status: :healthy,
           subscriber_count: get_subscriber_count(channel_name),
           event_rate: get_event_rate(channel_name),
           last_activity: DateTime.add(DateTime.utc_now(), -:rand.uniform(60), :second),
           config: config
         }
-        
+
         {:ok, health_data}
-      
+
       {:error, reason} ->
         {:error, reason}
     end
@@ -87,7 +88,7 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
       :undefined ->
         :ets.new(:event_channels, [:set, :public, :named_table])
         Logger.info("Initialized event channels ETS table")
-        
+
       _table ->
         Logger.debug("Event channels ETS table already exists")
     end
@@ -116,13 +117,13 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
     case auth_context do
       %{user: %{role: :admin}} when config.admin_required ->
         {:ok, :admin_access}
-      
+
       %{user: %{id: _user_id}} ->
         {:ok, :user_access}
-      
+
       nil when config.auth_required ->
         {:error, :authentication_required}
-      
+
       _ ->
         {:ok, :public_access}
     end
@@ -131,22 +132,25 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
   defp should_deliver_event?(event, config, auth_context) do
     # Check if event should be delivered based on filters and auth
     event_type = Map.get(event, :type)
-    
+
     # Check event type whitelist
     allowed_types = Map.get(config, :allowed_event_types, :all)
-    type_allowed = case allowed_types do
-      :all -> true
-      types when is_list(types) -> event_type in types
-      _ -> true
-    end
-    
+
+    type_allowed =
+      case allowed_types do
+        :all -> true
+        types when is_list(types) -> event_type in types
+        _ -> true
+      end
+
     # Check authentication requirements
-    auth_allowed = if config.auth_required do
-      authenticated_user?(auth_context)
-    else
-      true
-    end
-    
+    auth_allowed =
+      if config.auth_required do
+        authenticated_user?(auth_context)
+      else
+        true
+      end
+
     type_allowed and auth_allowed
   end
 
@@ -156,11 +160,11 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
       %{user: %{role: :admin}} ->
         # Admin gets full event details
         event
-      
+
       %{user: %{id: _user_id}} ->
         # Regular users get filtered events
         filter_sensitive_data(event)
-      
+
       _ ->
         # Public users get minimal event data
         filter_for_public_access(event)
@@ -171,7 +175,7 @@ defmodule SweBench.RealTimeEvents.ChannelManager do
     # Remove sensitive information for regular users
     event
     |> Map.update(:payload, %{}, fn payload ->
-        Map.drop(payload, [:internal_details, :system_logs, :admin_metadata])
+      Map.drop(payload, [:internal_details, :system_logs, :admin_metadata])
     end)
   end
 
