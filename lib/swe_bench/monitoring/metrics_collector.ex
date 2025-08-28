@@ -416,10 +416,9 @@ defmodule SweBench.Monitoring.MetricsCollector do
 
   defp format_for_prometheus(registry) do
     registry
-    |> Enum.map(fn {name, metric} ->
+    |> Enum.map_join("\n", fn {name, metric} ->
         format_prometheus_metric(name, metric)
     end)
-    |> Enum.join("\n")
   end
 
   defp format_prometheus_metric(name, metric) do
