@@ -88,16 +88,9 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
   @impl true
   def handle_info({:evaluation_progress, evaluation_id, progress_data}, socket) do
     # Update real-time progress for specific evaluation
-    socket =
-      update(socket, :active_evaluations, fn evaluations ->
-        Enum.map(evaluations, fn eval ->
-          if eval.id == evaluation_id do
-            Map.put(eval, :progress, progress_data)
-          else
-            eval
-          end
-        end)
-      end)
+    socket = update(socket, :active_evaluations, fn evaluations ->
+      update_evaluation_progress(evaluations, evaluation_id, progress_data)
+    end)
 
     {:noreply, socket}
   end
@@ -290,5 +283,15 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
     else
       {:error, :unauthorized}
     end
+  end
+
+  defp update_evaluation_progress(evaluations, evaluation_id, progress_data) do
+    Enum.map(evaluations, fn eval ->
+      if eval.id == evaluation_id do
+        Map.put(eval, :progress, progress_data)
+      else
+        eval
+      end
+    end)
   end
 end
