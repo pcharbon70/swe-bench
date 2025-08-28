@@ -51,7 +51,7 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
               Chart Type:
             </label>
-            <select 
+            <select
               phx-change="change_chart_type"
               phx-target={@myself}
               class="rounded border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
@@ -62,30 +62,38 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
               <option value="heatmap" selected={@chart_type == :heatmap}>Heat Map</option>
             </select>
           </div>
-          
+
           <div class="flex items-center space-x-2">
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
               Comparison:
             </label>
-            <select 
+            <select
               phx-change="change_comparison_mode"
               phx-target={@myself}
               class="rounded border-gray-300 text-sm focus:border-blue-500 focus:ring-blue-500"
             >
-              <option value="overall" selected={@comparison_mode == :overall}>Overall Performance</option>
-              <option value="by_repository" selected={@comparison_mode == :by_repository}>By Repository</option>
-              <option value="by_complexity" selected={@comparison_mode == :by_complexity}>By Complexity</option>
-              <option value="by_category" selected={@comparison_mode == :by_category}>By Category</option>
+              <option value="overall" selected={@comparison_mode == :overall}>
+                Overall Performance
+              </option>
+              <option value="by_repository" selected={@comparison_mode == :by_repository}>
+                By Repository
+              </option>
+              <option value="by_complexity" selected={@comparison_mode == :by_complexity}>
+                By Complexity
+              </option>
+              <option value="by_category" selected={@comparison_mode == :by_category}>
+                By Category
+              </option>
             </select>
           </div>
         </div>
-        
+
         <div class="text-sm text-gray-500 dark:text-gray-400">
-          Last updated: <%= format_timestamp(@last_updated) %>
+          Last updated: {format_timestamp(@last_updated)}
         </div>
       </div>
-
-      <!-- Chart Display -->
+      
+    <!-- Chart Display -->
       <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
         <div class="p-6">
           <%= case @chart_type do %>
@@ -104,35 +112,35 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
           <% end %>
         </div>
       </div>
-
-      <!-- Model Performance Summary -->
+      
+    <!-- Model Performance Summary -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <%= for {model, data} <- @model_summary do %>
           <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
             <div class="flex items-center justify-between mb-4">
               <h4 class="text-lg font-medium text-gray-900 dark:text-white">
-                <%= model %>
+                {model}
               </h4>
               <.provider_badge provider={data.provider} />
             </div>
-            
+
             <dl class="space-y-2">
               <div class="flex justify-between">
                 <dt class="text-sm text-gray-600 dark:text-gray-400">Average Score:</dt>
                 <dd class="text-sm font-medium text-gray-900 dark:text-white">
-                  <%= Float.round(data.average_score, 1) %>%
+                  {Float.round(data.average_score, 1)}%
                 </dd>
               </div>
               <div class="flex justify-between">
                 <dt class="text-sm text-gray-600 dark:text-gray-400">Evaluations:</dt>
                 <dd class="text-sm font-medium text-gray-900 dark:text-white">
-                  <%= data.evaluation_count %>
+                  {data.evaluation_count}
                 </dd>
               </div>
               <div class="flex justify-between">
                 <dt class="text-sm text-gray-600 dark:text-gray-400">Best Category:</dt>
                 <dd class="text-sm font-medium text-gray-900 dark:text-white">
-                  <%= data.best_category %>
+                  {data.best_category}
                 </dd>
               </div>
             </dl>
@@ -210,7 +218,7 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
   defp provider_badge(assigns) do
     ~H"""
     <span class={["inline-flex px-2 py-1 text-xs font-medium rounded-full", provider_color(@provider)]}>
-      <%= @provider %>
+      {@provider}
     </span>
     """
   end
@@ -219,26 +227,27 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
 
   defp prepare_chart_data(socket) do
     model_comparisons = socket.assigns[:model_comparisons] || %{}
-    
-    chart_data = case socket.assigns.comparison_mode do
-      :overall ->
-        prepare_overall_comparison_data(model_comparisons)
-      
-      :by_repository ->
-        prepare_repository_comparison_data(model_comparisons)
-      
-      :by_complexity ->
-        prepare_complexity_comparison_data(model_comparisons)
-      
-      :by_category ->
-        prepare_category_comparison_data(model_comparisons)
-      
-      _ ->
-        %{}
-    end
-    
+
+    chart_data =
+      case socket.assigns.comparison_mode do
+        :overall ->
+          prepare_overall_comparison_data(model_comparisons)
+
+        :by_repository ->
+          prepare_repository_comparison_data(model_comparisons)
+
+        :by_complexity ->
+          prepare_complexity_comparison_data(model_comparisons)
+
+        :by_category ->
+          prepare_category_comparison_data(model_comparisons)
+
+        _ ->
+          %{}
+      end
+
     model_summary = generate_model_summary(model_comparisons)
-    
+
     socket
     |> assign(:chart_data, chart_data)
     |> assign(:model_summary, model_summary)
@@ -247,11 +256,13 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
 
   defp prepare_overall_comparison_data(model_comparisons) do
     case Map.get(model_comparisons, :score_by_model) do
-      nil -> %{}
+      nil ->
+        %{}
+
       scores ->
         scores
         |> Enum.map(fn {model, score} ->
-            {model, %{score: score, color: model_color(model)}}
+          {model, %{score: score, color: model_color(model)}}
         end)
         |> Enum.into(%{})
     end
@@ -281,16 +292,20 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
 
   defp generate_model_summary(model_comparisons) do
     case Map.get(model_comparisons, :score_by_model) do
-      nil -> []
+      nil ->
+        []
+
       scores ->
         scores
         |> Enum.map(fn {model, score} ->
-            {model, %{
-              provider: determine_provider(model),
-              average_score: score,
-              evaluation_count: :rand.uniform(50) + 10,  # Mock data
-              best_category: determine_best_category(model)
-            }}
+          {model,
+           %{
+             provider: determine_provider(model),
+             average_score: score,
+             # Mock data
+             evaluation_count: :rand.uniform(50) + 10,
+             best_category: determine_best_category(model)
+           }}
         end)
     end
   end
@@ -312,16 +327,26 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
 
   defp model_color(model) do
     case determine_provider(model) do
-      "OpenAI" -> "#10B981"     # Green
-      "Anthropic" -> "#3B82F6"  # Blue  
-      "Google" -> "#F59E0B"     # Yellow
-      _ -> "#6B7280"            # Gray
+      # Green
+      "OpenAI" -> "#10B981"
+      # Blue  
+      "Anthropic" -> "#3B82F6"
+      # Yellow
+      "Google" -> "#F59E0B"
+      # Gray
+      _ -> "#6B7280"
     end
   end
 
-  defp provider_color("OpenAI"), do: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-  defp provider_color("Anthropic"), do: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-  defp provider_color("Google"), do: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+  defp provider_color("OpenAI"),
+    do: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+
+  defp provider_color("Anthropic"),
+    do: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+
+  defp provider_color("Google"),
+    do: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+
   defp provider_color(_), do: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
 
   defp format_timestamp(timestamp) when is_struct(timestamp, DateTime) do

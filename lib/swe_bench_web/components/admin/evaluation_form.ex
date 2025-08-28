@@ -24,7 +24,7 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
   def handle_event("validate_form", %{"evaluation" => form_params}, socket) do
     # Validate form inputs
     validation_result = validate_evaluation_form(form_params)
-    
+
     socket =
       socket
       |> assign(:form_data, form_params)
@@ -38,10 +38,10 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
     case validate_evaluation_form(form_params) do
       %{valid: true} ->
         socket = assign(socket, :submitting, true)
-        
+
         # Send to parent LiveView for actual submission
         send(self(), {:submit_evaluation, form_params})
-        
+
         # Reset form
         socket =
           socket
@@ -50,7 +50,7 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
           |> assign(:submitting, false)
 
         {:noreply, socket}
-      
+
       %{valid: false, errors: errors} ->
         socket = assign(socket, :validation_errors, errors)
         {:noreply, socket}
@@ -67,8 +67,8 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             LLM Model
           </label>
-          <select 
-            name="evaluation[model]" 
+          <select
+            name="evaluation[model]"
             value={@form_data["model"]}
             class={[
               "w-full rounded border focus:border-blue-500 focus:ring-blue-500",
@@ -79,20 +79,20 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
             <option value="">Select a model...</option>
             <%= for model <- @available_models do %>
               <option value={model.id}>
-                <%= model.name %> (<%= model.provider %>)
+                {model.name} ({model.provider})
               </option>
             <% end %>
           </select>
           <.field_error errors={@validation_errors["model"]} />
         </div>
-
-        <!-- Repository Selection -->
+        
+    <!-- Repository Selection -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Repository
           </label>
-          <select 
-            name="evaluation[repository]" 
+          <select
+            name="evaluation[repository]"
             value={@form_data["repository"]}
             class={[
               "w-full rounded border focus:border-blue-500 focus:ring-blue-500",
@@ -103,20 +103,20 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
             <option value="">Select a repository...</option>
             <%= for repo <- @available_repositories do %>
               <option value={repo}>
-                <%= format_repository_name(repo) %>
+                {format_repository_name(repo)}
               </option>
             <% end %>
           </select>
           <.field_error errors={@validation_errors["repository"]} />
         </div>
-
-        <!-- Task Type Selection -->
+        
+    <!-- Task Type Selection -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Task Type (Optional)
           </label>
-          <select 
-            name="evaluation[task_type]" 
+          <select
+            name="evaluation[task_type]"
             value={@form_data["task_type"]}
             class="w-full rounded border border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           >
@@ -128,8 +128,8 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
             <option value="performance">Performance</option>
           </select>
         </div>
-
-        <!-- Complexity Filter -->
+        
+    <!-- Complexity Filter -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Complexity Level (Optional)
@@ -137,22 +137,22 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
           <div class="grid grid-cols-2 gap-2">
             <%= for complexity <- ["low", "medium", "high", "very_high"] do %>
               <label class="flex items-center">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   name="evaluation[complexity][]"
                   value={complexity}
                   checked={complexity in (@form_data["complexity"] || [])}
                   class="rounded border-gray-300 text-blue-600"
                 />
                 <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                  <%= String.capitalize(String.replace(complexity, "_", " ")) %>
+                  {String.capitalize(String.replace(complexity, "_", " "))}
                 </span>
               </label>
             <% end %>
           </div>
         </div>
-
-        <!-- Advanced Options -->
+        
+    <!-- Advanced Options -->
         <div>
           <details class="group">
             <summary class="cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -161,8 +161,8 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
             <div class="mt-4 space-y-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
               <div>
                 <label class="flex items-center">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     name="evaluation[include_distributed]"
                     checked={@form_data["include_distributed"]}
                     class="rounded border-gray-300 text-blue-600"
@@ -172,11 +172,11 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
                   </span>
                 </label>
               </div>
-              
+
               <div>
                 <label class="flex items-center">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     name="evaluation[include_concurrent]"
                     checked={@form_data["include_concurrent"]}
                     class="rounded border-gray-300 text-blue-600"
@@ -186,11 +186,11 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
                   </span>
                 </label>
               </div>
-              
+
               <div>
                 <label class="flex items-center">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     name="evaluation[include_performance]"
                     checked={@form_data["include_performance"]}
                     class="rounded border-gray-300 text-blue-600"
@@ -203,10 +203,10 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
             </div>
           </details>
         </div>
-
-        <!-- Submit Button -->
+        
+    <!-- Submit Button -->
         <div class="pt-4">
-          <button 
+          <button
             type="submit"
             disabled={@submitting or not form_valid?(@validation_errors)}
             class={[
@@ -237,7 +237,7 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
       <div class="mt-1">
         <%= for error <- List.wrap(@errors) do %>
           <p class="text-sm text-red-600 dark:text-red-400">
-            <%= error %>
+            {error}
           </p>
         <% end %>
       </div>
@@ -247,21 +247,23 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
 
   defp validate_evaluation_form(form_params) do
     errors = %{}
-    
+
     # Validate model
-    errors = if Map.get(form_params, "model", "") == "" do
-      Map.put(errors, "model", ["Model is required"])
-    else
-      errors
-    end
-    
+    errors =
+      if Map.get(form_params, "model", "") == "" do
+        Map.put(errors, "model", ["Model is required"])
+      else
+        errors
+      end
+
     # Validate repository
-    errors = if Map.get(form_params, "repository", "") == "" do
-      Map.put(errors, "repository", ["Repository is required"])
-    else
-      errors
-    end
-    
+    errors =
+      if Map.get(form_params, "repository", "") == "" do
+        Map.put(errors, "repository", ["Repository is required"])
+      else
+        errors
+      end
+
     %{
       valid: map_size(errors) == 0,
       errors: errors
@@ -292,7 +294,6 @@ defmodule SweBenchWeb.Components.Admin.EvaluationForm do
     repo_name
     |> String.replace("_", " ")
     |> String.split()
-    |> Enum.map(&String.capitalize/1)
-    |> Enum.join(" ")
+    |> Enum.map_join(" ", &String.capitalize/1)
   end
 end

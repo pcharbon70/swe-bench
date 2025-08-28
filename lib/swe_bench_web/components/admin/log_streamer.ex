@@ -60,7 +60,7 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
             <label class="text-xs font-medium text-gray-700 dark:text-gray-300">
               Level:
             </label>
-            <select 
+            <select
               phx-change="change_log_level"
               phx-target={@myself}
               class="text-xs rounded border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -71,10 +71,10 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
               <option value="error" selected={@log_level == :error}>Error</option>
             </select>
           </div>
-          
+
           <div class="flex items-center">
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search logs..."
               value={@search_term}
               phx-change="search_logs"
@@ -84,11 +84,11 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
             />
           </div>
         </div>
-        
+
         <div class="flex items-center space-x-2">
           <label class="flex items-center text-xs">
-            <input 
-              type="checkbox" 
+            <input
+              type="checkbox"
               checked={@auto_scroll}
               phx-click="toggle_auto_scroll"
               phx-target={@myself}
@@ -96,7 +96,7 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
             />
             <span class="ml-1 text-gray-700 dark:text-gray-300">Auto-scroll</span>
           </label>
-          
+
           <button
             phx-click="clear_logs"
             phx-target={@myself}
@@ -106,10 +106,10 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
           </button>
         </div>
       </div>
-
-      <!-- Log Display -->
+      
+    <!-- Log Display -->
       <div class="bg-black text-green-400 p-4 rounded-lg font-mono text-xs overflow-hidden">
-        <div 
+        <div
           class="space-y-1 overflow-y-auto"
           style="height: 400px;"
           id="log-container"
@@ -118,20 +118,20 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
           <%= for log_line <- filtered_log_lines(@log_lines, @search_term, @log_level) do %>
             <div class="flex items-start space-x-2">
               <span class="text-gray-500 shrink-0">
-                <%= Calendar.strftime(log_line.timestamp, "%H:%M:%S") %>
+                {Calendar.strftime(log_line.timestamp, "%H:%M:%S")}
               </span>
               <span class={["shrink-0", log_level_color(log_line.level)]}>
-                [<%= String.upcase(to_string(log_line.level)) %>]
+                [{String.upcase(to_string(log_line.level))}]
               </span>
               <span class="text-gray-300 shrink-0">
-                <%= log_line.source %>:
+                {log_line.source}:
               </span>
               <span class="text-green-400">
-                <%= log_line.message %>
+                {log_line.message}
               </span>
             </div>
           <% end %>
-          
+
           <%= if filtered_log_lines(@log_lines, @search_term, @log_level) == [] do %>
             <div class="text-center py-8 text-gray-500">
               <%= if @log_lines == [] do %>
@@ -180,7 +180,7 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
         source: "container_manager"
       }
     ]
-    
+
     assign(socket, :log_lines, recent_logs)
   end
 
@@ -199,24 +199,29 @@ defmodule SweBenchWeb.Components.Admin.LogStreamer do
     |> filter_by_search(search_term)
   end
 
-  defp filter_by_level(log_lines, :debug), do: log_lines  # Show all
+  # Show all
+  defp filter_by_level(log_lines, :debug), do: log_lines
+
   defp filter_by_level(log_lines, :info) do
     Enum.filter(log_lines, fn log -> log.level in [:info, :warning, :error] end)
   end
+
   defp filter_by_level(log_lines, :warning) do
     Enum.filter(log_lines, fn log -> log.level in [:warning, :error] end)
   end
+
   defp filter_by_level(log_lines, :error) do
     Enum.filter(log_lines, fn log -> log.level == :error end)
   end
 
   defp filter_by_search(log_lines, ""), do: log_lines
+
   defp filter_by_search(log_lines, search_term) do
     search_lower = String.downcase(search_term)
-    
+
     Enum.filter(log_lines, fn log ->
       String.contains?(String.downcase(log.message), search_lower) or
-      String.contains?(String.downcase(log.source), search_lower)
+        String.contains?(String.downcase(log.source), search_lower)
     end)
   end
 
