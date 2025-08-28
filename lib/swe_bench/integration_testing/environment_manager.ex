@@ -13,14 +13,14 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
   """
   def setup_test_environment(options \\ %{}) do
     Logger.info("Setting up integration test environment")
-    
+
     test_env = %{
       environment_id: generate_environment_id(),
       setup_started_at: DateTime.utc_now(),
       configuration: build_test_configuration(options),
       status: :setting_up
     }
-    
+
     # Setup test environment components
     setup_steps = [
       {:database_setup, setup_test_database(test_env)},
@@ -29,18 +29,19 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
       {:monitoring_setup, setup_monitoring_system(test_env)},
       {:mock_data_setup, setup_mock_evaluation_data(test_env)}
     ]
-    
+
     # Execute setup steps
     case execute_setup_steps(setup_steps) do
       {:ok, setup_results} ->
-        completed_env = %{test_env |
-          status: :ready,
-          setup_completed_at: DateTime.utc_now(),
-          setup_results: setup_results
+        completed_env = %{
+          test_env
+          | status: :ready,
+            setup_completed_at: DateTime.utc_now(),
+            setup_results: setup_results
         }
-        
+
         {:ok, completed_env}
-      
+
       {:error, reason} ->
         {:error, {:environment_setup_failed, reason}}
     end
@@ -51,20 +52,21 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
   """
   def cleanup_test_environment(test_env) do
     Logger.info("Cleaning up test environment: #{test_env.environment_id}")
-    
+
     cleanup_steps = [
       {:database_cleanup, cleanup_test_database(test_env)},
       {:pubsub_cleanup, cleanup_pubsub_subscriptions(test_env)},
       {:monitoring_cleanup, cleanup_monitoring_data(test_env)},
       {:mock_data_cleanup, cleanup_mock_data(test_env)}
     ]
-    
+
     # Execute cleanup steps
-    results = cleanup_steps
-    |> Enum.map(fn {step_name, step_result} ->
+    results =
+      cleanup_steps
+      |> Enum.map(fn {step_name, step_result} ->
         {step_name, step_result}
-    end)
-    
+      end)
+
     Logger.info("Test environment cleanup completed")
     {:ok, results}
   end
@@ -74,22 +76,23 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
   """
   def validate_environment(test_env) do
     Logger.info("Validating test environment readiness")
-    
+
     validation_checks = [
       validate_database_connection(test_env),
       validate_pubsub_functionality(test_env),
       validate_authentication_system(test_env),
       validate_monitoring_system(test_env)
     ]
-    
+
     case Enum.all?(validation_checks, fn result -> elem(result, 0) == :ok end) do
       true ->
         {:ok, %{environment_valid: true, all_systems_ready: true}}
-      
+
       false ->
-        failed_validations = validation_checks
-        |> Enum.filter(fn result -> elem(result, 0) == :error end)
-        
+        failed_validations =
+          validation_checks
+          |> Enum.filter(fn result -> elem(result, 0) == :error end)
+
         {:error, {:validation_failed, failed_validations}}
     end
   end
@@ -108,22 +111,23 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
       security_testing_enabled: true,
       performance_testing_enabled: true
     }
-    
+
     Map.merge(default_config, options)
   end
 
   defp execute_setup_steps(setup_steps) do
-    results = setup_steps
-    |> Enum.reduce_while(%{}, fn {step_name, step_result}, acc ->
+    results =
+      setup_steps
+      |> Enum.reduce_while(%{}, fn {step_name, step_result}, acc ->
         case step_result do
           {:ok, result_data} ->
             {:cont, Map.put(acc, step_name, result_data)}
-          
+
           {:error, reason} ->
             {:halt, {:error, {step_name, reason}}}
         end
-    end)
-    
+      end)
+
     case results do
       {:error, reason} -> {:error, reason}
       success_results -> {:ok, success_results}
@@ -139,35 +143,38 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
 
   defp setup_pubsub_infrastructure(test_env) do
     # Mock PubSub setup
-    {:ok, %{
-      pubsub_ready: true,
-      channels_initialized: [
-        "evaluations:submissions",
-        "evaluations:progress",
-        "evaluations:results",
-        "system:public"
-      ]
-    }}
+    {:ok,
+     %{
+       pubsub_ready: true,
+       channels_initialized: [
+         "evaluations:submissions",
+         "evaluations:progress",
+         "evaluations:results",
+         "system:public"
+       ]
+     }}
   end
 
   defp setup_authentication_system(test_env) do
     # Mock authentication setup
-    {:ok, %{
-      auth_system_ready: true,
-      test_users_created: %{
-        admin: %{id: "admin_test_user", role: :admin},
-        public: %{id: "public_test_user", role: :public}
-      }
-    }}
+    {:ok,
+     %{
+       auth_system_ready: true,
+       test_users_created: %{
+         admin: %{id: "admin_test_user", role: :admin},
+         public: %{id: "public_test_user", role: :public}
+       }
+     }}
   end
 
   defp setup_monitoring_system(test_env) do
     # Mock monitoring setup
-    {:ok, %{
-      metrics_collection_ready: true,
-      alerting_system_ready: true,
-      tracing_enabled: true
-    }}
+    {:ok,
+     %{
+       metrics_collection_ready: true,
+       alerting_system_ready: true,
+       tracing_enabled: true
+     }}
   end
 
   defp setup_mock_evaluation_data(test_env) do
@@ -184,7 +191,7 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
       },
       %{
         id: "test_eval_002",
-        model: "Claude-3.5-Sonnet", 
+        model: "Claude-3.5-Sonnet",
         provider: "Anthropic",
         repository: "ecto",
         score: 92.3,
@@ -202,7 +209,7 @@ defmodule SweBench.IntegrationTesting.EnvironmentManager do
         started_at: DateTime.add(DateTime.utc_now(), -300, :second)
       }
     ]
-    
+
     {:ok, %{mock_evaluations: mock_evaluations, data_ready: true}}
   end
 
