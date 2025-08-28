@@ -13,7 +13,7 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
   """
   def test_admin_user_journey(test_env \\ %{}) do
     Logger.info("Testing admin user journey")
-    
+
     # Simulate admin login and evaluation submission
     test_steps = [
       {:admin_login, test_admin_authentication()},
@@ -22,7 +22,7 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
       {:result_viewing, test_result_visualization()},
       {:log_access, test_admin_log_access()}
     ]
-    
+
     # Execute test steps
     execute_test_steps(test_steps)
   end
@@ -32,14 +32,14 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
   """
   def test_public_user_journey(test_env \\ %{}) do
     Logger.info("Testing public user journey")
-    
+
     test_steps = [
       {:dashboard_access, test_public_dashboard_access()},
       {:result_filtering, test_model_task_filtering()},
       {:chart_interaction, test_chart_interactions()},
       {:real_time_updates, test_public_real_time_updates()}
     ]
-    
+
     execute_test_steps(test_steps)
   end
 
@@ -48,7 +48,7 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
   """
   def test_dual_filtering_system(test_env \\ %{}) do
     Logger.info("Testing dual filtering system")
-    
+
     filtering_tests = [
       test_model_selection_filtering(),
       test_task_category_filtering(),
@@ -56,23 +56,25 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
       test_filter_presets(),
       test_shareable_filter_urls()
     ]
-    
+
     # Validate all filtering tests
     case Enum.all?(filtering_tests, fn result -> elem(result, 0) == :ok end) do
       true ->
-        {:ok, %{
-          dual_filtering: :comprehensive,
-          model_filtering: :working,
-          task_filtering: :working,
-          filter_presets: :functional,
-          shareable_urls: :working
-        }}
-      
+        {:ok,
+         %{
+           dual_filtering: :comprehensive,
+           model_filtering: :working,
+           task_filtering: :working,
+           filter_presets: :functional,
+           shareable_urls: :working
+         }}
+
       false ->
-        failed_tests = filtering_tests
-        |> Enum.with_index()
-        |> Enum.filter(fn {result, _} -> elem(result, 0) == :error end)
-        
+        failed_tests =
+          filtering_tests
+          |> Enum.with_index()
+          |> Enum.filter(fn {result, _} -> elem(result, 0) == :error end)
+
         {:error, {:filtering_tests_failed, failed_tests}}
     end
   end
@@ -82,14 +84,14 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
   """
   def test_liveview_component_system(test_env \\ %{}) do
     Logger.info("Testing LiveView component system")
-    
+
     component_tests = [
       test_dashboard_components(),
       test_admin_components(),
       test_component_communication(),
       test_real_time_component_updates()
     ]
-    
+
     execute_test_group("LiveView Components", component_tests)
   end
 
@@ -102,75 +104,83 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
 
   defp test_evaluation_submission_flow do
     # Mock evaluation submission test
-    {:ok, %{
-      form_validation: :working,
-      model_selection: :functional,
-      repository_selection: :functional,
-      submission_successful: true
-    }}
+    {:ok,
+     %{
+       form_validation: :working,
+       model_selection: :functional,
+       repository_selection: :functional,
+       submission_successful: true
+     }}
   end
 
   defp test_real_time_progress_monitoring do
     # Mock real-time progress monitoring test
-    {:ok, %{
-      progress_updates: :live,
-      status_indicators: :accurate,
-      cancellation: :functional
-    }}
+    {:ok,
+     %{
+       progress_updates: :live,
+       status_indicators: :accurate,
+       cancellation: :functional
+     }}
   end
 
   defp test_result_visualization do
     # Mock result visualization test
-    {:ok, %{
-      charts_rendered: true,
-      data_accuracy: :validated,
-      interactive_features: :working
-    }}
+    {:ok,
+     %{
+       charts_rendered: true,
+       data_accuracy: :validated,
+       interactive_features: :working
+     }}
   end
 
   defp test_admin_log_access do
     # Mock admin log access test
-    {:ok, %{
-      log_streaming: :working,
-      log_filtering: :functional,
-      search_capability: :working
-    }}
+    {:ok,
+     %{
+       log_streaming: :working,
+       log_filtering: :functional,
+       search_capability: :working
+     }}
   end
 
   defp test_public_dashboard_access do
     # Mock public dashboard access test
-    {:ok, %{
-      unauthenticated_access: :allowed,
-      result_visibility: :full,
-      chart_access: :unrestricted
-    }}
+    {:ok,
+     %{
+       unauthenticated_access: :allowed,
+       result_visibility: :full,
+       chart_access: :unrestricted
+     }}
   end
 
   defp test_model_task_filtering do
     # Mock model+task filtering test
-    {:ok, %{
-      model_filtering: :responsive,
-      task_filtering: :comprehensive,
-      filter_combinations: :working
-    }}
+    {:ok,
+     %{
+       model_filtering: :responsive,
+       task_filtering: :comprehensive,
+       filter_combinations: :working
+     }}
   end
 
   defp test_chart_interactions do
     # Mock chart interaction test
-    {:ok, %{
-      chart_switching: :smooth,
-      comparison_modes: :functional,
-      real_time_updates: :instant
-    }}
+    {:ok,
+     %{
+       chart_switching: :smooth,
+       comparison_modes: :functional,
+       real_time_updates: :instant
+     }}
   end
 
   defp test_public_real_time_updates do
     # Mock public real-time updates test
-    {:ok, %{
-      live_result_updates: :instant,
-      chart_refreshing: :automatic,
-      no_authentication_required: true
-    }}
+    {:ok,
+     %{
+       live_result_updates: :instant,
+       chart_refreshing: :automatic,
+       no_authentication_required: true
+     }}
   end
 
   defp test_model_selection_filtering do
@@ -180,7 +190,11 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
 
   defp test_task_category_filtering do
     # Test task category filtering
-    {:ok, %{categories_filterable: [:repository, :complexity, :task_type], hierarchical_filtering: true}}
+    {:ok,
+     %{
+       categories_filterable: [:repository, :complexity, :task_type],
+       hierarchical_filtering: true
+     }}
   end
 
   defp test_combined_model_task_filtering do
@@ -190,7 +204,8 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
 
   defp test_filter_presets do
     # Test filter presets functionality
-    {:ok, %{presets_available: ["Top 3 Models", "Phoenix Tasks Only"], preset_application: :instant}}
+    {:ok,
+     %{presets_available: ["Top 3 Models", "Phoenix Tasks Only"], preset_application: :instant}}
   end
 
   defp test_shareable_filter_urls do
@@ -219,16 +234,18 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
   end
 
   defp execute_test_steps(test_steps) do
-    results = test_steps
-    |> Enum.map(fn {step_name, step_result} ->
+    results =
+      test_steps
+      |> Enum.map(fn {step_name, step_result} ->
         {step_name, step_result}
-    end)
-    |> Enum.into(%{})
-    
-    success = results
-    |> Map.values()
-    |> Enum.all?(fn result -> elem(result, 0) == :ok end)
-    
+      end)
+      |> Enum.into(%{})
+
+    success =
+      results
+      |> Map.values()
+      |> Enum.all?(fn result -> elem(result, 0) == :ok end)
+
     if success do
       {:ok, Map.put(results, :overall_status, :passed)}
     else
@@ -238,16 +255,17 @@ defmodule SweBench.IntegrationTesting.WebInterfaceTester do
 
   defp execute_test_group(group_name, tests) do
     Logger.debug("Executing test group: #{group_name}")
-    
-    results = tests
-    |> Enum.with_index()
-    |> Enum.map(fn {test_result, index} ->
+
+    results =
+      tests
+      |> Enum.with_index()
+      |> Enum.map(fn {test_result, index} ->
         {"test_#{index + 1}", test_result}
-    end)
-    |> Enum.into(%{})
-    
+      end)
+      |> Enum.into(%{})
+
     success = tests |> Enum.all?(fn result -> elem(result, 0) == :ok end)
-    
+
     if success do
       {:ok, Map.put(results, :group_status, :passed)}
     else
