@@ -39,7 +39,8 @@ defmodule SweBench.Accounts.Authorization do
         can_manage_users: false,
         can_view_system_health: false,
         can_modify_system_settings: false,
-        evaluation_quota: 10  # 10 evaluations per month
+        # 10 evaluations per month
+        evaluation_quota: 10
       }
     }
   end
@@ -49,8 +50,10 @@ defmodule SweBench.Accounts.Authorization do
   """
   def authorized?(user, action) when is_atom(action) do
     case get_user_role(user) do
-      nil -> false
-      role -> 
+      nil ->
+        false
+
+      role ->
         permissions = get_role_permissions(role)
         Map.get(permissions, action, false)
     end
@@ -82,7 +85,9 @@ defmodule SweBench.Accounts.Authorization do
   """
   def get_evaluation_quota(user) do
     case get_user_role(user) do
-      nil -> 0
+      nil ->
+        0
+
       role ->
         permissions = get_role_permissions(role)
         Map.get(permissions, :evaluation_quota, 0)
@@ -109,16 +114,19 @@ defmodule SweBench.Accounts.Authorization do
   def get_user_role(nil), do: :public
   def get_user_role(%{role: role}) when is_atom(role), do: role
   def get_user_role(%{"role" => role}) when is_binary(role), do: String.to_existing_atom(role)
+
   def get_user_role(user) when is_map(user) do
     # Check if role is stored in a different field
     cond do
       Map.has_key?(user, :user_role) -> user.user_role
       Map.has_key?(user, "user_role") -> user["user_role"]
-      true -> :public  # Default to public if no role found
+      # Default to public if no role found
+      true -> :public
     end
   rescue
     _ -> :public
   end
+
   def get_user_role(_), do: :public
 
   @doc """
@@ -135,7 +143,7 @@ defmodule SweBench.Accounts.Authorization do
   def create_auth_context(user) do
     role = get_user_role(user)
     permissions = get_role_permissions(role)
-    
+
     %{
       user: user,
       role: role,
@@ -151,9 +159,12 @@ defmodule SweBench.Accounts.Authorization do
   def can_access_route?(user, route_path) do
     cond do
       String.starts_with?(route_path, "/admin") -> can_access_admin?(user)
-      String.starts_with?(route_path, "/dashboard") -> true  # Public access
-      route_path == "/" -> true  # Home page public
-      true -> true  # Default public access
+      # Public access
+      String.starts_with?(route_path, "/dashboard") -> true
+      # Home page public
+      route_path == "/" -> true
+      # Default public access
+      true -> true
     end
   end
 
@@ -165,23 +176,23 @@ defmodule SweBench.Accounts.Authorization do
       {:admin, _} ->
         # Admin gets full access
         data
-      
+
       {:researcher, :evaluation_results} ->
         # Researchers get results but no sensitive data
         filter_sensitive_fields(data, [:internal_logs, :system_details])
-      
+
       {:public, :evaluation_results} ->
         # Public gets basic results only
         filter_sensitive_fields(data, [:internal_logs, :system_details, :admin_metadata])
-      
+
       {_, :system_logs} ->
         # Only admin can see system logs
         if admin_user?(user), do: data, else: []
-      
+
       {_, :system_health} ->
         # Only admin can see detailed health
         if admin_user?(user), do: data, else: basic_health_info(data)
-      
+
       _ ->
         data
     end

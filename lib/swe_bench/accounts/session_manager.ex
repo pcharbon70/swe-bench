@@ -9,7 +9,7 @@ defmodule SweBench.Accounts.SessionManager do
   use GenServer
   require Logger
 
-  alias SweBench.Accounts.{Authorization, AuditLogger}
+  alias SweBench.Accounts.{AuditLogger, Authorization}
 
   defstruct [
     :config,
@@ -73,7 +73,7 @@ defmodule SweBench.Accounts.SessionManager do
   @impl true
   def init(config) do
     session_config = build_session_config(config)
-    
+
     state = %__MODULE__{
       config: session_config,
       active_sessions: %{},
@@ -88,7 +88,7 @@ defmodule SweBench.Accounts.SessionManager do
   @impl true
   def handle_call({:create_session, user, session_info}, _from, state) do
     session_id = generate_session_id()
-    
+
     session_data = %{
       session_id: session_id,
       user_id: user.id,
@@ -101,13 +101,14 @@ defmodule SweBench.Accounts.SessionManager do
       login_method: Map.get(session_info, :login_method, :password),
       status: :active
     }
-    
+
     # Store session
     new_sessions = Map.put(state.active_sessions, session_id, session_data)
-    
+
     # Update analytics
-    new_analytics = update_session_analytics(state.session_analytics, :session_created, session_data)
-    
+    new_analytics =
+      update_session_analytics(state.session_analytics, :session_created, session_data)
+
     # Log session creation
     AuditLogger.log_session_event(:session_created, user.id, %{
       session_id: session_id,
@@ -115,10 +116,7 @@ defmodule SweBench.Accounts.SessionManager do
       login_method: session_data.login_method
     })
 
-    new_state = %{state |
-      active_sessions: new_sessions,
-      session_analytics: new_analytics
-    }
+    new_state = %{state | active_sessions: new_sessions, session_analytics: new_analytics}
 
     {:reply, {:ok, session_id}, new_state}
   end
@@ -128,27 +126,26 @@ defmodule SweBench.Accounts.SessionManager do
     case Map.get(state.active_sessions, session_id) do
       nil ->
         {:reply, {:error, :session_not_found}, state}
-      
+
       session_data ->
         case validate_session_expiration(session_data) do
           {:ok, :valid} ->
             # Update last activity
             updated_session = Map.put(session_data, :last_activity, DateTime.utc_now())
             new_sessions = Map.put(state.active_sessions, session_id, updated_session)
-            
+
             new_state = %{state | active_sessions: new_sessions}
             {:reply, {:ok, session_data}, new_state}
-          
+
           {:error, :expired} ->
             # Remove expired session
             new_sessions = Map.delete(state.active_sessions, session_id)
-            new_analytics = update_session_analytics(state.session_analytics, :session_expired, session_data)
-            
-            new_state = %{state |
-              active_sessions: new_sessions,
-              session_analytics: new_analytics
-            }
-            
+
+            new_analytics =
+              update_session_analytics(state.session_analytics, :session_expired, session_data)
+
+            new_state = %{state | active_sessions: new_sessions, session_analytics: new_analytics}
+
             {:reply, {:error, :session_expired}, new_state}
         end
     end
@@ -156,13 +153,14 @@ defmodule SweBench.Accounts.SessionManager do
 
   @impl true
   def handle_call({:get_user_sessions, user_id}, _from, state) do
-    user_sessions = state.active_sessions
-    |> Enum.filter(fn {_session_id, session_data} ->
+    user_sessions =
+      state.active_sessions
+      |> Enum.filter(fn {_session_id, session_data} ->
         session_data.user_id == user_id
-    end)
-    |> Enum.map(fn {session_id, session_data} ->
+      end)
+      |> Enum.map(fn {session_id, session_data} ->
         Map.put(session_data, :session_id, session_id)
-    end)
+      end)
 
     {:reply, user_sessions, state}
   end
@@ -177,23 +175,22 @@ defmodule SweBench.Accounts.SessionManager do
     case Map.get(state.active_sessions, session_id) do
       nil ->
         {:noreply, state}
-      
+
       session_data ->
         # Log session end
         AuditLogger.log_session_event(:session_ended, session_data.user_id, %{
           session_id: session_id,
           duration_minutes: calculate_session_duration(session_data)
         })
-        
+
         # Remove session
         new_sessions = Map.delete(state.active_sessions, session_id)
-        new_analytics = update_session_analytics(state.session_analytics, :session_ended, session_data)
-        
-        new_state = %{state |
-          active_sessions: new_sessions,
-          session_analytics: new_analytics
-        }
-        
+
+        new_analytics =
+          update_session_analytics(state.session_analytics, :session_ended, session_data)
+
+        new_state = %{state | active_sessions: new_sessions, session_analytics: new_analytics}
+
         {:noreply, new_state}
     end
   end
@@ -203,16 +200,17 @@ defmodule SweBench.Accounts.SessionManager do
     case Map.get(state.active_sessions, session_id) do
       nil ->
         {:noreply, state}
-      
+
       session_data ->
-        updated_session = %{session_data |
-          last_activity: DateTime.utc_now(),
-          expires_at: calculate_expiration()
+        updated_session = %{
+          session_data
+          | last_activity: DateTime.utc_now(),
+            expires_at: calculate_expiration()
         }
-        
+
         new_sessions = Map.put(state.active_sessions, session_id, updated_session)
         new_state = %{state | active_sessions: new_sessions}
-        
+
         {:noreply, new_state}
     end
   end
@@ -221,7 +219,7 @@ defmodule SweBench.Accounts.SessionManager do
   def handle_info(:cleanup_expired_sessions, state) do
     # Clean up expired sessions
     {active_sessions, expired_sessions} = partition_expired_sessions(state.active_sessions)
-    
+
     # Log expired sessions
     Enum.each(expired_sessions, fn {session_id, session_data} ->
       AuditLogger.log_session_event(:session_expired, session_data.user_id, %{
@@ -229,19 +227,21 @@ defmodule SweBench.Accounts.SessionManager do
         expired_at: DateTime.utc_now()
       })
     end)
-    
+
     # Update analytics
-    new_analytics = Enum.reduce(expired_sessions, state.session_analytics, fn {_id, session_data}, analytics ->
-      update_session_analytics(analytics, :session_expired, session_data)
-    end)
-    
+    new_analytics =
+      Enum.reduce(expired_sessions, state.session_analytics, fn {_id, session_data}, analytics ->
+        update_session_analytics(analytics, :session_expired, session_data)
+      end)
+
     # Schedule next cleanup
     cleanup_timer = schedule_cleanup()
-    
-    new_state = %{state |
-      active_sessions: active_sessions,
-      session_analytics: new_analytics,
-      cleanup_timer: cleanup_timer
+
+    new_state = %{
+      state
+      | active_sessions: active_sessions,
+        session_analytics: new_analytics,
+        cleanup_timer: cleanup_timer
     }
 
     Logger.debug("Cleaned up #{length(expired_sessions)} expired sessions")
@@ -295,13 +295,13 @@ defmodule SweBench.Accounts.SessionManager do
 
   defp partition_expired_sessions(sessions) do
     now = DateTime.utc_now()
-    
+
     sessions
     |> Enum.split_with(fn {_session_id, session_data} ->
-        DateTime.compare(now, session_data.expires_at) == :lt
+      DateTime.compare(now, session_data.expires_at) == :lt
     end)
     |> then(fn {active, expired} ->
-        {Enum.into(active, %{}), expired}
+      {Enum.into(active, %{}), expired}
     end)
   end
 
@@ -315,32 +315,36 @@ defmodule SweBench.Accounts.SessionManager do
         login_method = Map.get(session_data, :login_method, :password)
         user_role = Map.get(session_data, :user_role, :public)
         new_active_count = analytics.active_session_count + 1
-        
-        %{analytics |
-          total_sessions_created: analytics.total_sessions_created + 1,
-          active_session_count: new_active_count,
-          peak_concurrent_sessions: max(analytics.peak_concurrent_sessions, new_active_count),
-          login_methods: Map.update(analytics.login_methods, login_method, 1, &(&1 + 1)),
-          sessions_by_role: Map.update(analytics.sessions_by_role, user_role, 1, &(&1 + 1))
+
+        %{
+          analytics
+          | total_sessions_created: analytics.total_sessions_created + 1,
+            active_session_count: new_active_count,
+            peak_concurrent_sessions: max(analytics.peak_concurrent_sessions, new_active_count),
+            login_methods: Map.update(analytics.login_methods, login_method, 1, &(&1 + 1)),
+            sessions_by_role: Map.update(analytics.sessions_by_role, user_role, 1, &(&1 + 1))
         }
-      
+
       :session_ended ->
         duration = calculate_session_duration(session_data)
         total_ended = analytics.total_sessions_ended + 1
-        
-        %{analytics |
-          total_sessions_ended: total_ended,
-          active_session_count: max(0, analytics.active_session_count - 1),
-          average_session_duration_minutes: 
-            (analytics.average_session_duration_minutes * (total_ended - 1) + duration) / total_ended
+
+        %{
+          analytics
+          | total_sessions_ended: total_ended,
+            active_session_count: max(0, analytics.active_session_count - 1),
+            average_session_duration_minutes:
+              (analytics.average_session_duration_minutes * (total_ended - 1) + duration) /
+                total_ended
         }
-      
+
       :session_expired ->
-        %{analytics |
-          total_sessions_expired: analytics.total_sessions_expired + 1,
-          active_session_count: max(0, analytics.active_session_count - 1)
+        %{
+          analytics
+          | total_sessions_expired: analytics.total_sessions_expired + 1,
+            active_session_count: max(0, analytics.active_session_count - 1)
         }
-      
+
       _ ->
         analytics
     end

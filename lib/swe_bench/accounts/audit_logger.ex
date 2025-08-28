@@ -20,24 +20,42 @@ defmodule SweBench.Accounts.AuditLogger do
 
   @audit_event_types [
     # Authentication events
-    :user_login, :user_logout, :login_failed, :password_changed,
-    :oauth_login, :two_factor_enabled, :two_factor_disabled,
-    
+    :user_login,
+    :user_logout,
+    :login_failed,
+    :password_changed,
+    :oauth_login,
+    :two_factor_enabled,
+    :two_factor_disabled,
+
     # Session events
-    :session_created, :session_expired, :session_ended,
-    :session_extended, :session_hijack_detected,
-    
+    :session_created,
+    :session_expired,
+    :session_ended,
+    :session_extended,
+    :session_hijack_detected,
+
     # Authorization events
-    :access_granted, :access_denied, :role_changed,
-    :permission_escalation, :unauthorized_access_attempt,
-    
+    :access_granted,
+    :access_denied,
+    :role_changed,
+    :permission_escalation,
+    :unauthorized_access_attempt,
+
     # Administrative actions
-    :evaluation_submitted, :evaluation_cancelled, :system_settings_changed,
-    :user_created, :user_deleted, :user_role_modified,
-    
+    :evaluation_submitted,
+    :evaluation_cancelled,
+    :system_settings_changed,
+    :user_created,
+    :user_deleted,
+    :user_role_modified,
+
     # Security events
-    :suspicious_activity, :rate_limit_exceeded, :security_scan_detected,
-    :data_export_requested, :admin_action_performed
+    :suspicious_activity,
+    :rate_limit_exceeded,
+    :security_scan_detected,
+    :data_export_requested,
+    :admin_action_performed
   ]
 
   @doc """
@@ -99,7 +117,7 @@ defmodule SweBench.Accounts.AuditLogger do
   @impl true
   def init(config) do
     audit_config = build_audit_config(config)
-    
+
     state = %__MODULE__{
       config: audit_config,
       audit_log: [],
@@ -117,14 +135,15 @@ defmodule SweBench.Accounts.AuditLogger do
   @impl true
   def handle_cast({:log_event, category, event_type, user_id, metadata}, state) do
     audit_entry = create_audit_entry(category, event_type, user_id, metadata)
-    
+
     # Add to audit log
-    new_audit_log = [audit_entry | state.audit_log]
-    |> Enum.take(state.config.max_log_entries)
-    
+    new_audit_log =
+      [audit_entry | state.audit_log]
+      |> Enum.take(state.config.max_log_entries)
+
     # Update security event tracking
     new_security_events = update_security_tracking(state.security_events, audit_entry)
-    
+
     # Broadcast security events for real-time monitoring
     if should_broadcast_event?(audit_entry) do
       EventBroadcaster.broadcast_system_health(%{
@@ -134,16 +153,13 @@ defmodule SweBench.Accounts.AuditLogger do
         timestamp: audit_entry.timestamp
       })
     end
-    
+
     # Persist if configured
     if state.config.persistent_storage do
       persist_audit_entry(audit_entry)
     end
 
-    new_state = %{state |
-      audit_log: new_audit_log,
-      security_events: new_security_events
-    }
+    new_state = %{state | audit_log: new_audit_log, security_events: new_security_events}
 
     {:noreply, new_state}
   end
@@ -163,18 +179,20 @@ defmodule SweBench.Accounts.AuditLogger do
   @impl true
   def handle_info(:cleanup_old_logs, state) do
     # Clean up old audit entries based on retention policy
-    cutoff_time = DateTime.add(DateTime.utc_now(), -state.retention_policy.days * 24 * 3600, :second)
-    
-    cleaned_log = state.audit_log
-    |> Enum.filter(fn entry ->
+    cutoff_time =
+      DateTime.add(DateTime.utc_now(), -state.retention_policy.days * 24 * 3600, :second)
+
+    cleaned_log =
+      state.audit_log
+      |> Enum.filter(fn entry ->
         DateTime.compare(entry.timestamp, cutoff_time) == :gt
-    end)
+      end)
 
     # Schedule next cleanup
     schedule_log_cleanup()
-    
+
     new_state = %{state | audit_log: cleaned_log}
-    
+
     Logger.debug("Cleaned up old audit entries, current size: #{length(cleaned_log)}")
     {:noreply, new_state}
   end
@@ -189,7 +207,8 @@ defmodule SweBench.Accounts.AuditLogger do
   defp default_config do
     %{
       max_log_entries: 10_000,
-      persistent_storage: false,  # Would integrate with database
+      # Would integrate with database
+      persistent_storage: false,
       real_time_broadcasting: true,
       security_alerting: true,
       retention_days: 90
@@ -221,13 +240,13 @@ defmodule SweBench.Accounts.AuditLogger do
     case event_type do
       type when type in [:login_failed, :unauthorized_access_attempt, :suspicious_activity] ->
         :high
-      
+
       type when type in [:permission_escalation, :role_changed, :security_scan_detected] ->
         :medium
-      
+
       type when type in [:user_login, :user_logout, :session_created] ->
         :low
-      
+
       _ ->
         :info
     end
@@ -239,9 +258,9 @@ defmodule SweBench.Accounts.AuditLogger do
         # Track security events for alerting
         user_events = Map.get(security_events, audit_entry.user_id, [])
         updated_user_events = [audit_entry | user_events] |> Enum.take(100)
-        
+
         Map.put(security_events, audit_entry.user_id, updated_user_events)
-      
+
       _ ->
         security_events
     end
@@ -261,25 +280,31 @@ defmodule SweBench.Accounts.AuditLogger do
   end
 
   defp filter_by_category(log, nil), do: log
+
   defp filter_by_category(log, category) do
     Enum.filter(log, fn entry -> entry.category == category end)
   end
 
   defp filter_by_user(log, nil), do: log
+
   defp filter_by_user(log, user_id) do
     Enum.filter(log, fn entry -> entry.user_id == user_id end)
   end
 
   defp filter_by_time_range(log, nil, nil), do: log
+
   defp filter_by_time_range(log, start_time, end_time) do
     Enum.filter(log, fn entry ->
-      after_start = if start_time, do: DateTime.compare(entry.timestamp, start_time) != :lt, else: true
+      after_start =
+        if start_time, do: DateTime.compare(entry.timestamp, start_time) != :lt, else: true
+
       before_end = if end_time, do: DateTime.compare(entry.timestamp, end_time) != :gt, else: true
       after_start and before_end
     end)
   end
 
   defp filter_by_severity(log, nil), do: log
+
   defp filter_by_severity(log, severity) do
     Enum.filter(log, fn entry -> entry.severity == severity end)
   end
@@ -313,12 +338,12 @@ defmodule SweBench.Accounts.AuditLogger do
     audit_log
     |> Enum.take(10)
     |> Enum.map(fn entry ->
-        %{
-          event_type: entry.event_type,
-          user_id: entry.user_id,
-          timestamp: entry.timestamp,
-          severity: entry.severity
-        }
+      %{
+        event_type: entry.event_type,
+        user_id: entry.user_id,
+        timestamp: entry.timestamp,
+        severity: entry.severity
+      }
     end)
   end
 
@@ -337,7 +362,8 @@ defmodule SweBench.Accounts.AuditLogger do
   end
 
   defp schedule_log_cleanup do
-    Process.send_after(self(), :cleanup_old_logs, 24 * 60 * 60 * 1000)  # 24 hours
+    # 24 hours
+    Process.send_after(self(), :cleanup_old_logs, 24 * 60 * 60 * 1000)
   end
 
   defp generate_audit_id do
