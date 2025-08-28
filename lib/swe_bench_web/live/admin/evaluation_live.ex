@@ -10,7 +10,7 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
 
   # Future: Will integrate with actual evaluation system
   # alias SweBench.{Repo, TaskInstances}
-  alias SweBenchWeb.Components.{EvaluationForm, ProgressTracker, LogStreamer}
+  alias SweBenchWeb.Components.{EvaluationForm, LogStreamer, ProgressTracker}
 
   @impl true
   def mount(_params, _session, socket) do

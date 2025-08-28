@@ -11,7 +11,7 @@ defmodule SweBenchWeb.DashboardLive do
 
   # Future: Will integrate with actual data sources
   # alias SweBench.{Repo, TaskInstances}
-  alias SweBenchWeb.Components.{ResultsTable, ModelComparison, FilterPanel}
+  alias SweBenchWeb.Components.{FilterPanel, ModelComparison, ResultsTable}
 
   @impl true
   def mount(_params, _session, socket) do

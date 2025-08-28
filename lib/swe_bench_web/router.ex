@@ -32,7 +32,7 @@ defmodule SweBenchWeb.Router do
 
     ash_authentication_live_session :admin_routes,
       on_mount: {SweBenchWeb.LiveUserAuth, :live_user_required} do
-      # Admin evaluation interface - authentication required  
+      # Admin evaluation interface - authentication required
       live "/admin/evaluations", Admin.EvaluationLive, :index
     end
   end
