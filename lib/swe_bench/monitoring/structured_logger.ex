@@ -9,9 +9,21 @@ defmodule SweBench.Monitoring.StructuredLogger do
   require Logger
 
   @log_fields [
-    :timestamp, :level, :message, :module, :function, :line,
-    :trace_id, :span_id, :user_id, :session_id, :evaluation_id,
-    :repository, :model, :request_id, :ip_address
+    :timestamp,
+    :level,
+    :message,
+    :module,
+    :function,
+    :line,
+    :trace_id,
+    :span_id,
+    :user_id,
+    :session_id,
+    :evaluation_id,
+    :repository,
+    :model,
+    :request_id,
+    :ip_address
   ]
 
   @doc """
@@ -19,13 +31,13 @@ defmodule SweBench.Monitoring.StructuredLogger do
   """
   def log(level, message, metadata \\ %{}) when level in [:debug, :info, :warning, :error] do
     structured_entry = build_structured_entry(level, message, metadata)
-    
+
     # Log through standard Logger
     Logger.log(level, format_structured_message(structured_entry), structured_entry.metadata)
-    
+
     # Send to real-time monitoring if configured
     maybe_broadcast_log_event(structured_entry)
-    
+
     :ok
   end
 
@@ -33,12 +45,13 @@ defmodule SweBench.Monitoring.StructuredLogger do
   Logs an evaluation-related event.
   """
   def log_evaluation_event(event_type, evaluation_id, message, metadata \\ %{}) do
-    enhanced_metadata = Map.merge(metadata, %{
-      event_type: event_type,
-      evaluation_id: evaluation_id,
-      category: :evaluation
-    })
-    
+    enhanced_metadata =
+      Map.merge(metadata, %{
+        event_type: event_type,
+        evaluation_id: evaluation_id,
+        category: :evaluation
+      })
+
     log(:info, message, enhanced_metadata)
   end
 
@@ -47,13 +60,14 @@ defmodule SweBench.Monitoring.StructuredLogger do
   """
   def log_security_event(event_type, message, metadata \\ %{}) do
     severity = determine_security_severity(event_type)
-    
-    enhanced_metadata = Map.merge(metadata, %{
-      event_type: event_type,
-      category: :security,
-      requires_audit: true
-    })
-    
+
+    enhanced_metadata =
+      Map.merge(metadata, %{
+        event_type: event_type,
+        category: :security,
+        requires_audit: true
+      })
+
     log(severity, message, enhanced_metadata)
   end
 
@@ -62,13 +76,14 @@ defmodule SweBench.Monitoring.StructuredLogger do
   """
   def log_system_event(component, status, message, metadata \\ %{}) do
     severity = if status in [:healthy, :ok], do: :info, else: :warning
-    
-    enhanced_metadata = Map.merge(metadata, %{
-      component: component,
-      status: status,
-      category: :system_health
-    })
-    
+
+    enhanced_metadata =
+      Map.merge(metadata, %{
+        component: component,
+        status: status,
+        category: :system_health
+      })
+
     log(severity, message, enhanced_metadata)
   end
 
@@ -106,7 +121,7 @@ defmodule SweBench.Monitoring.StructuredLogger do
       error_logs: %{retention_days: 365, compression: false},
       security_logs: %{retention_days: 365, compression: false, backup: true}
     }
-    
+
     Map.merge(default_policy, policy_config)
   end
 
@@ -122,10 +137,10 @@ defmodule SweBench.Monitoring.StructuredLogger do
       line: Map.get(metadata, :line, 0),
       pid: inspect(self())
     }
-    
+
     # Add optional fields if present
     optional_fields = Map.take(metadata, @log_fields)
-    
+
     %{
       entry: Map.merge(base_entry, optional_fields),
       metadata: metadata
@@ -134,30 +149,34 @@ defmodule SweBench.Monitoring.StructuredLogger do
 
   defp format_structured_message(structured_entry) do
     entry = structured_entry.entry
-    
-    base_message = "[#{entry.timestamp}] #{String.upcase(to_string(entry.level))} #{entry.message}"
-    
+
+    base_message =
+      "[#{entry.timestamp}] #{String.upcase(to_string(entry.level))} #{entry.message}"
+
     # Add context if available
     context_parts = []
-    
-    context_parts = if entry[:trace_id] do
-      ["trace_id=#{entry.trace_id}" | context_parts]
-    else
-      context_parts
-    end
-    
-    context_parts = if entry[:evaluation_id] do
-      ["eval_id=#{entry.evaluation_id}" | context_parts]
-    else
-      context_parts
-    end
-    
-    context_parts = if entry[:user_id] do
-      ["user_id=#{entry.user_id}" | context_parts]
-    else
-      context_parts
-    end
-    
+
+    context_parts =
+      if entry[:trace_id] do
+        ["trace_id=#{entry.trace_id}" | context_parts]
+      else
+        context_parts
+      end
+
+    context_parts =
+      if entry[:evaluation_id] do
+        ["eval_id=#{entry.evaluation_id}" | context_parts]
+      else
+        context_parts
+      end
+
+    context_parts =
+      if entry[:user_id] do
+        ["user_id=#{entry.user_id}" | context_parts]
+      else
+        context_parts
+      end
+
     if context_parts != [] do
       base_message <> " [" <> Enum.join(context_parts, ", ") <> "]"
     else
@@ -174,10 +193,14 @@ defmodule SweBench.Monitoring.StructuredLogger do
   defp maybe_broadcast_log_event(structured_entry) do
     # Broadcast high-severity logs to real-time monitoring
     if structured_entry.entry.level in [:warning, :error] do
-      :telemetry.execute([:swe_bench, :monitoring, :log_event], %{
-        level: structured_entry.entry.level,
-        timestamp: structured_entry.entry.timestamp
-      }, structured_entry.metadata)
+      :telemetry.execute(
+        [:swe_bench, :monitoring, :log_event],
+        %{
+          level: structured_entry.entry.level,
+          timestamp: structured_entry.entry.timestamp
+        },
+        structured_entry.metadata
+      )
     end
   end
 
