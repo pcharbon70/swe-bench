@@ -77,7 +77,7 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
   @impl true
   def handle_event("toggle_section", %{"section" => section}, socket) do
     section_atom = String.to_existing_atom(section)
-    
+
     socket =
       update(socket, :expanded_sections, fn sections ->
         Map.update(sections, section_atom, true, &(!&1))
@@ -89,7 +89,7 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
   @impl true
   def handle_event("apply_preset", %{"preset" => preset_id}, socket) do
     preset = Enum.find(@filter_presets, &(&1.id == preset_id))
-    
+
     if preset do
       send_update(self(), SweBenchWeb.DashboardLive, %{
         model_filters: preset.models,
@@ -132,7 +132,7 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
               Filter by model and task categories for targeted analysis
             </p>
           </div>
-          
+
           <button
             phx-click="clear_all_filters"
             phx-target={@myself}
@@ -142,7 +142,7 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
           </button>
         </div>
       </div>
-      
+
       <div class="p-6 space-y-6">
         <!-- Filter Presets -->
         <div>
@@ -155,13 +155,13 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
                 phx-target={@myself}
                 class="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors"
               >
-                <%= preset.name %>
+                {preset.name}
               </button>
             <% end %>
           </div>
         </div>
-
-        <!-- Model Filters -->
+        
+    <!-- Model Filters -->
         <div>
           <button
             phx-click="toggle_section"
@@ -170,25 +170,33 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
             class="flex items-center justify-between w-full text-left"
           >
             <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-              Model Selection 
+              Model Selection
               <%= if @model_filters != [] do %>
                 <span class="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded-full">
-                  <%= length(@model_filters) %> selected
+                  {length(@model_filters)} selected
                 </span>
               <% end %>
             </h4>
-            <svg class={["w-5 h-5 text-gray-400", rotation_class(@expanded_sections.models)]} fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            <svg
+              class={["w-5 h-5 text-gray-400", rotation_class(@expanded_sections.models)]}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
             </svg>
           </button>
-          
+
           <%= if @expanded_sections.models do %>
             <div class="mt-3 space-y-2">
               <%= for model <- @available_models do %>
                 <label class="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    name="models[]" 
+                  <input
+                    type="checkbox"
+                    name="models[]"
                     value={model.id}
                     checked={model.id in @model_filters}
                     phx-change="update_model_filter"
@@ -197,10 +205,13 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
                   />
                   <span class="ml-3 text-sm">
                     <span class="font-medium text-gray-900 dark:text-white">
-                      <%= model.name %>
+                      {model.name}
                     </span>
-                    <span class={["ml-2 px-2 py-1 text-xs rounded", "bg-#{model.color}-100 text-#{model.color}-800"]}>
-                      <%= model.provider %>
+                    <span class={[
+                      "ml-2 px-2 py-1 text-xs rounded",
+                      "bg-#{model.color}-100 text-#{model.color}-800"
+                    ]}>
+                      {model.provider}
                     </span>
                   </span>
                 </label>
@@ -208,8 +219,8 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
             </div>
           <% end %>
         </div>
-
-        <!-- Task Category Filters -->
+        
+    <!-- Task Category Filters -->
         <div>
           <button
             phx-click="toggle_section"
@@ -221,15 +232,23 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
               Task Categories
               <%= if @task_filters != [] do %>
                 <span class="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded-full">
-                  <%= length(@task_filters) %> selected
+                  {length(@task_filters)} selected
                 </span>
               <% end %>
             </h4>
-            <svg class={["w-5 h-5 text-gray-400", rotation_class(@expanded_sections.tasks)]} fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            <svg
+              class={["w-5 h-5 text-gray-400", rotation_class(@expanded_sections.tasks)]}
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
             </svg>
           </button>
-          
+
           <%= if @expanded_sections.tasks do %>
             <div class="mt-3 space-y-4">
               <!-- Repository Filter -->
@@ -240,9 +259,9 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
                 <div class="space-y-2">
                   <%= for repo <- @available_repositories do %>
                     <label class="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        name="tasks[]" 
+                      <input
+                        type="checkbox"
+                        name="tasks[]"
                         value={repo.id}
                         checked={repo.id in @task_filters}
                         phx-change="update_task_filter"
@@ -251,18 +270,18 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
                       />
                       <span class="ml-3 text-sm">
                         <span class="font-medium text-gray-900 dark:text-white">
-                          <%= repo.name %>
+                          {repo.name}
                         </span>
                         <span class="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                          (<%= repo.category %>)
+                          ({repo.category})
                         </span>
                       </span>
                     </label>
                   <% end %>
                 </div>
               </div>
-
-              <!-- Complexity Filter -->
+              
+    <!-- Complexity Filter -->
               <div>
                 <h5 class="text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
                   Complexity
@@ -270,9 +289,9 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
                 <div class="space-y-2">
                   <%= for complexity <- @complexity_levels do %>
                     <label class="flex items-center">
-                      <input 
-                        type="checkbox" 
-                        name="tasks[]" 
+                      <input
+                        type="checkbox"
+                        name="tasks[]"
                         value={complexity.id}
                         checked={complexity.id in @task_filters}
                         phx-change="update_task_filter"
@@ -280,8 +299,11 @@ defmodule SweBenchWeb.Components.Dashboard.FilterPanel do
                         class="rounded border-gray-300 shadow-sm"
                       />
                       <span class="ml-3 text-sm">
-                        <span class={["font-medium", "text-#{complexity.color}-700 dark:text-#{complexity.color}-300"]}>
-                          <%= complexity.name %>
+                        <span class={[
+                          "font-medium",
+                          "text-#{complexity.color}-700 dark:text-#{complexity.color}-300"
+                        ]}>
+                          {complexity.name}
                         </span>
                       </span>
                     </label>

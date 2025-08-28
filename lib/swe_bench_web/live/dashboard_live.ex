@@ -90,7 +90,8 @@ defmodule SweBenchWeb.DashboardLive do
     socket =
       socket
       |> update(:evaluation_results, fn results ->
-        [evaluation_data | results] |> Enum.take(100)  # Keep latest 100
+        # Keep latest 100
+        [evaluation_data | results] |> Enum.take(100)
       end)
       |> update_filtered_results()
 
@@ -120,26 +121,35 @@ defmodule SweBenchWeb.DashboardLive do
                 Public Dashboard
               </span>
             </div>
-            
+
             <nav class="flex space-x-4">
-              <button 
-                phx-click="change_view" 
+              <button
+                phx-click="change_view"
                 phx-value-view="results"
-                class={["px-3 py-2 rounded-md text-sm font-medium", view_button_classes(@current_view == "results")]}
+                class={[
+                  "px-3 py-2 rounded-md text-sm font-medium",
+                  view_button_classes(@current_view == "results")
+                ]}
               >
                 Results
               </button>
-              <button 
-                phx-click="change_view" 
+              <button
+                phx-click="change_view"
                 phx-value-view="comparisons"
-                class={["px-3 py-2 rounded-md text-sm font-medium", view_button_classes(@current_view == "comparisons")]}
+                class={[
+                  "px-3 py-2 rounded-md text-sm font-medium",
+                  view_button_classes(@current_view == "comparisons")
+                ]}
               >
                 Model Comparisons
               </button>
-              <button 
-                phx-click="change_view" 
+              <button
+                phx-click="change_view"
                 phx-value-view="explorer"
-                class={["px-3 py-2 rounded-md text-sm font-medium", view_button_classes(@current_view == "explorer")]}
+                class={[
+                  "px-3 py-2 rounded-md text-sm font-medium",
+                  view_button_classes(@current_view == "explorer")
+                ]}
               >
                 Dataset Explorer
               </button>
@@ -147,12 +157,12 @@ defmodule SweBenchWeb.DashboardLive do
           </div>
         </div>
       </header>
-
-      <!-- Main Content -->
+      
+    <!-- Main Content -->
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Filter Panel -->
-        <.live_component 
-          module={FilterPanel} 
+        <.live_component
+          module={FilterPanel}
           id="filter-panel"
           model_filters={@model_filters}
           task_filters={@task_filters}
@@ -160,10 +170,10 @@ defmodule SweBenchWeb.DashboardLive do
           on_task_filter={&send(self(), {:filter_tasks, &1})}
           on_clear={&send(self(), {:clear_filters, &1})}
         />
-
-        <!-- Content Based on Current View -->
+        
+    <!-- Content Based on Current View -->
         <div class="mt-8">
-          <.view_content 
+          <.view_content
             view={@current_view}
             evaluation_results={@filtered_results || @evaluation_results}
             model_comparisons={@model_comparisons}
@@ -189,9 +199,9 @@ defmodule SweBenchWeb.DashboardLive do
             Real-time evaluation results across all models and tasks
           </p>
         </div>
-        
-        <.live_component 
-          module={ResultsTable} 
+
+        <.live_component
+          module={ResultsTable}
           id="results-table"
           results={@evaluation_results}
           loading={@loading}
@@ -213,9 +223,9 @@ defmodule SweBenchWeb.DashboardLive do
             Interactive comparison charts and analytics across LLM models
           </p>
         </div>
-        
-        <.live_component 
-          module={ModelComparison} 
+
+        <.live_component
+          module={ModelComparison}
           id="model-comparison"
           model_comparisons={@model_comparisons}
           loading={@loading}
@@ -237,7 +247,7 @@ defmodule SweBenchWeb.DashboardLive do
             Explore task instances, validation history, and detailed breakdowns
           </p>
         </div>
-        
+
         <div class="px-6 py-4">
           <p class="text-gray-600 dark:text-gray-400">
             Dataset explorer implementation coming soon...
@@ -274,7 +284,7 @@ defmodule SweBenchWeb.DashboardLive do
         status: :completed
       },
       %{
-        id: "eval_002", 
+        id: "eval_002",
         model: "Claude-3.5-Sonnet",
         provider: "Anthropic",
         repository: "ecto",
@@ -289,7 +299,7 @@ defmodule SweBenchWeb.DashboardLive do
         model: "Gemini-Pro",
         provider: "Google",
         repository: "phoenix_live_view",
-        task_type: "real_time_web", 
+        task_type: "real_time_web",
         complexity: :very_high,
         score: 78.9,
         completed_at: DateTime.add(DateTime.utc_now(), -7200, :second),
@@ -314,7 +324,11 @@ defmodule SweBenchWeb.DashboardLive do
       score_by_repository: %{
         "phoenix" => %{"GPT-4" => 87.5, "Claude-3.5-Sonnet" => 89.2, "Gemini-Pro" => 82.1},
         "ecto" => %{"GPT-4" => 85.3, "Claude-3.5-Sonnet" => 92.3, "Gemini-Pro" => 76.8},
-        "phoenix_live_view" => %{"GPT-4" => 89.7, "Claude-3.5-Sonnet" => 95.1, "Gemini-Pro" => 78.9}
+        "phoenix_live_view" => %{
+          "GPT-4" => 89.7,
+          "Claude-3.5-Sonnet" => 95.1,
+          "Gemini-Pro" => 78.9
+        }
       }
     }
   end
@@ -330,14 +344,16 @@ defmodule SweBenchWeb.DashboardLive do
   end
 
   defp update_filtered_results(socket) do
-    filtered_results = socket.assigns.evaluation_results
-    |> filter_by_models(socket.assigns.model_filters)
-    |> filter_by_tasks(socket.assigns.task_filters)
+    filtered_results =
+      socket.assigns.evaluation_results
+      |> filter_by_models(socket.assigns.model_filters)
+      |> filter_by_tasks(socket.assigns.task_filters)
 
     assign(socket, :filtered_results, filtered_results)
   end
 
   defp filter_by_models(results, []), do: results
+
   defp filter_by_models(results, model_filters) do
     Enum.filter(results, fn result ->
       result.model in model_filters
@@ -345,11 +361,12 @@ defmodule SweBenchWeb.DashboardLive do
   end
 
   defp filter_by_tasks(results, []), do: results
+
   defp filter_by_tasks(results, task_filters) do
     Enum.filter(results, fn result ->
-      result.repository in task_filters or 
-      to_string(result.task_type) in task_filters or
-      to_string(result.complexity) in task_filters
+      result.repository in task_filters or
+        to_string(result.task_type) in task_filters or
+        to_string(result.complexity) in task_filters
     end)
   end
 
@@ -359,15 +376,16 @@ defmodule SweBenchWeb.DashboardLive do
       "tasks" => Enum.join(socket.assigns.task_filters, ",")
     }
 
-    updated_params = case filter_type do
-      :models -> Map.put(current_params, "models", Enum.join(values, ","))
-      :tasks -> Map.put(current_params, "tasks", Enum.join(values, ","))
-    end
+    updated_params =
+      case filter_type do
+        :models -> Map.put(current_params, "models", Enum.join(values, ","))
+        :tasks -> Map.put(current_params, "tasks", Enum.join(values, ","))
+      end
 
-    query_string = updated_params
-    |> Enum.filter(fn {_k, v} -> v != "" end)
-    |> Enum.map(fn {k, v} -> "#{k}=#{URI.encode(v)}" end)
-    |> Enum.join("&")
+    query_string =
+      updated_params
+      |> Enum.filter(fn {_k, v} -> v != "" end)
+      |> Enum.map_join("&", fn {k, v} -> "#{k}=#{URI.encode(v)}" end)
 
     if query_string != "" do
       "/dashboard?" <> query_string

@@ -124,15 +124,15 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
                 Evaluation Management
               </span>
             </div>
-            
+
             <div class="flex items-center space-x-4">
               <div class="text-sm text-red-100">
-                System Status: 
+                System Status:
                 <span class={["font-medium", status_color(@system_status.healthy)]}>
-                  <%= if @system_status.healthy, do: "Healthy", else: "Issues" %>
+                  {if @system_status.healthy, do: "Healthy", else: "Issues"}
                 </span>
               </div>
-              
+
               <.link navigate="/dashboard" class="text-red-100 hover:text-white">
                 Public Dashboard
               </.link>
@@ -140,8 +140,8 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
           </div>
         </div>
       </header>
-
-      <!-- Admin Content -->
+      
+    <!-- Admin Content -->
       <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <!-- Evaluation Submission -->
@@ -152,9 +152,9 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
                   Submit Evaluation
                 </h2>
               </div>
-              
-              <.live_component 
-                module={EvaluationForm} 
+
+              <.live_component
+                module={EvaluationForm}
                 id="evaluation-form"
                 available_models={@available_models}
                 available_repositories={@available_repositories}
@@ -162,8 +162,8 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
               />
             </div>
           </div>
-
-          <!-- Active Evaluations -->
+          
+    <!-- Active Evaluations -->
           <div class="lg:col-span-2">
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
               <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -171,12 +171,12 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
                   Active Evaluations
                 </h2>
                 <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                  <%= length(@active_evaluations) %> running
+                  {length(@active_evaluations)} running
                 </p>
               </div>
-              
-              <.live_component 
-                module={ProgressTracker} 
+
+              <.live_component
+                module={ProgressTracker}
                 id="progress-tracker"
                 active_evaluations={@active_evaluations}
                 on_cancel={&send(self(), {:cancel_evaluation, &1})}
@@ -184,8 +184,8 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
             </div>
           </div>
         </div>
-
-        <!-- Log Streaming -->
+        
+    <!-- Log Streaming -->
         <div class="mt-8">
           <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -193,9 +193,9 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
                 Live System Logs
               </h2>
             </div>
-            
-            <.live_component 
-              module={LogStreamer} 
+
+            <.live_component
+              module={LogStreamer}
               id="log-streamer"
               log_level={:info}
               max_lines={100}
@@ -226,16 +226,28 @@ defmodule SweBenchWeb.Admin.EvaluationLive do
   defp get_available_repositories do
     # Would integrate with actual repository manager
     [
-      "phoenix", "ecto", "jason", "tesla", "credo",
-      "phoenix_live_view", "oban", "broadway", "benchee",
-      "ex_doc", "bamboo", "guardian", "absinthe", "nx", "membrane"
+      "phoenix",
+      "ecto",
+      "jason",
+      "tesla",
+      "credo",
+      "phoenix_live_view",
+      "oban",
+      "broadway",
+      "benchee",
+      "ex_doc",
+      "bamboo",
+      "guardian",
+      "absinthe",
+      "nx",
+      "membrane"
     ]
   end
 
   defp load_admin_data(socket) do
     # Load admin-specific data
     active_evaluations = get_active_evaluations()
-    
+
     assign(socket, :active_evaluations, active_evaluations)
   end
 

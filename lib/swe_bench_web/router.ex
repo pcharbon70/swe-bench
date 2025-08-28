@@ -26,14 +26,12 @@ defmodule SweBenchWeb.Router do
 
     ash_authentication_live_session :authenticated_routes,
       on_mount: {SweBenchWeb.LiveUserAuth, :live_user_optional} do
-      
       # Public dashboard - no authentication required
       live "/dashboard", DashboardLive, :index
     end
 
     ash_authentication_live_session :admin_routes,
       on_mount: {SweBenchWeb.LiveUserAuth, :live_user_required} do
-      
       # Admin evaluation interface - authentication required  
       live "/admin/evaluations", Admin.EvaluationLive, :index
     end
