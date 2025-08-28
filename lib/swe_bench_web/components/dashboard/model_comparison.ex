@@ -329,7 +329,7 @@ defmodule SweBenchWeb.Components.Dashboard.ModelComparison do
     case determine_provider(model) do
       # Green
       "OpenAI" -> "#10B981"
-      # Blue  
+      # Blue
       "Anthropic" -> "#3B82F6"
       # Yellow
       "Google" -> "#F59E0B"
